@@ -1,5 +1,6 @@
 pub mod codec;
 pub mod grid;
+pub mod interleave;
 pub mod levels;
 pub mod markers;
 
