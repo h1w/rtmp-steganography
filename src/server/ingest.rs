@@ -14,38 +14,33 @@ pub fn read_args(input_url: &str, page_url: &str, input_is_hls: bool) -> Vec<Str
     let mut args: Vec<String> = vec![
         "-hide_banner".into(),
         "-loglevel".into(),
-        "error".into(),
+        "warning".into(),
         "-fflags".into(),
-        "nobuffer+discardcorrupt+flush_packets+genpts".into(),
+        "nobuffer+discardcorrupt+flush_packets".into(),
         "-flags".into(),
         "low_delay".into(),
-        "-avioflags".into(),
-        "direct".into(),
         "-probesize".into(),
-        "32k".into(),
+        "500000".into(),
         "-analyzeduration".into(),
-        "0".into(),
+        "500000".into(),
         "-max_delay".into(),
-        "0".into(),
+        "500000".into(),
         "-rtbufsize".into(),
-        "1M".into(),
+        "8M".into(),
         "-reconnect".into(),
         "1".into(),
         "-reconnect_streamed".into(),
-        "1".into(),
-        "-reconnect_at_eof".into(),
         "1".into(),
         "-reconnect_delay_max".into(),
         "2".into(),
     ];
 
     if input_is_hls {
+        // Start from the newest available segment so we land near the live edge.
         args.push("-live_start_index".into());
         args.push("-1".into());
         args.push("-http_persistent".into());
         args.push("1".into());
-        args.push("-m3u8_hold_counters".into());
-        args.push("2".into());
     }
 
     args.push("-user_agent".into());
