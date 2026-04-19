@@ -42,8 +42,43 @@ pub struct GoodputSample {
 }
 
 pub fn aggregate(events_path: &Path) -> std::io::Result<Summary> {
-    let text = std::fs::read_to_string(events_path)?;
+    aggregate_many(&[events_path.to_path_buf()])
+}
+
+/// Aggregate events across multiple jsonl files. Missing files are silently
+/// skipped (returning an empty contribution) so a caller can pass all peers'
+/// events.jsonl + the bench runner's events.jsonl without knowing which exist.
+pub fn aggregate_many(paths: &[std::path::PathBuf]) -> std::io::Result<Summary> {
     let mut s = Summary::default();
+    for p in paths {
+        let text = match std::fs::read_to_string(p) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        ingest_text(&text, &mut s);
+    }
+    Ok(s)
+}
+
+/// Collect all events.jsonl files under `base_dir` (one level deep — i.e.
+/// `base_dir/<run_id>/events.jsonl`). Useful for merging peer-A, peer-B and
+/// bench-runner events from the same bench invocation.
+pub fn collect_events_in_dir(base_dir: &Path) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    let Ok(rd) = std::fs::read_dir(base_dir) else { return out; };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.is_dir() {
+            let ev = p.join("events.jsonl");
+            if ev.exists() {
+                out.push(ev);
+            }
+        }
+    }
+    out
+}
+
+fn ingest_text(text: &str, s: &mut Summary) {
     for line in text.lines() {
         let v: Value = match serde_json::from_str(line) { Ok(v) => v, _ => continue };
         s.events_seen += 1;
@@ -90,7 +125,6 @@ pub fn aggregate(events_path: &Path) -> std::io::Result<Summary> {
             _ => {}
         }
     }
-    Ok(s)
 }
 
 pub fn write_summary_json(s: &Summary, out: &Path) -> std::io::Result<()> {

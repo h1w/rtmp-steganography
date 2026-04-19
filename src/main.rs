@@ -47,11 +47,19 @@ fn run_bench(cmd: BenchCmd) -> Result<()> {
                 ).await;
                 // Flush by dropping the emitter before reading events back.
                 drop(em);
-                let s = bench::report::aggregate(&dir.join("events.jsonl"))?;
+                // Merge: bench-runner events + all peer events under metrics_dir
+                // (each peer writes into its own <run_id>/events.jsonl).
+                let mut paths = vec![dir.join("events.jsonl")];
+                paths.extend(bench::report::collect_events_in_dir(&metrics_dir));
+                paths.sort();
+                paths.dedup();
+                let s = bench::report::aggregate_many(&paths)?;
                 bench::report::write_summary_json(&s, &dir.join("summary.json"))?;
                 let summary = std::fs::read_to_string(dir.join("summary.json"))?;
                 println!("\n===== BENCH SMOKE SUMMARY =====");
                 println!("metrics dir: {}", dir.display());
+                println!("merged events from:");
+                for p in &paths { println!("  - {}", p.display()); }
                 println!("{}", summary);
                 Ok::<(), anyhow::Error>(())
             }
@@ -105,9 +113,20 @@ fn run_bench(cmd: BenchCmd) -> Result<()> {
 
 fn run_report(cmd: ReportCmd) -> Result<()> {
     match cmd {
-        ReportCmd::Summarize { events, out } => {
-            let s = bench::report::aggregate(&events)?;
+        ReportCmd::Summarize { events, out, metrics_dir } => {
+            let mut paths: Vec<std::path::PathBuf> = events;
+            if let Some(dir) = metrics_dir.as_ref() {
+                paths.extend(bench::report::collect_events_in_dir(dir));
+            }
+            if paths.is_empty() {
+                return Err(anyhow::anyhow!("report summarize: no events files — pass paths or --metrics-dir"));
+            }
+            paths.sort();
+            paths.dedup();
+            let s = bench::report::aggregate_many(&paths)?;
             bench::report::write_summary_json(&s, &out)?;
+            println!("[report] merged {} event file(s) -> {}", paths.len(), out.display());
+            for p in &paths { println!("  - {}", p.display()); }
             Ok(())
         }
     }

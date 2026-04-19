@@ -81,9 +81,14 @@ pub enum ProfileArg { Throughput, Latency, Both }
 
 #[derive(clap::Subcommand, Debug)]
 pub enum ReportCmd {
+    /// Aggregate one or more events.jsonl into a single summary.json.
+    /// Pass individual files, or use --metrics-dir to merge every peer and
+    /// bench-runner run under that directory into one centralised summary.
     Summarize {
-        events: std::path::PathBuf,
+        #[arg(required = false)]
+        events: Vec<std::path::PathBuf>,
         #[arg(long)] out: std::path::PathBuf,
+        #[arg(long)] metrics_dir: Option<std::path::PathBuf>,
     },
 }
 
