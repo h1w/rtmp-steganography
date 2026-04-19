@@ -1,4 +1,5 @@
 pub mod codec;
+pub mod fec;
 pub mod grid;
 pub mod interleave;
 pub mod levels;
