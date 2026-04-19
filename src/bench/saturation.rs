@@ -51,8 +51,11 @@ pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
 }
 
 async fn run_iperf(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitter>) -> bool {
-    // iperf3 has no native SOCKS5 — wrap with proxychains4 on $PATH.
-    let out = Command::new("proxychains4")
+    // iperf3 has no native SOCKS5 — wrap with proxychains on $PATH.
+    // Note: proxychains-windows uses the name `proxychains` (the Linux build
+    // ships as `proxychains4`; override via PROXYCHAINS_BIN env if needed).
+    let bin = std::env::var("PROXYCHAINS_BIN").unwrap_or_else(|_| "proxychains".to_string());
+    let out = Command::new(&bin)
         .args([
             "-q",
             "iperf3",
