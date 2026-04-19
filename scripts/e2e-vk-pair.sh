@@ -15,6 +15,15 @@ cd "$(dirname "$0")/.."
 DURATION="${DURATION:-60}"
 LOG_A="$(mktemp)"
 LOG_B="$(mktemp)"
+BAK=".env.bak.$$"
+
+# Move the default .env aside so dotenvy::dotenv() doesn't clobber our
+# per-peer env vars on startup. Restore on exit.
+if [ -f .env ]; then mv .env "$BAK"; fi
+restore_env() {
+    if [ -f "$BAK" ]; then mv "$BAK" .env 2>/dev/null || true; fi
+}
+trap restore_env EXIT
 
 echo "[e2e-pair] logs: A=$LOG_A  B=$LOG_B"
 echo "[e2e-pair] duration: ${DURATION}s"
@@ -24,9 +33,13 @@ cargo build --release
 start_peer() {
     local env_file="$1"
     local log="$2"
-    env -i PATH="$PATH" HOME="$HOME" TEMP="${TEMP:-/tmp}" TMP="${TMP:-/tmp}" \
-        bash -c "set -a; source '$env_file'; set +a; exec ./target/release/rtmp-steganography peer" \
-        > "$log" 2>&1 &
+    (
+        set -a
+        # shellcheck disable=SC1090
+        source "$env_file"
+        set +a
+        exec ./target/release/rtmp-steganography peer
+    ) > "$log" 2>&1 &
     echo $!
 }
 
@@ -46,12 +59,14 @@ wait 2>/dev/null || true
 summarize() {
     local label="$1"
     local log="$2"
-    local sent rcvd drops pilot_fail
+    local sent rcvd drops pilot_fail hdr_fail crc_fail
     sent=$(grep -c 'time_sync ts=' "$log" || true)
     rcvd=$(grep -c '\[app\] time_sync' "$log" || true)
     drops=$(grep -c 'dropped:' "$log" || true)
     pilot_fail=$(grep -c 'PilotValidationFailed' "$log" || true)
-    echo "[e2e-pair] peer $label: sent=$sent rcvd=$rcvd drops=$drops pilot_fail=$pilot_fail"
+    hdr_fail=$(grep -c 'HeaderRsFailed' "$log" || true)
+    crc_fail=$(grep -c 'PayloadCrcMismatch' "$log" || true)
+    echo "[e2e-pair] peer $label: sent=$sent rcvd=$rcvd drops=$drops pilot_fail=$pilot_fail hdr_fail=$hdr_fail crc_fail=$crc_fail"
     if [ "$sent" -gt 0 ]; then
         echo "[e2e-pair] peer $label: delivery = $(( 100 * rcvd / sent ))%"
     fi
