@@ -4,6 +4,8 @@
 
 A single peer publishes to your own VK Live channel and reads the same channel back, validating the full pipeline: flicker encode → x264 → RTMP → VK ingest → HLS output → ffmpeg demux → flicker decode.
 
+> **Why Level D is the authoritative gate:** Level C (`cargo test --features ffmpeg-integration`) runs libx264 locally at **1500 kbit/s**, which is enough headroom that the pixel-domain cells survive without issue. Production publishing is **300 kbit/s** (`src/peer/ffmpeg_publish.rs`), and VK may re-encode at any rate it chooses. Level D is the only place where the full real-world BER is exercised end-to-end — a passing Level C does **not** guarantee a passing Level D.
+
 ## Prerequisites
 
 1. VK Live account with an active stream slot.
