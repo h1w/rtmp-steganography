@@ -1,0 +1,127 @@
+//! Bench 2 — saturation ramp with retx heuristic.
+
+use std::net::SocketAddr;
+use std::sync::Arc;
+use std::time::Duration;
+
+use tokio::process::Command;
+use crate::tunnel::metrics::{Event, EventEmitter};
+
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub socks: SocketAddr,
+    pub iperf_host: String,
+    pub iperf_port: u16,
+    pub profile_label: &'static str,
+}
+
+const RAMP_KBPS: &[u32] = &[10, 20, 50, 100, 200];
+const STEP_SECS: u64 = 30;
+const HOLD_SECS: u64 = 60;
+
+pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
+    // Warm-up
+    tokio::time::sleep(Duration::from_secs(10)).await;
+
+    let mut saturation_kbps: Option<u32> = None;
+    for &rate in RAMP_KBPS {
+        em.emit(Event::new("bench", "saturation_step")
+            .field("profile", cfg.profile_label)
+            .field("rate_kbps", rate as i64));
+        let saturated = run_iperf(&cfg, rate, STEP_SECS, &em).await;
+        if saturated {
+            saturation_kbps = Some(rate);
+            em.emit(Event::new("bench", "saturation_hold")
+                .field("profile", cfg.profile_label)
+                .field("rate_kbps", rate as i64));
+            run_iperf(&cfg, rate, HOLD_SECS, &em).await;
+            break;
+        }
+    }
+
+    match saturation_kbps {
+        Some(kbps) => em.emit(Event::new("bench", "saturation_result")
+            .field("profile", cfg.profile_label)
+            .field("saturation_point", kbps as i64)),
+        None => em.emit(Event::new("bench", "saturation_result")
+            .field("profile", cfg.profile_label)
+            .field("saturation_point", serde_json::Value::Null)
+            .field("reason", "ramp_ceiling_reached")),
+    }
+}
+
+async fn run_iperf(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitter>) -> bool {
+    // iperf3 has no native SOCKS5 — wrap with proxychains4 on $PATH.
+    let out = Command::new("proxychains4")
+        .args([
+            "-q",
+            "iperf3",
+            "-c", &cfg.iperf_host,
+            "-p", &cfg.iperf_port.to_string(),
+            "-t", &secs.to_string(),
+            "-b", &format!("{}k", rate_kbps),
+            "-J",
+        ])
+        .output().await;
+
+    match out {
+        Ok(o) if o.status.success() => {
+            em.emit(Event::new("bench", "iperf3")
+                .field("rate_kbps", rate_kbps as i64)
+                .field("duration_s", secs as i64)
+                .field("ok", true)
+                .field("json_len", o.stdout.len() as i64));
+            retx_predicate(&o.stdout)
+        }
+        Ok(o) => {
+            em.emit(Event::new("bench", "iperf3")
+                .field("rate_kbps", rate_kbps as i64)
+                .field("ok", false)
+                .field("exit_code", o.status.code().unwrap_or(-1) as i64));
+            true
+        }
+        Err(e) => {
+            em.emit(Event::new("bench", "iperf3")
+                .field("rate_kbps", rate_kbps as i64)
+                .field("ok", false)
+                .field("err", e.to_string()));
+            true
+        }
+    }
+}
+
+/// Heuristic: >2 retransmits per MB sent is treated as saturation.
+/// Parses iperf3 --json output (key: end.sum_sent).
+fn retx_predicate(json_bytes: &[u8]) -> bool {
+    let v: serde_json::Value = match serde_json::from_slice(json_bytes) {
+        Ok(v) => v,
+        _ => return false,
+    };
+    let Some(sum) = v.pointer("/end/sum_sent") else { return false; };
+    let retr = sum.get("retransmits").and_then(|x| x.as_u64()).unwrap_or(0);
+    let sent_b = sum.get("bytes").and_then(|x| x.as_u64()).unwrap_or(1);
+    let mb = (sent_b / 1_000_000).max(1);
+    (retr / mb) > 2
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn retx_predicate_fires_above_threshold() {
+        let json = br#"{"end":{"sum_sent":{"bytes":1000000,"retransmits":3}}}"#;
+        assert!(retx_predicate(json));
+    }
+
+    #[test]
+    fn retx_predicate_holds_below_threshold() {
+        let json = br#"{"end":{"sum_sent":{"bytes":1000000,"retransmits":1}}}"#;
+        assert!(!retx_predicate(json));
+    }
+
+    #[test]
+    fn retx_predicate_tolerates_malformed_json() {
+        assert!(!retx_predicate(b"not json"));
+    }
+}
