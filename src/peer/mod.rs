@@ -1,3 +1,5 @@
+pub mod ffmpeg_publish;
+
 use anyhow::Result;
 use crate::config::PeerConfig;
 
