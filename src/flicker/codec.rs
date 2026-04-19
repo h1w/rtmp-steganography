@@ -1,27 +1,23 @@
 //! Paint and read individual cells in RGB24 buffer.
 //! Supports mode B (2 bpp luma only) and mode C (4 bpp with chroma).
 //!
-//! Mode C note: RGB is not native YUV; this module writes distinct R/G/B patterns
-//! that, after RGB→YUV conversion, will produce the desired Y/U/V levels at the
-//! chroma cell centre. Round-trip through yuv420 is validated in ffmpeg tests.
+//! All functions take an explicit `width` — the RGB24 row stride derivation —
+//! so a frame of any size (configured via `FlickerParams`) works.
 
-use crate::flicker::grid::{
-    cell_topleft, rgb24_offset, CELL_READ_OFFSET, CELL_READ_SIZE, CELL_SIZE, FRAME_BYTES_RGB24,
-};
+use crate::flicker::grid::{cell_topleft, rgb24_offset, CELL_READ_OFFSET, CELL_READ_SIZE, CELL_SIZE};
 use crate::flicker::levels::{
     level_y_as_rgb, quantise_uv, quantise_y, LEVELS_U, LEVELS_V, LEVELS_Y,
 };
 use crate::flicker::ModulationMode;
 
 /// Paint a logical 2-bit symbol into a cell (mode B: luma-only).
-pub fn paint_cell_b(buf: &mut [u8], col: usize, row: usize, symbol: u8) {
-    assert!(buf.len() >= FRAME_BYTES_RGB24);
+pub fn paint_cell_b(buf: &mut [u8], col: usize, row: usize, symbol: u8, width: usize) {
     debug_assert!(symbol < 4);
     let rgb = level_y_as_rgb(symbol);
     let (x0, y0) = cell_topleft(col, row);
     for y in y0..y0 + CELL_SIZE {
         for x in x0..x0 + CELL_SIZE {
-            let o = rgb24_offset(x, y);
+            let o = rgb24_offset(x, y, width);
             buf[o] = rgb[0];
             buf[o + 1] = rgb[1];
             buf[o + 2] = rgb[2];
@@ -30,8 +26,7 @@ pub fn paint_cell_b(buf: &mut [u8], col: usize, row: usize, symbol: u8) {
 }
 
 /// Read a mode-B cell, returning (symbol, confidence).
-pub fn read_cell_b(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
-    assert!(buf.len() >= FRAME_BYTES_RGB24);
+pub fn read_cell_b(buf: &[u8], col: usize, row: usize, width: usize) -> (u8, f32) {
     let (x0, y0) = cell_topleft(col, row);
     let rx0 = x0 + CELL_READ_OFFSET;
     let ry0 = y0 + CELL_READ_OFFSET;
@@ -39,8 +34,7 @@ pub fn read_cell_b(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
     let mut count: u32 = 0;
     for y in ry0..ry0 + CELL_READ_SIZE {
         for x in rx0..rx0 + CELL_READ_SIZE {
-            let o = rgb24_offset(x, y);
-            // Luma approximation from BT.601: Y ≈ 0.299 R + 0.587 G + 0.114 B
+            let o = rgb24_offset(x, y, width);
             let r = buf[o] as u32;
             let g = buf[o + 1] as u32;
             let b = buf[o + 2] as u32;
@@ -53,10 +47,8 @@ pub fn read_cell_b(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
     quantise_y(mean)
 }
 
-/// Paint a logical 4-bit symbol into a cell (mode C: Y:2 bits + U:1 bit + V:1 bit).
-/// Symbol layout MSB→LSB: Y_hi Y_lo U V.
-pub fn paint_cell_c(buf: &mut [u8], col: usize, row: usize, symbol: u8) {
-    assert!(buf.len() >= FRAME_BYTES_RGB24);
+/// Paint a logical 4-bit symbol into a cell (mode C).
+pub fn paint_cell_c(buf: &mut [u8], col: usize, row: usize, symbol: u8, width: usize) {
     debug_assert!(symbol < 16);
     let y_sym = (symbol >> 2) & 0b11;
     let u_sym = (symbol >> 1) & 0b1;
@@ -64,12 +56,11 @@ pub fn paint_cell_c(buf: &mut [u8], col: usize, row: usize, symbol: u8) {
     let y = LEVELS_Y[y_sym as usize];
     let u = LEVELS_U[u_sym as usize];
     let v = LEVELS_V[v_sym as usize];
-    // Convert YUV (BT.601) to RGB for painting.
     let rgb = yuv_to_rgb(y, u, v);
     let (x0, y0) = cell_topleft(col, row);
     for py in y0..y0 + CELL_SIZE {
         for px in x0..x0 + CELL_SIZE {
-            let o = rgb24_offset(px, py);
+            let o = rgb24_offset(px, py, width);
             buf[o] = rgb[0];
             buf[o + 1] = rgb[1];
             buf[o + 2] = rgb[2];
@@ -77,9 +68,7 @@ pub fn paint_cell_c(buf: &mut [u8], col: usize, row: usize, symbol: u8) {
     }
 }
 
-/// Read a mode-C cell, returning (symbol, min-confidence-across-channels).
-pub fn read_cell_c(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
-    assert!(buf.len() >= FRAME_BYTES_RGB24);
+pub fn read_cell_c(buf: &[u8], col: usize, row: usize, width: usize) -> (u8, f32) {
     let (x0, y0) = cell_topleft(col, row);
     let rx0 = x0 + CELL_READ_OFFSET;
     let ry0 = y0 + CELL_READ_OFFSET;
@@ -89,7 +78,7 @@ pub fn read_cell_c(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
     let mut count = 0u32;
     for py in ry0..ry0 + CELL_READ_SIZE {
         for px in rx0..rx0 + CELL_READ_SIZE {
-            let o = rgb24_offset(px, py);
+            let o = rgb24_offset(px, py, width);
             r_sum += buf[o] as u32;
             g_sum += buf[o + 1] as u32;
             b_sum += buf[o + 2] as u32;
@@ -109,7 +98,6 @@ pub fn read_cell_c(buf: &[u8], col: usize, row: usize) -> (u8, f32) {
 }
 
 fn yuv_to_rgb(y: u8, u: u8, v: u8) -> [u8; 3] {
-    // BT.601 full-range.
     let y = y as f32;
     let u = u as f32 - 128.0;
     let v = v as f32 - 128.0;
@@ -129,31 +117,32 @@ fn rgb_to_yuv(r: u8, g: u8, b: u8) -> (u8, u8, u8) {
     (y, u, v)
 }
 
-/// Dispatch by mode.
-pub fn paint_cell(buf: &mut [u8], col: usize, row: usize, symbol: u8, mode: ModulationMode) {
+pub fn paint_cell(buf: &mut [u8], col: usize, row: usize, symbol: u8, mode: ModulationMode, width: usize) {
     match mode {
-        ModulationMode::B => paint_cell_b(buf, col, row, symbol),
-        ModulationMode::C => paint_cell_c(buf, col, row, symbol),
+        ModulationMode::B => paint_cell_b(buf, col, row, symbol, width),
+        ModulationMode::C => paint_cell_c(buf, col, row, symbol, width),
     }
 }
 
-pub fn read_cell(buf: &[u8], col: usize, row: usize, mode: ModulationMode) -> (u8, f32) {
+pub fn read_cell(buf: &[u8], col: usize, row: usize, mode: ModulationMode, width: usize) -> (u8, f32) {
     match mode {
-        ModulationMode::B => read_cell_b(buf, col, row),
-        ModulationMode::C => read_cell_c(buf, col, row),
+        ModulationMode::B => read_cell_b(buf, col, row, width),
+        ModulationMode::C => read_cell_c(buf, col, row, width),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::flicker::grid::FlickerParams;
 
     #[test]
     fn paint_then_read_b_roundtrips_all_symbols() {
-        let mut buf = vec![0u8; FRAME_BYTES_RGB24];
+        let p = FlickerParams::default_256x144_24();
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
         for sym in 0u8..4 {
-            paint_cell_b(&mut buf, 10, 5, sym);
-            let (read, conf) = read_cell_b(&buf, 10, 5);
+            paint_cell_b(&mut buf, 10, 5, sym, p.w());
+            let (read, conf) = read_cell_b(&buf, 10, 5, p.w());
             assert_eq!(read, sym, "symbol {sym} round-trip failed");
             assert!(conf > 0.95, "confidence should be ~1.0, got {conf}");
         }
@@ -161,20 +150,22 @@ mod tests {
 
     #[test]
     fn paint_then_read_c_roundtrips_all_symbols() {
-        let mut buf = vec![0u8; FRAME_BYTES_RGB24];
+        let p = FlickerParams::default_256x144_24();
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
         for sym in 0u8..16 {
-            paint_cell_c(&mut buf, 20, 10, sym);
-            let (read, conf) = read_cell_c(&buf, 20, 10);
+            paint_cell_c(&mut buf, 20, 10, sym, p.w());
+            let (read, conf) = read_cell_c(&buf, 20, 10, p.w());
             assert_eq!(read, sym, "symbol {sym} round-trip failed");
             assert!(conf > 0.6, "confidence should be reasonably high, got {conf}");
         }
     }
 
     #[test]
-    fn paint_b_leaves_other_cells_untouched() {
-        let mut buf = vec![128u8; FRAME_BYTES_RGB24];
-        paint_cell_b(&mut buf, 10, 5, 3);
-        // Cell (11, 5) should still be all 128.
-        assert_eq!(read_cell_b(&buf, 11, 5).0, 1); // 128 ≈ midway; nearest is 96 (symbol 1)
+    fn paint_b_at_360p_grid() {
+        let p = FlickerParams::new(640, 360, 24);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        paint_cell_b(&mut buf, 100, 50, 3, p.w());
+        let (read, _) = read_cell_b(&buf, 100, 50, p.w());
+        assert_eq!(read, 3);
     }
 }

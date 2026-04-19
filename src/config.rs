@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 
+use crate::flicker::grid::{FlickerParams, DEFAULT_FPS, DEFAULT_FRAME_H, DEFAULT_FRAME_W};
 use crate::flicker::ModulationMode;
 use crate::peer::DEFAULT_RX_WARMUP_MS;
 
@@ -13,6 +14,16 @@ pub struct PeerConfig {
     pub frag_timeout_ms: u64,
     pub rx_warmup_ms: u64,
     pub log_every_frame: bool,
+    /// Frames per second at which the tx thread emits flicker frames and at
+    /// which ffmpeg publishes to RTMP / reads HLS. Defaults to the compile-time
+    /// flicker grid FPS. The flicker codec itself doesn't care about wall-clock
+    /// cadence as long as tx and rx both agree on this value.
+    pub flicker_fps: u32,
+    /// Output video resolution on the RTMP/HLS wire. The internal flicker grid
+    /// is always 256x144 — ffmpeg upscales to this on publish and downscales
+    /// back on read. Defaults to the native 256x144 (no scaling).
+    pub stream_width: u32,
+    pub stream_height: u32,
 }
 
 pub fn load_peer() -> Result<PeerConfig> {
@@ -25,6 +36,9 @@ pub fn load_peer() -> Result<PeerConfig> {
         frag_timeout_ms: env_u64("flicker_frag_timeout_ms")?.unwrap_or(2000),
         rx_warmup_ms: env_u64("peer_rx_warmup_ms")?.unwrap_or(DEFAULT_RX_WARMUP_MS),
         log_every_frame: env_flag("flicker_log_every_frame"),
+        flicker_fps: env_u64("peer_flicker_fps")?.unwrap_or(DEFAULT_FPS as u64) as u32,
+        stream_width:  env_u64("peer_stream_width")?.unwrap_or(DEFAULT_FRAME_W as u64) as u32,
+        stream_height: env_u64("peer_stream_height")?.unwrap_or(DEFAULT_FRAME_H as u64) as u32,
     })
 }
 
@@ -84,6 +98,7 @@ mod tests {
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: ModulationMode::B, frag_timeout_ms: 2000,
             rx_warmup_ms: 0, log_every_frame: false,
+            flicker_fps: 24, stream_width: 256, stream_height: 144,
         };
         assert!(validate_tx(&c).is_err());
         c.my_rtmp_url = "rtmp://x".into();
