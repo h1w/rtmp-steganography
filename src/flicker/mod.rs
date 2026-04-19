@@ -3,6 +3,7 @@ pub mod grid;
 pub mod interleave;
 pub mod levels;
 pub mod markers;
+pub mod pilot;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ModulationMode {
