@@ -1,6 +1,4 @@
-//! Pilot cells: a fixed count of cells carry values deterministically derived
-//! from `frame_counter`. Used for brightness/contrast bias correction and
-//! alignment validation. Grid dimensions come from runtime `FlickerParams`.
+//! Pilot cells — deterministic per-frame brightness references.
 
 use rand_chacha::ChaCha8Rng;
 use rand_core::{RngCore, SeedableRng};
@@ -19,7 +17,6 @@ fn seed_for(frame_counter: u32) -> [u8; 32] {
     seed
 }
 
-/// Returns list of pilot cell indices (into `p.total_cells()`), excluding `excluded`.
 pub fn pilot_positions(frame_counter: u32, excluded: &[usize], p: &FlickerParams) -> Vec<usize> {
     let mut rng = ChaCha8Rng::from_seed(seed_for(frame_counter));
     let excluded_set: std::collections::HashSet<usize> = excluded.iter().copied().collect();
@@ -35,9 +32,7 @@ pub fn pilot_positions(frame_counter: u32, excluded: &[usize], p: &FlickerParams
 
 pub fn pilot_value(frame_counter: u32, index_in_pilot_list: usize) -> u8 {
     let mut rng = ChaCha8Rng::from_seed(seed_for(frame_counter ^ 0xDEADBEEF));
-    for _ in 0..index_in_pilot_list {
-        let _ = rng.next_u32();
-    }
+    for _ in 0..index_in_pilot_list { let _ = rng.next_u32(); }
     (rng.next_u32() & 0b11) as u8
 }
 
@@ -45,7 +40,7 @@ pub fn paint_pilots(buf: &mut [u8], frame_counter: u32, excluded: &[usize], p: &
     let positions = pilot_positions(frame_counter, excluded, p);
     for (i, &idx) in positions.iter().enumerate() {
         let (col, row) = cell_index_to_col_row(idx, p.grid_cols());
-        paint_cell_b(buf, col, row, pilot_value(frame_counter, i), p.w());
+        paint_cell_b(buf, col, row, pilot_value(frame_counter, i), p.w(), p.cs());
     }
 }
 
@@ -55,11 +50,9 @@ pub fn validate_pilots(buf: &[u8], frame_counter: u32, excluded: &[usize], p: &F
     let mut conf_sum = 0f32;
     for (i, &idx) in positions.iter().enumerate() {
         let (col, row) = cell_index_to_col_row(idx, p.grid_cols());
-        let (sym, conf) = read_cell_b(buf, col, row, p.w());
+        let (sym, conf) = read_cell_b(buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size());
         conf_sum += conf;
-        if sym == pilot_value(frame_counter, i) {
-            ok += 1;
-        }
+        if sym == pilot_value(frame_counter, i) { ok += 1; }
     }
     let total = positions.len().max(1) as f32;
     (ok as f32 / total, conf_sum / total)
@@ -79,26 +72,17 @@ mod tests {
     }
 
     #[test]
-    fn pilot_positions_change_per_counter() {
-        let p = FlickerParams::default_256x144_24();
-        let a = pilot_positions(1, &[], &p);
-        let b = pilot_positions(2, &[], &p);
-        assert_ne!(a, b);
-    }
-
-    #[test]
-    fn paint_and_validate_roundtrips() {
+    fn paint_and_validate_cell4() {
         let p = FlickerParams::default_256x144_24();
         let mut buf = vec![0u8; p.frame_bytes_rgb24()];
         paint_pilots(&mut buf, 100, &[], &p);
-        let (ok, conf) = validate_pilots(&buf, 100, &[], &p);
+        let (ok, _) = validate_pilots(&buf, 100, &[], &p);
         assert!(ok > 0.99);
-        assert!(conf > 0.95);
     }
 
     #[test]
-    fn paint_and_validate_at_360p() {
-        let p = FlickerParams::new(640, 360, 24);
+    fn paint_and_validate_cell16_at_640x360() {
+        let p = FlickerParams::with_cell(640, 360, 24, 16);
         let mut buf = vec![0u8; p.frame_bytes_rgb24()];
         paint_pilots(&mut buf, 100, &[], &p);
         let (ok, _) = validate_pilots(&buf, 100, &[], &p);

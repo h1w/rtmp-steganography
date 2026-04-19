@@ -24,14 +24,16 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
         "scale={}:{}:flags=neighbor,format=yuv420p",
         opts.stream_width, opts.stream_height
     );
-    // Bitrate proportional to pixel area × fps. Anchor: 256×144@24 → 500 kbps
-    // (empirically verified carriable through VK transcode while keeping cell
-    // quantisation intact). Scale linearly with resolution so 640×360@24 gets
-    // ~3.1 Mbps — enough headroom for libx264 to keep 4×4 cells crisp without
-    // blurring them together under low-bitrate CBR.
+    // Bitrate: sqrt-scaled with pixel count, capped at VK-safe ceilings.
+    // VK Live rejects ingests that exceed its per-slot bitrate expectation
+    // (observed: at 3.1 Mbps on a 640x360 slot the stream stays offline).
+    // Anchor: 256x144@24 -> 500 kbps. 640x360@24 -> ~1250 kbps. 720p@24 -> ~2 Mbps.
+    // Formula: sqrt(pixels * fps / anchor) * 500.
     let pixels = opts.stream_width as u64 * opts.stream_height as u64;
-    let kbps_u64 = (pixels * opts.fps as u64 * 500) / (256 * 144 * 24);
-    let kbps = kbps_u64.max(500) as u32;
+    let anchor = 256u64 * 144 * 24;
+    let ratio = ((pixels * opts.fps as u64) as f64 / anchor as f64).sqrt();
+    let kbps = (500.0 * ratio).round() as u32;
+    let kbps = kbps.clamp(500, 2000);
     let bv_arg = format!("{}k", kbps);
     let bufsize_arg = format!("{}k", kbps * 2);
 

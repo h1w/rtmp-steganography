@@ -18,16 +18,22 @@ pub const PILOT_CONFIDENCE_THRESHOLD: f32 = 0.5;
 pub const PILOT_SUCCESS_MIN: f32 = 0.80;
 
 /// Compute cell indices occupied by corner markers for the given params.
+/// Markers are always 16×16 px regardless of cell_size — we floor/ceil to
+/// whatever cells they overlap.
 pub fn marker_cell_indices(p: &FlickerParams) -> Vec<usize> {
     let mut out = Vec::new();
+    let cs = p.cs();
+    let marker_cells_per_side = ((MARKER_SIZE + cs - 1) / cs).max(1);
     for (cx, cy) in marker_centers(p).iter() {
-        let x0 = (*cx - MARKER_SIZE as i32 / 2) as usize;
-        let y0 = (*cy - MARKER_SIZE as i32 / 2) as usize;
-        for dy in 0..MARKER_SIZE / 4 {
-            for dx in 0..MARKER_SIZE / 4 {
-                let col = (x0 / 4) + dx;
-                let row = (y0 / 4) + dy;
-                out.push(col_row_to_cell_index(col, row, p.grid_cols()));
+        let x0 = (*cx - MARKER_SIZE as i32 / 2).max(0) as usize;
+        let y0 = (*cy - MARKER_SIZE as i32 / 2).max(0) as usize;
+        for dy in 0..marker_cells_per_side {
+            for dx in 0..marker_cells_per_side {
+                let col = (x0 / cs) + dx;
+                let row = (y0 / cs) + dy;
+                if col < p.grid_cols() && row < p.grid_rows() {
+                    out.push(col_row_to_cell_index(col, row, p.grid_cols()));
+                }
             }
         }
     }
@@ -146,14 +152,14 @@ impl FrameEncoder {
         for (i, &idx) in pilot_list.iter().enumerate() {
             let (col, row) = cell_index_to_col_row(idx, self.params.grid_cols());
             let sym = crate::flicker::pilot::pilot_value(self.frame_counter, i);
-            crate::flicker::codec::paint_cell_b(out_buf, col, row, sym, self.params.w());
+            crate::flicker::codec::paint_cell_b(out_buf, col, row, sym, self.params.w(), self.params.cs());
         }
 
         for (byte_idx, &byte) in header_bytes.iter().enumerate() {
             for bit_pair in 0..4 {
                 let symbol = (byte >> (2 * (3 - bit_pair))) & 0b11;
                 let (col, row) = header_perm[byte_idx * 4 + bit_pair];
-                crate::flicker::codec::paint_cell_b(out_buf, col, row, symbol, self.params.w());
+                crate::flicker::codec::paint_cell_b(out_buf, col, row, symbol, self.params.w(), self.params.cs());
             }
         }
 
@@ -167,7 +173,7 @@ impl FrameEncoder {
                 let cell_pos = byte_idx * cells_per_byte + unit;
                 if cell_pos >= payload_perm.len() { break; }
                 let (col, row) = payload_perm[cell_pos];
-                paint_cell(out_buf, col, row, symbol, self.mode, self.params.w());
+                paint_cell(out_buf, col, row, symbol, self.mode, self.params.w(), self.params.cs());
             }
         }
         self.frame_counter = self.frame_counter.wrapping_add(1);
@@ -213,7 +219,7 @@ impl FrameDecoder {
             let mut byte_confidence_min = 1.0f32;
             for bit_pair in 0..4 {
                 let (col, row) = header_perm[byte_idx * 4 + bit_pair];
-                let (sym, conf) = read_cell(buf, col, row, ModulationMode::B, p.w());
+                let (sym, conf) = read_cell(buf, col, row, ModulationMode::B, p.w(), p.cs(), p.read_offset(), p.read_size());
                 byte = (byte << 2) | (sym & 0b11);
                 byte_confidence_min = byte_confidence_min.min(conf);
             }
@@ -260,7 +266,7 @@ impl FrameDecoder {
                     let cell_pos = (block_i * RS_BLOCK_N + byte_i) * cells_per_byte + unit;
                     if cell_pos >= payload_perm.len() { break; }
                     let (col, row) = payload_perm[cell_pos];
-                    let (sym, conf) = read_cell(buf, col, row, mode, p.w());
+                    let (sym, conf) = read_cell(buf, col, row, mode, p.w(), p.cs(), p.read_offset(), p.read_size());
                     let bits = match mode { ModulationMode::B => 2, ModulationMode::C => 4 };
                     byte = (byte << bits) | (sym & ((1 << bits) - 1));
                     min_conf = min_conf.min(conf);

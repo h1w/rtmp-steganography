@@ -133,7 +133,7 @@ fn sleep_backoff(prev_ms: u64) -> u64 {
 
 fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<AtomicBool>) -> Result<()> {
     let rtmp_url = format!("{}/{}", cfg.my_rtmp_url.trim_end_matches('/'), cfg.my_stream_key);
-    let params = FlickerParams::new(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1));
+    let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
     if let Err(e) = params.validate() { return Err(anyhow::anyhow!("flicker params: {e}")); }
     let fps = cfg.flicker_fps.max(1);
     let mut backoff_ms = RETRY_INITIAL_MS;
@@ -253,7 +253,7 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
 fn rx_thread(cfg: PeerConfig, inbound: Sender<InboundMessage>, running: Arc<AtomicBool>) -> Result<()> {
     let page_url = format!("https://live.vkvideo.ru/{}/stream/{}", cfg.their_vk_channel, cfg.their_stream_name);
     let warmup_ms = cfg.rx_warmup_ms;
-    let params = FlickerParams::new(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1));
+    let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
     let fps = cfg.flicker_fps.max(1);
     let mut backoff_ms = RETRY_INITIAL_MS;
     let mut buf = vec![0u8; params.frame_bytes_rgb24()];

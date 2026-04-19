@@ -24,6 +24,9 @@ pub struct PeerConfig {
     /// back on read. Defaults to the native 256x144 (no scaling).
     pub stream_width: u32,
     pub stream_height: u32,
+    /// Flicker cell size in pixels. Larger cells survive lossy codec
+    /// quantisation better at the cost of grid density and capacity.
+    pub flicker_cell_size: u32,
 }
 
 pub fn load_peer() -> Result<PeerConfig> {
@@ -39,6 +42,7 @@ pub fn load_peer() -> Result<PeerConfig> {
         flicker_fps: env_u64("peer_flicker_fps")?.unwrap_or(DEFAULT_FPS as u64) as u32,
         stream_width:  env_u64("peer_stream_width")?.unwrap_or(DEFAULT_FRAME_W as u64) as u32,
         stream_height: env_u64("peer_stream_height")?.unwrap_or(DEFAULT_FRAME_H as u64) as u32,
+        flicker_cell_size: env_u64("peer_flicker_cell_size")?.unwrap_or(4) as u32,
     })
 }
 
@@ -98,7 +102,7 @@ mod tests {
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: ModulationMode::B, frag_timeout_ms: 2000,
             rx_warmup_ms: 0, log_every_frame: false,
-            flicker_fps: 24, stream_width: 256, stream_height: 144,
+            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4,
         };
         assert!(validate_tx(&c).is_err());
         c.my_rtmp_url = "rtmp://x".into();
