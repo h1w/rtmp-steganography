@@ -9,6 +9,11 @@ pub mod levels;
 pub mod markers;
 pub mod pilot;
 
+/// Maximum application bytes carried in a single flicker frame
+/// (after FEC overhead, mode B baseline). Used by the tunnel adapter
+/// to derive KCP MTU. Value is empirical from v2 framing.
+pub const FLICKER_MAX_PAYLOAD_BYTES: usize = 512;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ModulationMode {
     B = 1,
