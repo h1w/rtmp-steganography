@@ -110,7 +110,7 @@ pub fn run(cfg: ServerConfig) -> Result<()> {
             }
         };
 
-        let args = ingest::read_args(&resolved.url, &cfg.page_url, resolved.is_hls);
+        let args = ingest::read_args(&resolved.url, &cfg.page_url, resolved.is_hls, &cfg.grid);
         let mut child = match ingest::spawn(&args) {
             Ok(c) => c,
             Err(e) => {

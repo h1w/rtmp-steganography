@@ -2,6 +2,9 @@ use anyhow::{anyhow, Context, Result};
 
 use crate::flicker::GridConfig;
 
+const DEFAULT_WIDTH: usize = 256;
+const DEFAULT_HEIGHT: usize = 144;
+const DEFAULT_FPS: u32 = 24;
 const DEFAULT_CELL: usize = 16;
 const DEFAULT_UPDATE_EVERY: u64 = 5;
 
@@ -17,9 +20,14 @@ pub struct ServerConfig {
 }
 
 pub fn load_grid() -> Result<GridConfig> {
+    let (width, height) = match env_nonempty("stream_resolution") {
+        Some(s) => parse_resolution(&s)?,
+        None => (DEFAULT_WIDTH, DEFAULT_HEIGHT),
+    };
+    let fps = env_u32("stream_fps")?.unwrap_or(DEFAULT_FPS);
     let cell = env_usize("cell_size")?.unwrap_or(DEFAULT_CELL);
     let update_every = env_u64("update_every_frames")?.unwrap_or(DEFAULT_UPDATE_EVERY);
-    GridConfig::new(cell, update_every)
+    GridConfig::new(width, height, fps, cell, update_every)
 }
 
 pub fn load_client() -> Result<ClientConfig> {
@@ -50,6 +58,22 @@ pub fn load_server() -> Result<ServerConfig> {
     })
 }
 
+fn parse_resolution(s: &str) -> Result<(usize, usize)> {
+    let lower = s.trim().to_ascii_lowercase();
+    let (w, h) = lower.split_once('x').ok_or_else(|| {
+        anyhow!("stream_resolution must be in WIDTHxHEIGHT format, got {s:?}")
+    })?;
+    let width: usize = w
+        .trim()
+        .parse()
+        .with_context(|| format!("stream_resolution: bad width {w:?}"))?;
+    let height: usize = h
+        .trim()
+        .parse()
+        .with_context(|| format!("stream_resolution: bad height {h:?}"))?;
+    Ok((width, height))
+}
+
 fn env_nonempty(name: &str) -> Option<String> {
     std::env::var(name)
         .ok()
@@ -58,6 +82,15 @@ fn env_nonempty(name: &str) -> Option<String> {
 }
 
 fn env_usize(name: &str) -> Result<Option<usize>> {
+    match std::env::var(name) {
+        Ok(v) => Ok(Some(v.trim().parse().with_context(|| {
+            format!("{name} is not a valid unsigned integer: {v:?}")
+        })?)),
+        Err(_) => Ok(None),
+    }
+}
+
+fn env_u32(name: &str) -> Result<Option<u32>> {
     match std::env::var(name) {
         Ok(v) => Ok(Some(v.trim().parse().with_context(|| {
             format!("{name} is not a valid unsigned integer: {v:?}")

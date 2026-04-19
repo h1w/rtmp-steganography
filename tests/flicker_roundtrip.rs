@@ -1,10 +1,9 @@
 use rtmp_steganography::flicker::frame::{decode_timestamp_frame, encode_timestamp_frame};
 use rtmp_steganography::flicker::grid::GridConfig;
-use rtmp_steganography::flicker::FRAME_BYTES;
 
 fn case(cell: usize, ts: u64) {
-    let cfg = GridConfig::new(cell, 1).expect("valid grid");
-    let mut buf = vec![0u8; FRAME_BYTES];
+    let cfg = GridConfig::new(256, 144, 24, cell, 1).expect("valid grid");
+    let mut buf = vec![0u8; cfg.frame_bytes()];
     encode_timestamp_frame(&mut buf, ts, &cfg);
     let decoded = decode_timestamp_frame(&buf, &cfg);
     assert_eq!(decoded, ts, "cell={cell} ts={ts:#x}");
@@ -37,7 +36,17 @@ fn roundtrip_zero() {
 
 #[test]
 fn invalid_cell_rejected() {
-    assert!(GridConfig::new(3, 1).is_err());
-    assert!(GridConfig::new(0, 1).is_err());
-    assert!(GridConfig::new(16, 0).is_err());
+    assert!(GridConfig::new(256, 144, 24, 3, 1).is_err());
+    assert!(GridConfig::new(256, 144, 24, 0, 1).is_err());
+    assert!(GridConfig::new(256, 144, 24, 16, 0).is_err());
+    assert!(GridConfig::new(256, 144, 0, 16, 1).is_err());
+    assert!(GridConfig::new(0, 144, 24, 16, 1).is_err());
+}
+
+#[test]
+fn different_resolution_works() {
+    let cfg = GridConfig::new(320, 180, 30, 10, 1).expect("valid grid");
+    assert_eq!(cfg.cols, 32);
+    assert_eq!(cfg.rows, 18);
+    assert_eq!(cfg.frame_bytes(), 320 * 180 * 3);
 }

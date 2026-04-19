@@ -2,15 +2,20 @@ use std::process::{Child, Command, Stdio};
 
 use anyhow::{Context, Result};
 
-use crate::flicker::{FPS, HEIGHT, WIDTH};
+use crate::flicker::GridConfig;
 
 const USER_AGENT: &str =
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 /// Build ffmpeg args that drain an HLS/DASH URL to raw RGB24 on stdout with
 /// aggressive low-latency flags and the browser-ish headers okcdn expects.
-pub fn read_args(input_url: &str, page_url: &str, input_is_hls: bool) -> Vec<String> {
-    let size_arg = format!("{}x{}", WIDTH, HEIGHT);
+pub fn read_args(
+    input_url: &str,
+    page_url: &str,
+    input_is_hls: bool,
+    cfg: &GridConfig,
+) -> Vec<String> {
+    let size_arg = format!("{}x{}", cfg.width, cfg.height);
     let mut args: Vec<String> = vec![
         "-hide_banner".into(),
         "-loglevel".into(),
@@ -36,7 +41,6 @@ pub fn read_args(input_url: &str, page_url: &str, input_is_hls: bool) -> Vec<Str
     ];
 
     if input_is_hls {
-        // Start from the newest available segment so we land near the live edge.
         args.push("-live_start_index".into());
         args.push("-1".into());
         args.push("-http_persistent".into());
@@ -58,7 +62,7 @@ pub fn read_args(input_url: &str, page_url: &str, input_is_hls: bool) -> Vec<Str
     args.push("-vf".into());
     args.push(format!(
         "scale={}:{}:flags=neighbor,format=rgb24,fps={}",
-        WIDTH, HEIGHT, FPS
+        cfg.width, cfg.height, cfg.fps
     ));
     args.push("-fps_mode".into());
     args.push("cfr".into());

@@ -7,7 +7,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use anyhow::{Context, Result};
 
 use crate::flicker::frame::decode_timestamp_frame;
-use crate::flicker::{GridConfig, FRAME_BYTES};
+use crate::flicker::GridConfig;
 
 fn local_now_ns() -> u64 {
     let d = SystemTime::now()
@@ -82,31 +82,23 @@ pub fn run_owned_stdout(
     log_every_frame: bool,
 ) -> Result<()> {
     let slot = FrameSlot::new();
+    let frame_bytes = cfg.frame_bytes();
 
-    // Reader thread: pulls raw frames from ffmpeg stdout as fast as possible.
-    // Because it overwrites the slot each time, any backlog (e.g. the HLS
-    // warm-up ramp that used to take ~5 s) is effectively skipped — the
-    // decoder side always grabs the latest frame the reader has read.
     let reader_slot = slot.clone();
-    let reader = thread::spawn(move || reader_loop(stdout, reader_slot));
+    let reader = thread::spawn(move || reader_loop(stdout, reader_slot, frame_bytes));
 
     let decode_result = decoder_loop(&slot, cfg, running, log_every_frame);
 
-    // Reader will exit once ffmpeg stdout EOFs (caller kills child on shutdown
-    // or reconnect). Join to avoid dangling threads.
     let _ = reader.join();
 
     decode_result.context("decoder loop")
 }
 
-fn reader_loop(mut stdout: std::process::ChildStdout, slot: Arc<FrameSlot>) {
-    let mut buf = vec![0u8; FRAME_BYTES];
+fn reader_loop(mut stdout: std::process::ChildStdout, slot: Arc<FrameSlot>, frame_bytes: usize) {
+    let mut buf = vec![0u8; frame_bytes];
     loop {
         match stdout.read_exact(&mut buf) {
             Ok(()) => {
-                // Clone on put so the reader's buffer stays reusable; the
-                // allocation is one Vec per frame which is cheap next to
-                // ffmpeg's I/O cost.
                 slot.put(buf.clone());
             }
             Err(e) => {

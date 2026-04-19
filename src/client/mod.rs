@@ -10,7 +10,6 @@ use anyhow::{anyhow, Context, Result};
 
 use crate::config::ClientConfig;
 use crate::flicker::frame::encode_timestamp_frame;
-use crate::flicker::{FPS, FRAME_BYTES};
 
 fn now_ns() -> u64 {
     let d = SystemTime::now()
@@ -21,7 +20,10 @@ fn now_ns() -> u64 {
 
 pub fn run(cfg: ClientConfig) -> Result<()> {
     eprintln!(
-        "[flicker/client] grid: {}x{} cells of {}px ({} total, {} bits of ts); update every {} frames",
+        "[flicker/client] video: {}x{}@{}fps; grid: {}x{} cells of {}px ({} total, {} bits of ts); update every {} frames",
+        cfg.grid.width,
+        cfg.grid.height,
+        cfg.grid.fps,
         cfg.grid.cols,
         cfg.grid.rows,
         cfg.grid.cell,
@@ -38,7 +40,7 @@ pub fn run(cfg: ClientConfig) -> Result<()> {
             .context("failed to set Ctrl+C handler")?;
     }
 
-    let args = ffmpeg::publish_args(&cfg.rtmp_url);
+    let args = ffmpeg::publish_args(&cfg.rtmp_url, &cfg.grid);
     let mut child = Command::new("ffmpeg")
         .args(&args)
         .stdin(Stdio::piped())
@@ -50,8 +52,8 @@ pub fn run(cfg: ClientConfig) -> Result<()> {
         .take()
         .ok_or_else(|| anyhow!("no stdin on ffmpeg"))?;
 
-    let mut frame = vec![0u8; FRAME_BYTES];
-    let frame_period = Duration::from_nanos(1_000_000_000 / FPS as u64);
+    let mut frame = vec![0u8; cfg.grid.frame_bytes()];
+    let frame_period = Duration::from_nanos(1_000_000_000 / cfg.grid.fps as u64);
     let start = Instant::now();
     let mut frame_idx: u64 = 0;
 

@@ -1,4 +1,4 @@
-use crate::flicker::grid::{GridConfig, WIDTH};
+use crate::flicker::grid::GridConfig;
 
 pub fn paint_bit_into_frame(buf: &mut [u8], cfg: &GridConfig, bit_idx: usize, bit: u8) {
     if bit == 0 {
@@ -9,7 +9,7 @@ pub fn paint_bit_into_frame(buf: &mut [u8], cfg: &GridConfig, bit_idx: usize, bi
     let x0 = cx * cfg.cell;
     let y0 = cy * cfg.cell;
     for y in y0..y0 + cfg.cell {
-        let row_start = (y * WIDTH + x0) * 3;
+        let row_start = (y * cfg.width + x0) * 3;
         let row_end = row_start + cfg.cell * 3;
         buf[row_start..row_end].fill(255);
     }
@@ -24,7 +24,7 @@ pub fn read_bit_from_cell(buf: &[u8], cfg: &GridConfig, bit_idx: usize) -> u8 {
     let mut count: u64 = 0;
     for y in y0..y0 + cfg.cell {
         for x in x0..x0 + cfg.cell {
-            let idx = (y * WIDTH + x) * 3;
+            let idx = (y * cfg.width + x) * 3;
             sum += buf[idx] as u64 + buf[idx + 1] as u64 + buf[idx + 2] as u64;
             count += 3;
         }

@@ -1,9 +1,9 @@
-use crate::flicker::{FPS, HEIGHT, WIDTH};
+use crate::flicker::GridConfig;
 
-pub fn publish_args(rtmp_url: &str) -> Vec<String> {
-    let size_arg = format!("{}x{}", WIDTH, HEIGHT);
-    let rate_arg = FPS.to_string();
-    let gop_arg = (FPS * 2).to_string();
+pub fn publish_args(rtmp_url: &str, cfg: &GridConfig) -> Vec<String> {
+    let size_arg = format!("{}x{}", cfg.width, cfg.height);
+    let rate_arg = cfg.fps.to_string();
+    let gop_arg = (cfg.fps * 2).to_string();
 
     [
         "-hide_banner",
