@@ -1,42 +1,44 @@
+use anyhow::{anyhow, Result};
 use clap::{ArgAction, Parser, Subcommand};
 
+use crate::config::PeerConfig;
+use crate::peer::Direction;
+
 #[derive(Parser, Debug)]
-#[command(name = "rtmp-steganography", version, about = "flicker protocol over RTMP video")]
+#[command(name = "rtmp-steganography", version, about = "flicker v2 protocol over RTMP")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Mode>,
 
-    /// Alias for `client` subcommand.
-    #[arg(long, action = ArgAction::SetTrue, conflicts_with = "server")]
-    pub client: bool,
-
-    /// Alias for `server` subcommand.
-    #[arg(long, action = ArgAction::SetTrue, conflicts_with = "client")]
-    pub server: bool,
+    #[arg(long, action = ArgAction::SetTrue)]
+    pub peer_flag: bool,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum Mode {
-    /// Publish RTMP stream with flicker-encoded timestamps.
-    Client,
-    /// Receive and decode a flicker-encoded stream.
-    Server,
+    Peer(PeerArgs),
 }
 
-pub enum Resolved {
-    Client,
-    Server,
+#[derive(clap::Args, Debug)]
+pub struct PeerArgs {
+    #[arg(long = "publish-only", conflicts_with = "receive_only")]
+    pub publish_only: bool,
+    #[arg(long = "receive-only")]
+    pub receive_only: bool,
 }
 
 impl Cli {
-    pub fn resolve(self) -> anyhow::Result<Resolved> {
-        match (self.command, self.client, self.server) {
-            (Some(Mode::Client), _, _) | (None, true, false) => Ok(Resolved::Client),
-            (Some(Mode::Server), _, _) | (None, false, true) => Ok(Resolved::Server),
-            (None, false, false) => Err(anyhow::anyhow!(
-                "specify a mode: `client` / `server` subcommand or --client / --server"
-            )),
-            _ => unreachable!("clap conflicts_with prevents both flags"),
-        }
+    pub fn resolve(self, cfg: &PeerConfig) -> Result<(Direction, PeerConfig)> {
+        let dir = match self.command {
+            Some(Mode::Peer(args)) => match (args.publish_only, args.receive_only) {
+                (false, false) => Direction { tx: true, rx: true },
+                (true, false) => Direction { tx: true, rx: false },
+                (false, true) => Direction { tx: false, rx: true },
+                (true, true) => return Err(anyhow!("--publish-only and --receive-only are mutually exclusive")),
+            },
+            None if self.peer_flag => Direction { tx: true, rx: true },
+            None => return Err(anyhow!("use: rtmp-steganography peer [--publish-only|--receive-only]")),
+        };
+        Ok((dir, cfg.clone()))
     }
 }
