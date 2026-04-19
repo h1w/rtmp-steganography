@@ -1,4 +1,11 @@
-//! VK Live playback URL resolver via `api.live.vkvideo.ru`.
+//! VK Live playback URL resolver.
+//!
+//! We scrape the stream page HTML and parse the inline `"playerUrls"` array.
+//! The `/v1/blog/<slug>/public_video_stream` API endpoint only sees the blog's
+//! primary public stream — it returns an empty `data[]` for unlisted sub-streams
+//! like `/pavel8899/stream/sl_76330`. The HTML page always embeds the active
+//! `playerUrls` for whatever stream the URL points at, so parsing it is both
+//! more reliable and works for sub-streams automatically.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -18,7 +25,6 @@ fn sleep_interruptible(total: Duration, running: &Arc<AtomicBool>) {
     }
 }
 
-const API_BASE: &str = "https://api.live.vkvideo.ru/v1";
 const USER_AGENT: &str =
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -29,87 +35,139 @@ pub struct VkPlaybackResolved {
     pub page_url: String,
 }
 
-pub fn resolve_channel(slug: &str) -> Result<VkPlaybackResolved> {
-    let slug = slug.trim().trim_matches('/');
-    if slug.is_empty() {
-        return Err(anyhow!("vk live: empty channel slug"));
+/// Accepts a slug (`pavel8899`), a path (`pavel8899/stream/sl_76330`) or a
+/// full URL (`https://live.vkvideo.ru/...`) and normalises to a page URL.
+pub fn page_url_from_channel(channel: &str) -> String {
+    let c = channel.trim();
+    if c.starts_with("http://") || c.starts_with("https://") {
+        c.to_string()
+    } else {
+        format!("https://live.vkvideo.ru/{}", c.trim_start_matches('/'))
     }
-    let page_url = format!("https://live.vkvideo.ru/{slug}");
-    let api_url = format!("{API_BASE}/blog/{slug}/public_video_stream");
+}
+
+/// Extracts the first balanced `[...]` JSON array that follows `"playerUrls"`
+/// in the HTML, without needing a full HTML parser. Returns the slice
+/// including the enclosing brackets, ready to feed to `serde_json`.
+fn extract_player_urls_json(html: &str) -> Option<&str> {
+    let needle = "\"playerUrls\"";
+    let mut search_from = 0usize;
+    while let Some(rel) = html[search_from..].find(needle) {
+        let after_key = search_from + rel + needle.len();
+        let tail = &html[after_key..];
+        let trimmed = tail.trim_start();
+        if !trimmed.starts_with(':') {
+            search_from = after_key;
+            continue;
+        }
+        let after_colon = &trimmed[1..];
+        let after_colon_trim = after_colon.trim_start();
+        if !after_colon_trim.starts_with('[') {
+            search_from = after_key;
+            continue;
+        }
+        let open_offset = html.len() - after_colon_trim.len();
+        let bytes = html.as_bytes();
+        let mut depth: i32 = 0;
+        let mut in_str = false;
+        let mut esc = false;
+        let mut i = open_offset;
+        while i < bytes.len() {
+            let c = bytes[i];
+            if in_str {
+                if esc {
+                    esc = false;
+                } else if c == b'\\' {
+                    esc = true;
+                } else if c == b'"' {
+                    in_str = false;
+                }
+            } else {
+                match c {
+                    b'"' => in_str = true,
+                    b'[' => depth += 1,
+                    b']' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            return Some(&html[open_offset..=i]);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            i += 1;
+        }
+        search_from = after_key;
+    }
+    None
+}
+
+pub fn resolve_channel(channel: &str) -> Result<VkPlaybackResolved> {
+    let channel = channel.trim();
+    if channel.is_empty() {
+        return Err(anyhow!("vk live: empty channel"));
+    }
+    let page_url = page_url_from_channel(channel);
 
     let client = reqwest::blocking::Client::builder()
         .https_only(true)
         .user_agent(USER_AGENT)
+        .timeout(Duration::from_secs(10))
         .build()
         .context("reqwest client")?;
 
     let resp = client
-        .get(&api_url)
+        .get(&page_url)
         .header("Referer", &page_url)
         .header("Origin", "https://live.vkvideo.ru")
+        .header(
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        )
         .send()
-        .with_context(|| format!("GET {api_url}"))?;
+        .with_context(|| format!("GET {page_url}"))?;
 
     if !resp.status().is_success() {
-        return Err(anyhow!("api.live.vkvideo.ru: HTTP {}", resp.status()));
+        return Err(anyhow!("{}: HTTP {}", page_url, resp.status()));
     }
+    let body = resp.text().with_context(|| format!("read body {page_url}"))?;
 
-    let v: Value = resp.json().context("parse VK Live API JSON")?;
+    let json_slice = extract_player_urls_json(&body).ok_or_else(|| {
+        anyhow!(
+            "VK Live: no `playerUrls` in page HTML at {page_url} \
+             — stream is offline, link is wrong, or the page layout changed"
+        )
+    })?;
+    let arr: Value = serde_json::from_str(json_slice)
+        .with_context(|| format!("parse playerUrls from {page_url}"))?;
 
-    if let Some(msg) = v.get("error_description").and_then(|x| x.as_str()) {
-        if !msg.is_empty() {
-            return Err(anyhow!("VK Live API: {msg}"));
-        }
-    }
-    let err = v.get("error").and_then(|x| x.as_str()).unwrap_or("");
-    if !err.is_empty() {
-        return Err(anyhow!("VK Live API error field: {err}"));
-    }
-
-    let is_online = v.get("isOnline").and_then(|x| x.as_bool()).unwrap_or(false);
-    let is_ended = v.get("isEnded").and_then(|x| x.as_bool()).unwrap_or(false);
-    let first = v
-        .get("data")
-        .and_then(|d| d.as_array())
-        .and_then(|a| a.first())
-        .ok_or_else(|| {
-            if !is_online {
-                anyhow!(
-                    "VK Live `{slug}`: channel is offline (isOnline=false{}). \
-                     Start the stream in VK Live Studio — server will auto-pick it up.",
-                    if is_ended { ", last stream ended" } else { "" }
-                )
-            } else {
-                anyhow!(
-                    "VK Live `{slug}`: isOnline=true but data[] is empty — \
-                     player URLs not yet published by CDN, retrying"
-                )
-            }
-        })?;
-
-    let pairs = first
-        .get("playerUrls")
-        .and_then(|x| x.as_array())
-        .ok_or_else(|| anyhow!("VK Live: no playerUrls (no active player?)"))?;
-
-    let mut dash_mpd = None;
-    let mut hls = None;
-    for p in pairs {
-        let t = p
-            .get("type")
-            .and_then(|x| x.as_str())
-            .unwrap_or("")
-            .to_lowercase();
+    // Prefer ffmpeg-friendly streams: `live_hls` (plain m3u8) and `live_dash`
+    // (plain MPEG-DASH). Skip the CMAF / ultra-low-latency variants
+    // (`live_cmaf`, `live_ondemand_hls`) — stock ffmpeg struggles with okcdn's
+    // low-latency CMAF fragments.
+    let mut dash_mpd: Option<String> = None;
+    let mut hls: Option<String> = None;
+    for p in arr.as_array().into_iter().flatten() {
+        let t = p.get("type").and_then(|x| x.as_str()).unwrap_or("");
         let u = p.get("url").and_then(|x| x.as_str()).unwrap_or("").trim();
         if u.is_empty() {
             continue;
         }
-        if u.contains(".mpd") || t.contains("dash") {
-            dash_mpd.get_or_insert_with(|| u.to_string());
+        match t {
+            "live_hls" => {
+                hls.get_or_insert_with(|| u.to_string());
+            }
+            "live_dash" => {
+                dash_mpd.get_or_insert_with(|| u.to_string());
+            }
+            _ => {}
         }
-        if t.contains("hls") || t.contains("m3u8") || u.contains(".m3u8") {
-            hls.get_or_insert_with(|| u.to_string());
-        }
+    }
+
+    if hls.is_none() && dash_mpd.is_none() {
+        return Err(anyhow!(
+            "VK Live: page has playerUrls but no plain live_hls/live_dash entry"
+        ));
     }
 
     Ok(VkPlaybackResolved {
