@@ -5,12 +5,12 @@ use anyhow::{anyhow, Result};
 use crate::flicker::codec::{paint_cell, read_cell};
 use crate::flicker::fec::{decode_block, encode_block, RS_BLOCK_K, RS_BLOCK_N};
 use crate::flicker::fragment::{Fragment, FRAGMENT_HEADER_BYTES};
-use crate::flicker::grid::{FRAME_BYTES_RGB24, GRID_COLS, TOTAL_CELLS};
+use crate::flicker::grid::FRAME_BYTES_RGB24;
 use crate::flicker::header::{decode_header, encode_header, FecScheme, FrameHeader, HEADER_TOTAL_BYTES};
 use crate::flicker::interleave::{cell_index_to_col_row, col_row_to_cell_index, cell_permutation};
 use crate::flicker::markers::{paint_markers, frame_offset, MARKER_SIZE};
-use crate::flicker::pilot::{paint_pilots, pilot_positions, validate_pilots, PILOT_COUNT};
-use crate::flicker::{ModulationMode, OutboundMessage};
+use crate::flicker::pilot::{pilot_positions, validate_pilots};
+use crate::flicker::ModulationMode;
 
 pub const PILOT_CONFIDENCE_THRESHOLD: f32 = 0.4;
 pub const PILOT_SUCCESS_MIN: f32 = 0.80;
@@ -262,9 +262,7 @@ impl FrameDecoder {
             };
             cursor += used;
             // MVP: consume all remaining bytes as this fragment's payload (one fragment per frame common path).
-            let rem = payload_bytes.len() - cursor;
-            frag.payload = payload_bytes[cursor..cursor + rem].to_vec();
-            cursor += rem;
+            frag.payload = payload_bytes[cursor..].to_vec();
             fragments.push(frag);
             break;
         }
