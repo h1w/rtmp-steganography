@@ -22,9 +22,10 @@ struct ResolvedSource {
 fn resolve(source: &SourceConfig, base_http: &HttpConfig) -> Result<ResolvedSource> {
     match source {
         SourceConfig::DirectUrl(u) => {
-            let is_hls = looks_like_hls(u);
+            let url = sanitize_url(u);
+            let is_hls = looks_like_hls(&url);
             Ok(ResolvedSource {
-                url: u.clone(),
+                url,
                 http: base_http.clone(),
                 is_hls,
             })
@@ -42,6 +43,7 @@ fn resolve(source: &SourceConfig, base_http: &HttpConfig) -> Result<ResolvedSour
             let r = vk_live::wait_for_playback_ready(slug, &referer, &origin)?;
             let url = vk_live::pick_playback_url(&r)
                 .context("VK Live: no dash/hls after wait")?;
+            let url = sanitize_url(&url);
             let is_hls = looks_like_hls(&url);
             let mut http = base_http.clone();
             http.referer = Some(referer);
@@ -66,6 +68,60 @@ fn resolve(source: &SourceConfig, base_http: &HttpConfig) -> Result<ResolvedSour
 fn looks_like_hls(url: &str) -> bool {
     let u = url.to_ascii_lowercase();
     u.contains(".m3u8") || u.contains("/hls")
+}
+
+/// Strip okcdn CMAF ultra-low-latency flag (`low-latency=yes|1`) from the query.
+/// VK Live's ULL CMAF chunks are not consumed correctly by stock ffmpeg; removing
+/// this param forces the CDN to serve regular segments that ffmpeg can parse.
+fn sanitize_url(url: &str) -> String {
+    let Some((base, query)) = url.split_once('?') else {
+        return url.to_string();
+    };
+    let kept: Vec<&str> = query
+        .split('&')
+        .filter(|kv| {
+            let lower = kv.to_ascii_lowercase();
+            !(lower == "low-latency=yes"
+                || lower == "low-latency=1"
+                || lower == "low-latency=true")
+        })
+        .collect();
+    let mut changed = kept.len() != query.split('&').count();
+    if !changed {
+        return url.to_string();
+    }
+    if kept.is_empty() {
+        changed = true;
+        let _ = changed;
+        return base.to_string();
+    }
+    format!("{base}?{}", kept.join("&"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sanitize_url;
+
+    #[test]
+    fn strips_low_latency_yes() {
+        let u = "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s?low-latency=yes";
+        assert_eq!(
+            sanitize_url(u),
+            "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s"
+        );
+    }
+
+    #[test]
+    fn keeps_other_query_params() {
+        let u = "https://x.ru/m.mpd?foo=bar&low-latency=yes&baz=1";
+        assert_eq!(sanitize_url(u), "https://x.ru/m.mpd?foo=bar&baz=1");
+    }
+
+    #[test]
+    fn leaves_unrelated_urls_alone() {
+        let u = "https://x.ru/m.mpd?foo=bar";
+        assert_eq!(sanitize_url(u), u);
+    }
 }
 
 pub fn run(cfg: ServerConfig) -> Result<()> {

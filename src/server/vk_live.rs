@@ -58,7 +58,11 @@ pub fn resolve_channel(slug: &str) -> Result<VkPlaybackResolved> {
         .get("data")
         .and_then(|d| d.as_array())
         .and_then(|a| a.first())
-        .ok_or_else(|| anyhow!("VK Live: no data[] (channel offline or wrong slug)"))?;
+        .ok_or_else(|| anyhow!(
+            "VK Live: API returned no data[] for slug \"{slug}\" \
+             (channel offline, wrong slug, or API requires different headers). \
+             Workaround: paste the MPD/HLS URL from the browser's network tab into .env as `stream_read_url=...`"
+        ))?;
 
     let pairs = first
         .get("playerUrls")
