@@ -72,6 +72,10 @@ pub fn run_tunnel(
     socks_bind: std::net::SocketAddr,
     with_bench_support: bool,
 ) {
+    use crate::flicker::frame::block_count_for;
+    use crate::flicker::fec::RS_BLOCK_K;
+    use crate::flicker::fragment::FRAGMENT_HEADER_BYTES;
+    use crate::flicker::grid::FlickerParams;
     use crate::tunnel::{adapter::FlickerChannel, kcp::Profile, metrics::{EventEmitter, new_run_id}, Tunnel};
     use std::sync::Arc;
 
@@ -96,8 +100,25 @@ pub fn run_tunnel(
         };
         eprintln!("[peer/tunnel] run_id={} metrics_dir={}", run_id, dir.display());
 
+        // Runtime-computed tunnel MTU: full payload capacity of the current
+        // FlickerParams + modulation mode, minus fragment header and CRC32.
+        // At 256x144 mode B this is ~227 bytes; at 640x360 mode B it is ~2387.
+        let cfg = crate::config::load_peer().unwrap_or_else(|_| crate::config::PeerConfig {
+            my_rtmp_url: String::new(), my_stream_key: String::new(),
+            their_vk_channel: String::new(), their_stream_name: String::new(),
+            modulation_mode: crate::flicker::ModulationMode::B,
+            frag_timeout_ms: 2000, rx_warmup_ms: 0, log_every_frame: false,
+            flicker_fps: 24, stream_width: 256, stream_height: 144,
+        });
+        let params = FlickerParams::new(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1));
+        let block_count = block_count_for(&params, cfg.modulation_mode);
+        let frame_capacity = block_count * RS_BLOCK_K;
+        let max_payload = frame_capacity.saturating_sub(FRAGMENT_HEADER_BYTES).saturating_sub(4);
+        eprintln!("[peer/tunnel] flicker={}x{}@{} mode={:?} block_count={} frame_capacity={} max_payload={}",
+            params.width, params.height, params.fps, cfg.modulation_mode, block_count, frame_capacity, max_payload);
+
         let ch: Arc<dyn crate::tunnel::adapter::DatagramChannel> =
-            Arc::new(FlickerChannel::new(outbound_tx, inbound_rx));
+            Arc::new(FlickerChannel::new(outbound_tx, inbound_rx, max_payload));
         let profile = Profile::from_env();
         eprintln!("[peer/tunnel] profile={:?} socks_bind={}", profile, socks_bind);
 

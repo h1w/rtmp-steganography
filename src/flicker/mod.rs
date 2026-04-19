@@ -9,15 +9,14 @@ pub mod levels;
 pub mod markers;
 pub mod pilot;
 
-/// Maximum application bytes carried in a single flicker frame
-/// (after FEC overhead, mode B baseline). Used by the tunnel adapter
-/// to derive KCP MTU.
+/// Legacy fallback for the 256x144 mode B grid (block_count=2):
+/// 2 * 120 − 9 (FRAGMENT_HEADER_BYTES) − 4 (payload CRC32) = 227.
 ///
-/// Derivation for mode B: block_count=2, RS_BLOCK_K=120, so per-frame
-/// capacity = 2 * 120 = 240 bytes. From that subtract
-/// FRAGMENT_HEADER_BYTES (9) and the payload-zone CRC32 trailer (4)
-/// that the flicker encoder appends after fragment serialization,
-/// leaving 227 bytes for a single application message per frame.
+/// DEPRECATED as a constant source of truth: the real per-frame
+/// application-byte capacity is computed at runtime from `FlickerParams`
+/// and `ModulationMode` via `frame::block_count_for`, and piped into the
+/// tunnel through `FlickerChannel::new(.., max_payload)`. Kept here only
+/// so pre-runtime callers and the baseline test still resolve.
 pub const FLICKER_MAX_PAYLOAD_BYTES: usize = 227;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

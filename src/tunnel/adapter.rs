@@ -11,24 +11,28 @@ pub trait DatagramChannel: Send + Sync + 'static {
 
 use std::sync::mpsc as stdmpsc;
 use tokio::sync::Mutex as TokioMutex;
-use crate::flicker::{FLICKER_MAX_PAYLOAD_BYTES, InboundMessage, OutboundMessage};
+use crate::flicker::{InboundMessage, OutboundMessage};
 
 pub const MSG_TYPE_TUNNEL: u8 = 0x02;
 
 /// Bridges tokio async tunnel code to the existing sync flicker mpsc channels.
 ///
-/// A background OS thread reads `InboundMessage`s off the sync receiver, filters
-/// those with `msg_type == MSG_TYPE_TUNNEL`, and forwards their payloads to an
-/// async tokio channel that `DatagramChannel::recv` consumes.
+/// `max_payload` is the usable app-bytes capacity of a single flicker frame
+/// given the current `FlickerParams` and modulation mode. Computed by the
+/// caller (typically `block_count_for(params, mode) * RS_BLOCK_K -
+/// FRAGMENT_HEADER_BYTES - 4` for the payload CRC32), then passed in so
+/// this adapter can expose it to KCP which uses it to size the MTU.
 pub struct FlickerChannel {
     out_tx: stdmpsc::Sender<OutboundMessage>,
     in_rx: TokioMutex<tokio::sync::mpsc::Receiver<Vec<u8>>>,
+    max_payload: usize,
 }
 
 impl FlickerChannel {
     pub fn new(
         out_tx: stdmpsc::Sender<OutboundMessage>,
         in_rx_sync: stdmpsc::Receiver<InboundMessage>,
+        max_payload: usize,
     ) -> Self {
         let (async_tx, async_rx) = tokio::sync::mpsc::channel::<Vec<u8>>(256);
         std::thread::spawn(move || {
@@ -38,7 +42,7 @@ impl FlickerChannel {
                 }
             }
         });
-        Self { out_tx, in_rx: TokioMutex::new(async_rx) }
+        Self { out_tx, in_rx: TokioMutex::new(async_rx), max_payload }
     }
 }
 
@@ -52,7 +56,7 @@ impl DatagramChannel for FlickerChannel {
         self.in_rx.lock().await.recv().await
             .ok_or_else(|| std::io::ErrorKind::BrokenPipe.into())
     }
-    fn max_payload(&self) -> usize { FLICKER_MAX_PAYLOAD_BYTES }
+    fn max_payload(&self) -> usize { self.max_payload }
 }
 
 #[cfg(test)]

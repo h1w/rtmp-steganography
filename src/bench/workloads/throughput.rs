@@ -18,7 +18,7 @@ use crate::tunnel::metrics::{Event, EventEmitter};
 
 /// Hard upper bound on the whole stream. Stops the workload even if the tunnel
 /// stalls so the bench never hangs forever.
-const STREAM_TIMEOUT: Duration = Duration::from_secs(120);
+const STREAM_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub async fn run(
     socks: SocketAddr,

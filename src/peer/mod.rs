@@ -189,7 +189,9 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
             // Gather one message worth of fragments for this frame.
             let mut fragments: Vec<Fragment> = Vec::new();
             let capacity = encoder.payload_bytes_per_frame();
-            let max_payload = capacity.saturating_sub(FRAGMENT_HEADER_BYTES);
+            // Leave room for the payload-zone CRC32 (4 bytes) that the encoder
+            // appends after fragment serialisation.
+            let max_payload = capacity.saturating_sub(FRAGMENT_HEADER_BYTES).saturating_sub(4);
             match outbound.recv_timeout(Duration::from_millis(10)) {
                 Ok(msg) => {
                     if msg.payload.len() <= max_payload {
