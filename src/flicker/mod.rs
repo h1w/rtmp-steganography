@@ -1,6 +1,7 @@
 pub mod codec;
 pub mod grid;
 pub mod levels;
+pub mod markers;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ModulationMode {
