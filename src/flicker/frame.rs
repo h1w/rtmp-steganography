@@ -1,6 +1,8 @@
 //! Full encode/decode pipeline for one flicker frame.
 
 use anyhow::{anyhow, Result};
+use rand_chacha::ChaCha8Rng;
+use rand_core::{RngCore, SeedableRng};
 
 use crate::flicker::codec::{paint_cell, read_cell};
 use crate::flicker::fec::{decode_block, encode_block, RS_BLOCK_K, RS_BLOCK_N};
@@ -86,7 +88,24 @@ impl FrameEncoder {
         if payload_len > total_capacity {
             return Err(anyhow!("fragments too large: {} > {}", payload_len, total_capacity));
         }
-        payload_bytes.resize(self.block_count() * RS_BLOCK_K, 0);
+        // Fill padding with a deterministic PRNG instead of zero bytes. Two
+        // reasons: (1) near-solid-dark frames make VK's transcoder allocate
+        // fewer bits and crush our cells; noisy uniform luma keeps the
+        // bitrate honest. (2) If the tunnel is idle this frame, we still want
+        // the canvas visually "busy" so nobody can eyeball that payload stopped.
+        // Decoder is unaffected — it truncates to header.payload_len.
+        let full = self.block_count() * RS_BLOCK_K;
+        if payload_bytes.len() < full {
+            let mut seed = [0u8; 32];
+            seed[..4].copy_from_slice(&self.frame_counter.to_le_bytes());
+            seed[4..12].copy_from_slice(b"flickpad");
+            let mut rng = ChaCha8Rng::from_seed(seed);
+            while payload_bytes.len() < full {
+                payload_bytes.push(rng.next_u32() as u8);
+            }
+        } else {
+            payload_bytes.truncate(full);
+        }
 
         let mut encoded_blocks: Vec<u8> = Vec::with_capacity(self.block_count() * RS_BLOCK_N);
         for i in 0..self.block_count() {
