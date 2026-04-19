@@ -19,7 +19,11 @@ struct ResolvedSource {
     is_hls: bool,
 }
 
-fn resolve(source: &SourceConfig, base_http: &HttpConfig) -> Result<ResolvedSource> {
+fn resolve(
+    source: &SourceConfig,
+    base_http: &HttpConfig,
+    running: &Arc<AtomicBool>,
+) -> Result<ResolvedSource> {
     match source {
         SourceConfig::DirectUrl(u) => {
             let url = sanitize_url(u);
@@ -40,7 +44,7 @@ fn resolve(source: &SourceConfig, base_http: &HttpConfig) -> Result<ResolvedSour
                 .origin
                 .clone()
                 .unwrap_or_else(|| "https://live.vkvideo.ru".to_string());
-            let r = vk_live::wait_for_playback_ready(slug, &referer, &origin)?;
+            let r = vk_live::wait_for_playback_ready(slug, &referer, &origin, running)?;
             let url = vk_live::pick_playback_url(&r)
                 .context("VK Live: no dash/hls after wait")?;
             let url = sanitize_url(&url);
@@ -156,9 +160,12 @@ pub fn run(cfg: ServerConfig) -> Result<()> {
 
     let mut attempt: usize = 0;
     while running.load(Ordering::SeqCst) {
-        let resolved = match resolve(&cfg.source, &cfg.http) {
+        let resolved = match resolve(&cfg.source, &cfg.http, &running) {
             Ok(r) => r,
             Err(e) => {
+                if !running.load(Ordering::SeqCst) {
+                    break;
+                }
                 eprintln!("[flicker/server] resolve failed: {e:#}");
                 backoff(attempt, &running);
                 attempt = attempt.saturating_add(1);

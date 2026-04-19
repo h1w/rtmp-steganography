@@ -1,10 +1,22 @@
 //! VK Live playback URL resolver via `api.live.vkvideo.ru`.
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::thread;
 use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Context, Result};
 use serde_json::Value;
+
+/// Sleep in 200ms chunks so Ctrl+C (which flips `running`) is honored quickly.
+fn sleep_interruptible(total: Duration, running: &Arc<AtomicBool>) {
+    let step = Duration::from_millis(200);
+    let mut waited = Duration::ZERO;
+    while waited < total && running.load(Ordering::SeqCst) {
+        thread::sleep(step);
+        waited += step;
+    }
+}
 
 const API_BASE: &str = "https://api.live.vkvideo.ru/v1";
 const USER_AGENT: &str =
@@ -133,7 +145,7 @@ pub fn probe_playback_url(url: &str, referer: &str, origin: &str) -> Result<()> 
     let client = reqwest::blocking::Client::builder()
         .https_only(true)
         .user_agent(USER_AGENT)
-        .timeout(Duration::from_secs(25))
+        .timeout(Duration::from_secs(8))
         .build()
         .context("reqwest probe client")?;
     let resp = client
@@ -179,7 +191,12 @@ fn validate_probe_body(url: &str, body: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn wait_for_playback_ready(slug: &str, referer: &str, origin: &str) -> Result<VkPlaybackResolved> {
+pub fn wait_for_playback_ready(
+    slug: &str,
+    referer: &str,
+    origin: &str,
+    running: &Arc<AtomicBool>,
+) -> Result<VkPlaybackResolved> {
     let interval = wait_interval();
     let timeout = wait_timeout();
     let started = Instant::now();
@@ -194,7 +211,7 @@ pub fn wait_for_playback_ready(slug: &str, referer: &str, origin: &str) -> Resul
         },
         if no_probe { "off" } else { "on" }
     );
-    loop {
+    while running.load(Ordering::SeqCst) {
         if let Some(t) = timeout {
             if started.elapsed() > t {
                 return Err(anyhow!("VK Live: wait timeout ({t:?})"));
@@ -208,7 +225,7 @@ pub fn wait_for_playback_ready(slug: &str, referer: &str, origin: &str) -> Resul
                         "[flicker/vk] attempt {attempt}: no dash/hls yet, retry in {:?}",
                         interval
                     );
-                    thread::sleep(interval);
+                    sleep_interruptible(interval, running);
                     continue;
                 };
                 if no_probe {
@@ -232,6 +249,7 @@ pub fn wait_for_playback_ready(slug: &str, referer: &str, origin: &str) -> Resul
                 eprintln!("[flicker/vk] attempt {attempt}: {e}");
             }
         }
-        thread::sleep(interval);
+        sleep_interruptible(interval, running);
     }
+    Err(anyhow!("VK Live: wait aborted (Ctrl+C)"))
 }
