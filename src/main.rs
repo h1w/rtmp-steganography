@@ -7,6 +7,7 @@ use rtmp_steganography::{config, peer};
 fn main() -> Result<()> {
     dotenvy::dotenv().ok();
     let cli = Cli::parse();
-    let (direction, cfg) = cli.resolve(&config::load_peer()?)?;
+    let cfg = config::load_peer()?;
+    let direction = cli.resolve(&cfg)?;
     peer::run_peer(cfg, direction)
 }
