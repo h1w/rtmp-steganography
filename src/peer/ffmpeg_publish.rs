@@ -12,6 +12,10 @@ pub struct PublishOpts<'a> {
     pub stream_width: u32,
     pub stream_height: u32,
     pub fps: u32,
+    /// If set, use `-qp N` (fixed quantiser, bitrate floats). Overrides CBR.
+    pub x264_qp: Option<u32>,
+    /// If set and x264_qp is None, use this kbps for CBR (override formula).
+    pub x264_bitrate_kbps: Option<u32>,
 }
 
 pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
@@ -71,9 +75,17 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
     // ingest entirely.
     push(&mut args, "-x264-params");
     push(&mut args, "no-deblock=1");
-    push(&mut args, "-b:v"); args.push(bv_arg.clone());
-    push(&mut args, "-maxrate"); args.push(bv_arg);
-    push(&mut args, "-bufsize"); args.push(bufsize_arg);
+    if let Some(qp) = opts.x264_qp {
+        push(&mut args, "-qp"); args.push(qp.to_string());
+    } else {
+        let cbr_kbps = opts.x264_bitrate_kbps.unwrap_or(kbps);
+        let cbr_arg = format!("{}k", cbr_kbps);
+        let buf_arg = format!("{}k", cbr_kbps * 2);
+        push(&mut args, "-b:v"); args.push(cbr_arg.clone());
+        push(&mut args, "-maxrate"); args.push(cbr_arg);
+        push(&mut args, "-bufsize"); args.push(buf_arg);
+        let _ = (&bv_arg, &bufsize_arg);
+    }
     push(&mut args, "-g"); args.push(gop_arg);
     push(&mut args, "-keyint_min"); args.push(rate_arg);
     push(&mut args, "-c:a"); push(&mut args, "aac");
@@ -96,7 +108,7 @@ mod tests {
             rtmp_url: "rtmp://example/live/key",
             flicker_width: 256, flicker_height: 144,
             stream_width: 256, stream_height: 144,
-            fps: 24,
+            fps: 24, x264_qp: None, x264_bitrate_kbps: None,
         };
         let args = publish_args(&opts);
         assert!(args.iter().any(|a| a == "rtmp://example/live/key"));
@@ -110,7 +122,7 @@ mod tests {
             rtmp_url: "rtmp://x/y",
             flicker_width: 256, flicker_height: 144,
             stream_width: 640, stream_height: 360,
-            fps: 24,
+            fps: 24, x264_qp: None, x264_bitrate_kbps: None,
         };
         let args = publish_args(&opts);
         assert!(args.iter().any(|a| a.contains("scale=640:360")));

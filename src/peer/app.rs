@@ -108,7 +108,7 @@ pub fn run_tunnel(
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: crate::flicker::ModulationMode::B,
             frag_timeout_ms: 2000, rx_warmup_ms: 0, log_every_frame: false,
-            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4,
+            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None,
         });
         let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
         let block_count = block_count_for(&params, cfg.modulation_mode);

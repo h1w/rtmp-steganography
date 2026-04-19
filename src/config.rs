@@ -27,6 +27,13 @@ pub struct PeerConfig {
     /// Flicker cell size in pixels. Larger cells survive lossy codec
     /// quantisation better at the cost of grid density and capacity.
     pub flicker_cell_size: u32,
+    /// If Some, use `-qp N` fixed quantiser instead of CBR bitrate. This
+    /// stops x264 from dynamically crushing cells to hit a bitrate target.
+    /// Actual bitrate becomes content-driven.
+    pub x264_qp: Option<u32>,
+    /// If Some, override the sqrt-scaled default bitrate (kbps) for CBR mode.
+    /// Ignored when `x264_qp` is Some.
+    pub x264_bitrate_kbps: Option<u32>,
 }
 
 pub fn load_peer() -> Result<PeerConfig> {
@@ -43,6 +50,8 @@ pub fn load_peer() -> Result<PeerConfig> {
         stream_width:  env_u64("peer_stream_width")?.unwrap_or(DEFAULT_FRAME_W as u64) as u32,
         stream_height: env_u64("peer_stream_height")?.unwrap_or(DEFAULT_FRAME_H as u64) as u32,
         flicker_cell_size: env_u64("peer_flicker_cell_size")?.unwrap_or(4) as u32,
+        x264_qp: env_u64("peer_x264_qp")?.map(|v| v as u32),
+        x264_bitrate_kbps: env_u64("peer_x264_bitrate_kbps")?.map(|v| v as u32),
     })
 }
 
@@ -102,7 +111,7 @@ mod tests {
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: ModulationMode::B, frag_timeout_ms: 2000,
             rx_warmup_ms: 0, log_every_frame: false,
-            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4,
+            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None,
         };
         assert!(validate_tx(&c).is_err());
         c.my_rtmp_url = "rtmp://x".into();

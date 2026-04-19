@@ -154,7 +154,7 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
             flicker_height: params.height,
             stream_width: cfg.stream_width,
             stream_height: cfg.stream_height,
-            fps,
+            fps, x264_qp: cfg.x264_qp, x264_bitrate_kbps: cfg.x264_bitrate_kbps,
         });
         let spawn_result = std::process::Command::new("ffmpeg")
             .args(&args)
