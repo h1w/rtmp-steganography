@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 
-use crate::config::PeerConfig;
 use crate::peer::Direction;
 
 #[derive(Parser, Debug)]
@@ -14,6 +13,16 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Mode {
     Peer(PeerArgs),
+    /// Run bench workloads (realistic or saturation)
+    Bench {
+        #[command(subcommand)]
+        cmd: BenchCmd,
+    },
+    /// Aggregate an events.jsonl into summary.json
+    Report {
+        #[command(subcommand)]
+        cmd: ReportCmd,
+    },
 }
 
 #[derive(clap::Args, Debug)]
@@ -26,13 +35,51 @@ pub struct PeerArgs {
     pub tunnel_socks: Option<std::net::SocketAddr>,
 }
 
+#[derive(clap::Subcommand, Debug)]
+pub enum BenchCmd {
+    Realistic {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        echo_host: String,
+        #[arg(long, default_value_t = 18080)]            echo_port: u16,
+        #[arg(long, default_value = "127.0.0.1")]        dns_host: String,
+        #[arg(long, default_value_t = 18053)]            dns_port: u16,
+        #[arg(long)]                                     ssh_target: Option<String>,
+        #[arg(long, default_value = "./fixtures")]       fixtures_dir: std::path::PathBuf,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+    },
+    Saturation {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        iperf_host: String,
+        #[arg(long, default_value_t = 15201)]            iperf_port: u16,
+        #[arg(long, value_enum, default_value_t = ProfileArg::Both)] profile: ProfileArg,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+    },
+}
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum ProfileArg { Throughput, Latency, Both }
+
+#[derive(clap::Subcommand, Debug)]
+pub enum ReportCmd {
+    Summarize {
+        events: std::path::PathBuf,
+        #[arg(long)] out: std::path::PathBuf,
+    },
+}
+
 pub enum PeerMode {
     Heartbeat(Direction),
     Tunnel { dir: Direction, socks_bind: std::net::SocketAddr },
 }
 
+pub enum Resolved {
+    Peer(PeerMode),
+    Bench(BenchCmd),
+    Report(ReportCmd),
+}
+
 impl Cli {
-    pub fn resolve(self, _cfg: &PeerConfig) -> Result<PeerMode> {
+    pub fn resolve(self) -> Result<Resolved> {
         match self.command {
             Mode::Peer(args) => {
                 let dir = match (args.publish_only, args.receive_only) {
@@ -45,11 +92,13 @@ impl Cli {
                     if !(dir.tx && dir.rx) {
                         return Err(anyhow!("--tunnel-socks requires bidirectional peer (cannot combine with --publish-only or --receive-only)"));
                     }
-                    Ok(PeerMode::Tunnel { dir, socks_bind: addr })
+                    Ok(Resolved::Peer(PeerMode::Tunnel { dir, socks_bind: addr }))
                 } else {
-                    Ok(PeerMode::Heartbeat(dir))
+                    Ok(Resolved::Peer(PeerMode::Heartbeat(dir)))
                 }
             }
+            Mode::Bench { cmd } => Ok(Resolved::Bench(cmd)),
+            Mode::Report { cmd } => Ok(Resolved::Report(cmd)),
         }
     }
 }
