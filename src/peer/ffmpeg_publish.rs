@@ -61,6 +61,14 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
     push(&mut args, "-profile:v"); push(&mut args, "baseline");
     push(&mut args, "-level"); push(&mut args, "3.0");
     push(&mut args, "-pix_fmt"); push(&mut args, "yuv420p");
+    // Disable ONLY the in-loop deblocking filter — it's what smears the
+    // hard 4x4 cell boundaries into a gradient noise field on decode.
+    // Other "visual quality" heuristics (aq-mode, psy-rd, mbtree) stay at
+    // their preset=ultrafast defaults; turning them off simultaneously
+    // made x264 CPU-bound and drop below realtime, which killed the RTMP
+    // ingest entirely.
+    push(&mut args, "-x264-params");
+    push(&mut args, "no-deblock=1");
     push(&mut args, "-b:v"); args.push(bv_arg.clone());
     push(&mut args, "-maxrate"); args.push(bv_arg);
     push(&mut args, "-bufsize"); args.push(bufsize_arg);

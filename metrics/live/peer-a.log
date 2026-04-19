@@ -1,9 +1,9 @@
 [peer/rx] warm-up 10000ms before first resolve
-[peer/tunnel] run_id=1776613684-ykmb metrics_dir=./metrics\1776613684-ykmb
+[peer/tunnel] run_id=1776614889-vf3o metrics_dir=./metrics\1776614889-vf3o
 [peer/tunnel] flicker=640x360@24 mode=B block_count=20 frame_capacity=2400 max_payload=2387
 [peer/tunnel] profile=Throughput socks_bind=127.0.0.1:11080
 Input #0, rawvideo, from 'fd:':
-  Duration: N/A, start: 1776613684.875000, bitrate: 132710 kb/s
+  Duration: N/A, start: 1776614889.666667, bitrate: 132710 kb/s
   Stream #0:0: Video: rawvideo (RGB[24] / 0x18424752), rgb24, 640x360, 132710 kb/s, 24 tbr, 24 tbn
 Input #1, lavfi, from 'anullsrc=channel_layout=stereo:sample_rate=44100':
   Duration: N/A, start: 0.000000, bitrate: 705 kb/s
@@ -11,9 +11,9 @@ Input #1, lavfi, from 'anullsrc=channel_layout=stereo:sample_rate=44100':
 Stream mapping:
   Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (libx264))
   Stream #1:0 -> #0:1 (pcm_u8 (native) -> aac (native))
-[libx264 @ 000001fc8277d300] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2 AVX512
-[libx264 @ 000001fc8277d300] profile Constrained Baseline, level 3.0, 4:2:0, 8-bit
-[libx264 @ 000001fc8277d300] 264 - core 164 r3204 373697b - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=0 ref=1 deblock=0:0:0 analyse=0:0 me=dia subme=0 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=0 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=0 threads=5 lookahead_threads=5 sliced_threads=1 slices=5 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=0 keyint=48 keyint_min=24 scenecut=0 intra_refresh=0 rc_lookahead=0 rc=cbr mbtree=0 bitrate=3125 ratetol=1.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 vbv_maxrate=3125 vbv_bufsize=6250 nal_hrd=none filler=0 ip_ratio=1.40 aq=0
+[libx264 @ 000001dec06dd5c0] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2 AVX512
+[libx264 @ 000001dec06dd5c0] profile Constrained Baseline, level 3.0, 4:2:0, 8-bit
+[libx264 @ 000001dec06dd5c0] 264 - core 164 r3204 373697b - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=0 ref=1 deblock=0:0:0 analyse=0:0 me=dia subme=0 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=0 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=0 threads=5 lookahead_threads=5 sliced_threads=1 slices=5 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=0 keyint=48 keyint_min=24 scenecut=0 intra_refresh=0 rc_lookahead=0 rc=cbr mbtree=0 bitrate=3125 ratetol=1.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 vbv_maxrate=3125 vbv_bufsize=6250 nal_hrd=none filler=0 ip_ratio=1.40 aq=0
 Output #0, flv, to 'rtmp://vsu.mycdn.me/input/1125899968137462_1125899968137462_71_lbzkmiuuje':
   Metadata:
     encoder         : Lavf61.7.100
@@ -25,28 +25,23 @@ Output #0, flv, to 'rtmp://vsu.mycdn.me/input/1125899968137462_1125899968137462_
   Stream #0:1: Audio: aac (LC) ([10][0][0][0] / 0x000A), 44100 Hz, stereo, fltp, 64 kb/s
       Metadata:
         encoder         : Lavc61.19.101 aac
-frame=    9 fps=0.0 q=32.0 size=     222KiB time=00:00:00.37 bitrate=4856.1kbits/s speed=0.712x    frame=   16 fps= 15 q=34.0 size=     380KiB time=00:00:00.66 bitrate=4663.8kbits/s speed=0.643x    frame=   23 fps= 15 q=35.0 size=     525KiB time=00:00:00.95 bitrate=4491.7kbits/s speed=0.619x    frame=   29 fps= 14 q=36.0 size=     647KiB time=00:00:01.20 bitrate=4385.9kbits/s speed=0.586x    frame=   36 fps= 14 q=36.0 size=     781KiB time=00:00:01.50 bitrate=4264.6kbits/s speed=0.579x    frame=   43 fps= 14 q=36.0 size=     916KiB time=00:00:01.79 bitrate=4188.5kbits/s speed=0.578x    frame=   50 fps= 14 q=37.0 size=    1042KiB time=00:00:02.08 bitrate=4098.3kbits/s speed=0.577x    frame=   56 fps= 14 q=37.0 size=    1154KiB time=00:00:02.33 bitrate=4049.8kbits/s speed=0.564x    frame=   63 fps= 14 q=37.0 size=    1284KiB time=00:00:02.62 bitrate=4008.0kbits/s speed=0.565x    frame=   70 fps= 14 q=37.0 size=    1415KiB time=00:00:02.91 bitrate=3975.0kbits/s speed=0.565x    frame=   76 fps= 13 q=38.0 size=    1520KiB time=00:00:03.16 bitrate=3932.3kbits/s speed=0.558x    frame=   83 fps= 13 q=38.0 size=    1638KiB time=00:00:03.45 bitrate=3880.0kbits/s speed=0.558x    frame=   90 fps= 13 q=38.0 size=    1755KiB time=00:00:03.75 bitrate=3834.9kbits/s speed=0.559x    frame=   97 fps= 13 q=35.0 size=    1873KiB time=00:00:04.04 bitrate=3795.4kbits/s speed=0.56x    frame=  103 fps= 13 q=38.0 size=    1968KiB time=00:00:04.29 bitrate=3757.4kbits/s speed=0.554x    frame=  110 fps= 13 q=39.0 size=    2083KiB time=00:00:04.58 bitrate=3722.9kbits/s speed=0.555x    frame=  117 fps= 13 q=39.0 size=    2214KiB time=00:00:04.87 bitrate=3720.4kbits/s speed=0.556x    frame=  123 fps= 13 q=39.0 size=    2295KiB time=00:00:05.12 bitrate=3668.9kbits/s speed=0.552x    frame=  130 fps= 13 q=39.0 size=    2409KiB time=00:00:05.41 bitrate=3642.9kbits/s speed=0.552x    frame=  136 fps= 13 q=39.0 size=    2506KiB time=00:00:05.66 bitrate=3623.3kbits/s speed=0.549x    frame=  143 fps= 13 q=39.0 size=    2621KiB time=00:00:05.95 bitrate=3603.1kbits/s speed=0.55x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd280.okcdn.ru/hls/14288946531063.m3u8/sig/-HBiDHGEpp0/expires/17767000
-frame=  150 fps= 13 q=39.0 size=    2730KiB time=00:00:06.25 bitrate=3578.5kbits/s speed=0.551x    [in#0 @ 0000016ad29d3880] Error opening input: Invalid data found when processing input
-Error opening input file https://vsd280.okcdn.ru/hls/14288946531063.m3u8/sig/-HBiDHGEpp0/expires/1776700096173/srcIp/90.189.151.213/urls/185.226.53.49/clientType/36/srcAg/CHROME/mid/14099221071863/video.m3u8?p.
+frame=   14 fps=0.0 q=34.0 size=     337KiB time=00:00:00.58 bitrate=4728.7kbits/s speed=1.12x    frame=   27 fps= 26 q=36.0 size=     605KiB time=00:00:01.12 bitrate=4405.0kbits/s speed=1.09x    frame=   39 fps= 25 q=36.0 size=     834KiB time=00:00:01.62 bitrate=4205.9kbits/s speed=1.04x    frame=   52 fps= 25 q=37.0 size=    1091KiB time=00:00:02.16 bitrate=4123.7kbits/s speed=1.05x    frame=   64 fps= 25 q=37.0 size=    1296KiB time=00:00:02.66 bitrate=3982.8kbits/s speed=1.03x    frame=   76 fps= 25 q=38.0 size=    1514KiB time=00:00:03.16 bitrate=3917.5kbits/s speed=1.02x    frame=   89 fps= 25 q=38.0 size=    1733KiB time=00:00:03.70 bitrate=3829.3kbits/s speed=1.02x    frame=  101 fps= 24 q=38.0 size=    1930KiB time=00:00:04.20 bitrate=3757.8kbits/s speed=1.02x    frame=  113 fps= 24 q=39.0 size=    2128KiB time=00:00:04.70 bitrate=3702.5kbits/s speed=1.01x    frame=  126 fps= 24 q=39.0 size=    2340KiB time=00:00:05.25 bitrate=3651.3kbits/s speed=1.02x    frame=  138 fps= 24 q=39.0 size=    2535KiB time=00:00:05.75 bitrate=3611.6kbits/s speed=1.01x    frame=  150 fps= 24 q=39.0 size=    2726KiB time=00:00:06.25 bitrate=3572.7kbits/s speed=1.01x    frame=  163 fps= 24 q=40.0 size=    2938KiB time=00:00:06.79 bitrate=3544.3kbits/s speed=1.01x    frame=  175 fps= 24 q=39.0 size=    3125KiB time=00:00:07.29 bitrate=3511.3kbits/s speed=1.01x    frame=  188 fps= 24 q=39.0 size=    3328KiB time=00:00:07.83 bitrate=3480.9kbits/s speed=1.01x    frame=  200 fps= 24 q=39.0 size=    3514KiB time=00:00:08.33 bitrate=3454.3kbits/s speed=1.01x    frame=  212 fps= 24 q=39.0 size=    3706KiB time=00:00:08.83 bitrate=3437.2kbits/s speed=1.01x    frame=  225 fps= 24 q=39.0 size=    3911KiB time=00:00:09.37 bitrate=3417.7kbits/s speed=1.01x    frame=  237 fps= 24 q=39.0 size=    4101KiB time=00:00:09.87 bitrate=3402.0kbits/s speed=1.01x    frame=  250 fps= 24 q=39.0 size=    4305KiB time=00:00:10.41 bitrate=3385.9kbits/s speed=1.01x    frame=  262 fps= 24 q=39.0 size=    4496KiB time=00:00:10.91 bitrate=3373.5kbits/s speed=1.01x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd110.okcdn.ru/hls/14290272062199.m3u8/sig/gCsBEiMl3fQ/expires/17767013
+frame=  274 fps= 24 q=39.0 size=    4686KiB time=00:00:11.41 bitrate=3362.2kbits/s speed=1.01x    [in#0 @ 000002352d8a3880] Error opening input: Invalid data found when processing input
+Error opening input file https://vsd110.okcdn.ru/hls/14290272062199.m3u8/sig/gCsBEiMl3fQ/expires/1776701300961/srcIp/90.189.151.213/urls/45.136.22.22/clientType/36/srcAg/CHROME/mid/14099905267703/video.m3u8?p.
 Error opening input files: Invalid data found when processing input
 [peer/rx] ffmpeg stdout ended — will re-resolve
-frame=  156 fps= 13 q=39.0 size=    2828KiB time=00:00:06.50 bitrate=3564.7kbits/s speed=0.548x    frame=  163 fps= 13 q=40.0 size=    2939KiB time=00:00:06.79 bitrate=3544.5kbits/s speed=0.549x    frame=  170 fps= 13 q=39.0 size=    3047KiB time=00:00:07.08 bitrate=3524.4kbits/s speed=0.549x    frame=  177 fps= 13 q=40.0 size=    3157KiB time=00:00:07.37 bitrate=3506.7kbits/s speed=0.55x    frame=  183 fps= 13 q=40.0 size=    3252KiB time=00:00:07.62 bitrate=3493.4kbits/s speed=0.548x    frame=  190 fps= 13 q=40.0 size=    3360KiB time=00:00:07.91 bitrate=3477.1kbits/s speed=0.548x    frame=  197 fps= 13 q=39.0 size=    3465KiB time=00:00:08.20 bitrate=3458.1kbits/s speed=0.549x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd134.okcdn.ru/hls/14288946531063.m3u8/sig/WFYoXcQMjXE/expires/17767001
-frame=  203 fps= 13 q=39.0 size=    3562KiB time=00:00:08.45 bitrate=3450.2kbits/s speed=0.547x    [in#0 @ 0000014fe9073880] Error opening input: Invalid data found when processing input
-Error opening input file https://vsd134.okcdn.ru/hls/14288946531063.m3u8/sig/WFYoXcQMjXE/expires/1776700100249/srcIp/90.189.151.213/urls/185.226.55.119/clientType/36/srcAg/CHROME/mid/14099221071863/video.m3u8?p.
-Error opening input files: Invalid data found when processing input
-[peer/rx] ffmpeg stdout ended — will re-resolve
-frame=  210 fps= 13 q=39.0 size=    3675KiB time=00:00:08.75 bitrate=3441.0kbits/s speed=0.547x    frame=  217 fps= 13 q=39.0 size=    3786KiB time=00:00:09.04 bitrate=3430.1kbits/s speed=0.548x    frame=  223 fps= 13 q=39.0 size=    3879KiB time=00:00:09.29 bitrate=3420.4kbits/s speed=0.546x    frame=  230 fps= 13 q=39.0 size=    4007KiB time=00:00:09.58 bitrate=3425.0kbits/s speed=0.546x    frame=  237 fps= 13 q=39.0 size=    4101KiB time=00:00:09.87 bitrate=3402.5kbits/s speed=0.547x    frame=  243 fps= 13 q=39.0 size=    4192KiB time=00:00:10.12 bitrate=3391.4kbits/s speed=0.545x    frame=  250 fps= 13 q=39.0 size=    4306KiB time=00:00:10.41 bitrate=3386.2kbits/s speed=0.546x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd134.okcdn.ru/hls/14288946531063.m3u8/sig/mBofMIZhOGQ/expires/17767001
-frame=  257 fps= 13 q=39.0 size=    4417KiB time=00:00:10.70 bitrate=3379.3kbits/s speed=0.546x    frame=  263 fps= 13 q=39.0 size=    4529KiB time=00:00:10.95 bitrate=3385.4kbits/s speed=0.545x    frame=  270 fps= 13 q=39.0 size=    4622KiB time=00:00:11.25 bitrate=3365.9kbits/s speed=0.545x    [hls @ 0000023f437e3c00] Could not find codec parameters for stream 2 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+frame=  287 fps= 24 q=39.0 size=    4891KiB time=00:00:11.95 bitrate=3350.8kbits/s speed=1.01x    frame=  299 fps= 24 q=39.0 size=    5079KiB time=00:00:12.45 bitrate=3339.6kbits/s speed=1.01x    frame=  311 fps= 24 q=39.0 size=    5273KiB time=00:00:12.95 bitrate=3333.5kbits/s speed=   1x    frame=  324 fps= 24 q=39.0 size=    5478KiB time=00:00:13.50 bitrate=3324.4kbits/s speed=1.01x    frame=  336 fps= 24 q=40.0 size=    5669KiB time=00:00:14.00 bitrate=3317.4kbits/s speed=1.01x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd160.okcdn.ru/hls/14290272062199.m3u8/sig/273iqjB8Bgg/expires/17767013
+frame=  348 fps= 24 q=39.0 size=    5859KiB time=00:00:14.50 bitrate=3310.1kbits/s speed=   1x    frame=  361 fps= 24 q=39.0 size=    6067KiB time=00:00:15.04 bitrate=3304.2kbits/s speed=1.01x    frame=  373 fps= 24 q=39.0 size=    6258KiB time=00:00:15.54 bitrate=3298.5kbits/s speed=   1x    [hls @ 00000202d9913c00] Could not find codec parameters for stream 2 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
-[hls @ 0000023f437e3c00] Could not find codec parameters for stream 3 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+[hls @ 00000202d9913c00] Could not find codec parameters for stream 3 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
-[hls @ 0000023f437e3c00] Could not find codec parameters for stream 4 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+[hls @ 00000202d9913c00] Could not find codec parameters for stream 4 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
-[hls @ 0000023f437e3c00] Could not find codec parameters for stream 5 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+[hls @ 00000202d9913c00] Could not find codec parameters for stream 5 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
-[hls @ 0000023f437e3c00] Could not find codec parameters for stream 6 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+[hls @ 00000202d9913c00] Could not find codec parameters for stream 6 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
-[hls @ 0000023f437e3c00] Could not find codec parameters for stream 7 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+[hls @ 00000202d9913c00] Could not find codec parameters for stream 7 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
 Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
 [flicker] rx frame=0 dropped: HeaderRsFailed
 [flicker] rx frame=1 dropped: HeaderRsFailed
@@ -116,7 +111,7 @@ Consider increasing the value for the 'analyzeduration' (500000) and 'probesize'
 [flicker] rx frame=65 dropped: HeaderRsFailed
 [flicker] rx frame=66 dropped: HeaderRsFailed
 [flicker] rx frame=67 dropped: HeaderRsFailed
-[flicker] rx frame=68 dropped: HeaderRsFailed
+[flicker] rx frame=68 dropped: BlockRsFailed(0)
 [flicker] rx frame=69 dropped: HeaderRsFailed
 [flicker] rx frame=70 dropped: HeaderRsFailed
 [flicker] rx frame=71 dropped: HeaderRsFailed
@@ -166,10 +161,10 @@ Consider increasing the value for the 'analyzeduration' (500000) and 'probesize'
 [flicker] rx frame=115 dropped: HeaderRsFailed
 [flicker] rx frame=116 dropped: HeaderRsFailed
 [flicker] rx frame=117 dropped: HeaderRsFailed
-[flicker] rx frame=118 dropped: HeaderRsFailed
+frame=  386 fps= 24 q=40.0 size=    6460KiB time=00:00:16.08 bitrate=3290.5kbits/s speed=1.01x    [flicker] rx frame=118 dropped: HeaderRsFailed
 [flicker] rx frame=119 dropped: HeaderRsFailed
-[flicker] rx frame=120 dropped: BlockRsFailed(0)
-frame=  277 fps= 13 q=40.0 size=    4735KiB time=00:00:11.54 bitrate=3360.5kbits/s speed=0.546x    frame=  284 fps= 13 q=40.0 size=    4844KiB time=00:00:11.83 bitrate=3353.8kbits/s speed=0.546x    frame=  290 fps= 13 q=40.0 size=    4934KiB time=00:00:12.08 bitrate=3345.3kbits/s speed=0.545x    frame=  297 fps= 13 q=39.0 size=    5046KiB time=00:00:12.37 bitrate=3340.7kbits/s speed=0.545x    frame=  303 fps= 13 q=39.0 size=    5144KiB time=00:00:12.62 bitrate=3337.7kbits/s speed=0.544x    frame=  310 fps= 13 q=39.0 size=    5257KiB time=00:00:12.91 bitrate=3334.3kbits/s speed=0.544x    frame=  317 fps= 13 q=39.0 size=    5367KiB time=00:00:13.20 bitrate=3329.0kbits/s speed=0.545x    frame=  323 fps= 13 q=39.0 size=    5463KiB time=00:00:13.45 bitrate=3325.3kbits/s speed=0.544x    frame=  330 fps= 13 q=40.0 size=    5575KiB time=00:00:13.75 bitrate=3321.4kbits/s speed=0.544x    frame=  337 fps= 13 q=37.0 size=    5685KiB time=00:00:14.04 bitrate=3316.8kbits/s speed=0.545x    frame=  344 fps= 13 q=39.0 size=    5809KiB time=00:00:14.33 bitrate=3320.2kbits/s speed=0.545x    [flicker] rx frame=121 dropped: HeaderRsFailed
+[flicker] rx frame=120 dropped: HeaderRsFailed
+frame=  398 fps= 24 q=39.0 size=    6654KiB time=00:00:16.58 bitrate=3286.8kbits/s speed=   1x    frame=  410 fps= 24 q=40.0 size=    6847KiB time=00:00:17.08 bitrate=3283.4kbits/s speed=   1x    frame=  423 fps= 24 q=39.0 size=    7052KiB time=00:00:17.62 bitrate=3277.9kbits/s speed=1.01x    frame=  435 fps= 24 q=39.0 size=    7238KiB time=00:00:18.12 bitrate=3271.6kbits/s speed=   1x    frame=  447 fps= 24 q=39.0 size=    7433KiB time=00:00:18.62 bitrate=3269.3kbits/s speed=   1x    frame=  460 fps= 24 q=39.0 size=    7641KiB time=00:00:19.16 bitrate=3265.8kbits/s speed=   1x    frame=  472 fps= 24 q=39.0 size=    7832KiB time=00:00:19.66 bitrate=3262.4kbits/s speed=   1x    frame=  485 fps= 24 q=39.0 size=    8052KiB time=00:00:20.20 bitrate=3264.1kbits/s speed=   1x    frame=  497 fps= 24 q=39.0 size=    8231KiB time=00:00:20.70 bitrate=3256.1kbits/s speed=   1x    frame=  509 fps= 24 q=39.0 size=    8422KiB time=00:00:21.20 bitrate=3253.1kbits/s speed=   1x    [flicker] rx frame=121 dropped: HeaderRsFailed
 [flicker] rx frame=122 dropped: HeaderRsFailed
 [flicker] rx frame=123 dropped: HeaderRsFailed
 [flicker] rx frame=124 dropped: HeaderRsFailed
@@ -186,14 +181,14 @@ frame=  277 fps= 13 q=40.0 size=    4735KiB time=00:00:11.54 bitrate=3360.5kbits
 [flicker] rx frame=135 dropped: HeaderRsFailed
 [flicker] rx frame=136 dropped: HeaderRsFailed
 [flicker] rx frame=137 dropped: HeaderRsFailed
-[flicker] rx frame=138 dropped: HeaderRsFailed
+[flicker] rx frame=138 dropped: BlockRsFailed(0)
 [flicker] rx frame=139 dropped: HeaderRsFailed
 [flicker] rx frame=140 dropped: HeaderRsFailed
 [flicker] rx frame=141 dropped: HeaderRsFailed
-[flicker] rx frame=142 dropped: HeaderRsFailed
+[flicker] rx frame=142 dropped: BlockRsFailed(0)
 [flicker] rx frame=143 dropped: HeaderRsFailed
 [flicker] rx frame=144 dropped: HeaderRsFailed
-[flicker] rx frame=145 dropped: HeaderRsFailed
+frame=  522 fps= 24 q=40.0 size=    8630KiB time=00:00:21.75 bitrate=3250.4kbits/s speed=   1x    [flicker] rx frame=145 dropped: HeaderRsFailed
 [flicker] rx frame=146 dropped: HeaderRsFailed
 [flicker] rx frame=147 dropped: HeaderRsFailed
 [flicker] rx frame=148 dropped: HeaderRsFailed
@@ -227,7 +222,7 @@ frame=  277 fps= 13 q=40.0 size=    4735KiB time=00:00:11.54 bitrate=3360.5kbits
 [flicker] rx frame=176 dropped: HeaderRsFailed
 [flicker] rx frame=177 dropped: HeaderRsFailed
 [flicker] rx frame=178 dropped: HeaderRsFailed
-[flicker] rx frame=179 dropped: HeaderRsFailed
+[flicker] rx frame=179 dropped: BlockRsFailed(0)
 [flicker] rx frame=180 dropped: HeaderRsFailed
 [flicker] rx frame=181 dropped: HeaderRsFailed
 [flicker] rx frame=182 dropped: HeaderRsFailed
@@ -261,13 +256,13 @@ frame=  277 fps= 13 q=40.0 size=    4735KiB time=00:00:11.54 bitrate=3360.5kbits
 [flicker] rx frame=210 dropped: HeaderRsFailed
 [flicker] rx frame=211 dropped: HeaderRsFailed
 [flicker] rx frame=212 dropped: HeaderRsFailed
-[flicker] rx frame=213 dropped: HeaderRsFailed
+[flicker] rx frame=213 dropped: BlockRsFailed(0)
 [flicker] rx frame=214 dropped: HeaderRsFailed
-[flicker] rx frame=215 dropped: BlockRsFailed(0)
+[flicker] rx frame=215 dropped: HeaderRsFailed
 [flicker] rx frame=216 dropped: HeaderRsFailed
-[flicker] rx frame=217 dropped: BlockRsFailed(0)
+[flicker] rx frame=217 dropped: HeaderRsFailed
 [flicker] rx frame=218 dropped: HeaderRsFailed
-frame=  351 fps= 13 q=39.0 size=    5907KiB time=00:00:14.62 bitrate=3308.7kbits/s speed=0.545x    frame=  357 fps= 13 q=39.0 size=    6003KiB time=00:00:14.87 bitrate=3306.0kbits/s speed=0.544x    frame=  364 fps= 13 q=39.0 size=    6114KiB time=00:00:15.16 bitrate=3302.5kbits/s speed=0.545x    frame=  371 fps= 13 q=39.0 size=    6225KiB time=00:00:15.45 bitrate=3298.7kbits/s speed=0.545x    [flicker] rx frame=219 dropped: HeaderRsFailed
+[flicker] rx frame=219 dropped: HeaderRsFailed
 [flicker] rx frame=220 dropped: HeaderRsFailed
 [flicker] rx frame=221 dropped: HeaderRsFailed
 [flicker] rx frame=222 dropped: HeaderRsFailed
@@ -284,8 +279,8 @@ frame=  351 fps= 13 q=39.0 size=    5907KiB time=00:00:14.62 bitrate=3308.7kbits
 [flicker] rx frame=233 dropped: HeaderRsFailed
 [flicker] rx frame=234 dropped: HeaderRsFailed
 [flicker] rx frame=235 dropped: HeaderRsFailed
-[flicker] rx frame=236 dropped: HeaderRsFailed
-[flicker] rx frame=237 dropped: HeaderRsFailed
+[flicker] rx frame=236 dropped: BlockRsFailed(0)
+[flicker] rx frame=237 dropped: BlockRsFailed(0)
 [flicker] rx frame=238 dropped: HeaderRsFailed
 [flicker] rx frame=239 dropped: HeaderRsFailed
 [flicker] rx frame=240 dropped: HeaderRsFailed
@@ -300,13 +295,13 @@ frame=  351 fps= 13 q=39.0 size=    5907KiB time=00:00:14.62 bitrate=3308.7kbits
 [flicker] rx frame=249 dropped: HeaderRsFailed
 [flicker] rx frame=250 dropped: HeaderRsFailed
 [flicker] rx frame=251 dropped: HeaderRsFailed
-[flicker] rx frame=252 dropped: HeaderRsFailed
+[flicker] rx frame=252 dropped: BlockRsFailed(0)
 [flicker] rx frame=253 dropped: HeaderRsFailed
 [flicker] rx frame=254 dropped: HeaderRsFailed
 [flicker] rx frame=255 dropped: HeaderRsFailed
 [flicker] rx frame=256 dropped: HeaderRsFailed
 [flicker] rx frame=257 dropped: HeaderRsFailed
-[flicker] rx frame=258 dropped: HeaderRsFailed
+[flicker] rx frame=258 dropped: BlockRsFailed(0)
 [flicker] rx frame=259 dropped: HeaderRsFailed
 [flicker] rx frame=260 dropped: HeaderRsFailed
 [flicker] rx frame=261 dropped: HeaderRsFailed
@@ -316,7 +311,7 @@ frame=  351 fps= 13 q=39.0 size=    5907KiB time=00:00:14.62 bitrate=3308.7kbits
 [flicker] rx frame=265 dropped: HeaderRsFailed
 [flicker] rx frame=266 dropped: HeaderRsFailed
 [flicker] rx frame=267 dropped: HeaderRsFailed
-frame=  377 fps= 13 q=39.0 size=    6321KiB time=00:00:15.70 bitrate=3296.4kbits/s speed=0.544x    frame=  384 fps= 13 q=39.0 size=    6433KiB time=00:00:16.00 bitrate=3293.7kbits/s speed=0.544x    frame=  391 fps= 13 q=39.0 size=    6540KiB time=00:00:16.29 bitrate=3288.6kbits/s speed=0.545x    frame=  397 fps= 13 q=39.0 size=    6638KiB time=00:00:16.54 bitrate=3287.3kbits/s speed=0.544x    frame=  404 fps= 13 q=39.0 size=    6750KiB time=00:00:16.83 bitrate=3285.0kbits/s speed=0.544x    frame=  411 fps= 13 q=39.0 size=    6862KiB time=00:00:17.12 bitrate=3282.5kbits/s speed=0.544x    frame=  417 fps= 13 q=39.0 size=    6958KiB time=00:00:17.37 bitrate=3280.5kbits/s speed=0.543x    frame=  424 fps= 13 q=39.0 size=    7069KiB time=00:00:17.66 bitrate=3277.9kbits/s speed=0.544x    [flicker] rx frame=268 dropped: HeaderRsFailed
+frame=  534 fps= 24 q=39.0 size=    8831KiB time=00:00:22.25 bitrate=3251.4kbits/s speed=   1x    frame=  546 fps= 24 q=39.0 size=    9010KiB time=00:00:22.75 bitrate=3244.5kbits/s speed=   1x    frame=  559 fps= 24 q=40.0 size=    9220KiB time=00:00:23.29 bitrate=3242.7kbits/s speed=   1x    [flicker] rx frame=268 dropped: HeaderRsFailed
 [flicker] rx frame=269 dropped: HeaderRsFailed
 [flicker] rx frame=270 dropped: HeaderRsFailed
 [flicker] rx frame=271 dropped: HeaderRsFailed
@@ -325,13 +320,13 @@ frame=  377 fps= 13 q=39.0 size=    6321KiB time=00:00:15.70 bitrate=3296.4kbits
 [flicker] rx frame=274 dropped: HeaderRsFailed
 [flicker] rx frame=275 dropped: HeaderRsFailed
 [flicker] rx frame=276 dropped: HeaderRsFailed
-[flicker] rx frame=277 dropped: HeaderRsFailed
+[flicker] rx frame=277 dropped: BlockRsFailed(0)
 [flicker] rx frame=278 dropped: HeaderRsFailed
 [flicker] rx frame=279 dropped: HeaderRsFailed
 [flicker] rx frame=280 dropped: HeaderRsFailed
 [flicker] rx frame=281 dropped: HeaderRsFailed
 [flicker] rx frame=282 dropped: HeaderRsFailed
-[flicker] rx frame=283 dropped: HeaderRsFailed
+[flicker] rx frame=283 dropped: BlockRsFailed(0)
 [flicker] rx frame=284 dropped: HeaderRsFailed
 [flicker] rx frame=285 dropped: HeaderRsFailed
 [flicker] rx frame=286 dropped: HeaderRsFailed
@@ -353,7 +348,7 @@ frame=  377 fps= 13 q=39.0 size=    6321KiB time=00:00:15.70 bitrate=3296.4kbits
 [flicker] rx frame=302 dropped: HeaderRsFailed
 [flicker] rx frame=303 dropped: HeaderRsFailed
 [flicker] rx frame=304 dropped: HeaderRsFailed
-[flicker] rx frame=305 dropped: HeaderRsFailed
+frame=  571 fps= 24 q=39.0 size=    9409KiB time=00:00:23.79 bitrate=3239.8kbits/s speed=   1x    [flicker] rx frame=305 dropped: HeaderRsFailed
 [flicker] rx frame=306 dropped: HeaderRsFailed
 [flicker] rx frame=307 dropped: HeaderRsFailed
 [flicker] rx frame=308 dropped: HeaderRsFailed
@@ -365,7 +360,7 @@ frame=  377 fps= 13 q=39.0 size=    6321KiB time=00:00:15.70 bitrate=3296.4kbits
 [flicker] rx frame=314 dropped: HeaderRsFailed
 [flicker] rx frame=315 dropped: HeaderRsFailed
 [flicker] rx frame=316 dropped: HeaderRsFailed
-frame=  431 fps= 13 q=39.0 size=    7180KiB time=00:00:17.95 bitrate=3275.2kbits/s speed=0.544x    frame=  437 fps= 13 q=39.0 size=    7271KiB time=00:00:18.20 bitrate=3271.1kbits/s speed=0.543x    frame=  444 fps= 13 q=39.0 size=    7384KiB time=00:00:18.50 bitrate=3269.9kbits/s speed=0.543x    frame=  451 fps= 13 q=39.0 size=    7498KiB time=00:00:18.79 bitrate=3268.8kbits/s speed=0.544x    frame=  458 fps= 13 q=39.0 size=    7609KiB time=00:00:19.08 bitrate=3266.4kbits/s speed=0.544x    frame=  464 fps= 13 q=39.0 size=    7704KiB time=00:00:19.33 bitrate=3264.6kbits/s speed=0.543x    frame=  471 fps= 13 q=39.0 size=    7816KiB time=00:00:19.62 bitrate=3262.7kbits/s speed=0.544x    frame=  477 fps= 13 q=39.0 size=    7912KiB time=00:00:19.87 bitrate=3261.2kbits/s speed=0.543x    [flicker] rx frame=317 dropped: HeaderRsFailed
+frame=  583 fps= 24 q=39.0 size=    9596KiB time=00:00:24.29 bitrate=3236.2kbits/s speed=   1x    frame=  596 fps= 24 q=39.0 size=    9808KiB time=00:00:24.83 bitrate=3235.6kbits/s speed=   1x    frame=  608 fps= 24 q=39.0 size=   10000KiB time=00:00:25.33 bitrate=3233.5kbits/s speed=   1x    [flicker] rx frame=317 dropped: HeaderRsFailed
 [flicker] rx frame=318 dropped: HeaderRsFailed
 [flicker] rx frame=319 dropped: HeaderRsFailed
 [flicker] rx frame=320 dropped: HeaderRsFailed
@@ -375,25 +370,25 @@ frame=  431 fps= 13 q=39.0 size=    7180KiB time=00:00:17.95 bitrate=3275.2kbits
 [flicker] rx frame=324 dropped: HeaderRsFailed
 [flicker] rx frame=325 dropped: HeaderRsFailed
 [flicker] rx frame=326 dropped: HeaderRsFailed
-[flicker] rx frame=327 dropped: HeaderRsFailed
+[flicker] rx frame=327 dropped: BlockRsFailed(0)
 [flicker] rx frame=328 dropped: HeaderRsFailed
 [flicker] rx frame=329 dropped: HeaderRsFailed
 [flicker] rx frame=330 dropped: HeaderRsFailed
 [flicker] rx frame=331 dropped: HeaderRsFailed
 [flicker] rx frame=332 dropped: HeaderRsFailed
-[flicker] rx frame=333 dropped: HeaderRsFailed
+[flicker] rx frame=333 dropped: BlockRsFailed(0)
 [flicker] rx frame=334 dropped: HeaderRsFailed
-[flicker] rx frame=335 dropped: HeaderRsFailed
+frame=  621 fps= 24 q=39.0 size=   10207KiB time=00:00:25.87 bitrate=3231.5kbits/s speed=   1x    [flicker] rx frame=335 dropped: HeaderRsFailed
 [flicker] rx frame=336 dropped: HeaderRsFailed
 [flicker] rx frame=337 dropped: HeaderRsFailed
 [flicker] rx frame=338 dropped: HeaderRsFailed
 [flicker] rx frame=339 dropped: HeaderRsFailed
 [flicker] rx frame=340 dropped: HeaderRsFailed
-[flicker] rx frame=341 dropped: BlockRsFailed(0)
+[flicker] rx frame=341 dropped: HeaderRsFailed
 [flicker] rx frame=342 dropped: HeaderRsFailed
 [flicker] rx frame=343 dropped: HeaderRsFailed
 [flicker] rx frame=344 dropped: HeaderRsFailed
-[flicker] rx frame=345 dropped: BlockRsFailed(0)
+[flicker] rx frame=345 dropped: HeaderRsFailed
 [flicker] rx frame=346 dropped: HeaderRsFailed
 [flicker] rx frame=347 dropped: HeaderRsFailed
 [flicker] rx frame=348 dropped: HeaderRsFailed
@@ -414,7 +409,7 @@ frame=  431 fps= 13 q=39.0 size=    7180KiB time=00:00:17.95 bitrate=3275.2kbits
 [flicker] rx frame=363 dropped: HeaderRsFailed
 [flicker] rx frame=364 dropped: HeaderRsFailed
 [flicker] rx frame=365 dropped: HeaderRsFailed
-frame=  484 fps= 13 q=39.0 size=    8018KiB time=00:00:20.16 bitrate=3257.2kbits/s speed=0.543x    frame=  491 fps= 13 q=39.0 size=    8133KiB time=00:00:20.45 bitrate=3256.6kbits/s speed=0.543x    frame=  498 fps= 13 q=39.0 size=    8247KiB time=00:00:20.75 bitrate=3255.7kbits/s speed=0.544x    frame=  504 fps= 13 q=39.0 size=    8343KiB time=00:00:21.00 bitrate=3254.6kbits/s speed=0.543x    frame=  511 fps= 13 q=39.0 size=    8454KiB time=00:00:21.29 bitrate=3252.7kbits/s speed=0.543x    frame=  518 fps= 13 q=39.0 size=    8565KiB time=00:00:21.58 bitrate=3251.0kbits/s speed=0.543x    [flicker] rx frame=366 dropped: HeaderRsFailed
+frame=  633 fps= 24 q=39.0 size=   10394KiB time=00:00:26.37 bitrate=3228.4kbits/s speed=   1x    frame=  646 fps= 24 q=39.0 size=   10605KiB time=00:00:26.91 bitrate=3227.7kbits/s speed=   1x    frame=  658 fps= 24 q=40.0 size=   10797KiB time=00:00:27.41 bitrate=3226.1kbits/s speed=   1x    frame=  670 fps= 24 q=39.0 size=   10988KiB time=00:00:27.91 bitrate=3224.3kbits/s speed=   1x    [flicker] rx frame=366 dropped: HeaderRsFailed
 [flicker] rx frame=367 dropped: HeaderRsFailed
 [flicker] rx frame=368 dropped: HeaderRsFailed
 [flicker] rx frame=369 dropped: HeaderRsFailed
@@ -424,9 +419,9 @@ frame=  484 fps= 13 q=39.0 size=    8018KiB time=00:00:20.16 bitrate=3257.2kbits
 [flicker] rx frame=373 dropped: HeaderRsFailed
 [flicker] rx frame=374 dropped: HeaderRsFailed
 [flicker] rx frame=375 dropped: HeaderRsFailed
-[flicker] rx frame=376 dropped: HeaderRsFailed
+[flicker] rx frame=376 dropped: BlockRsFailed(0)
 [flicker] rx frame=377 dropped: HeaderRsFailed
-frame=  524 fps= 13 q=40.0 size=    8662KiB time=00:00:21.83 bitrate=3249.9kbits/s speed=0.543x    [flicker] rx frame=378 dropped: HeaderRsFailed
+[flicker] rx frame=378 dropped: HeaderRsFailed
 [flicker] rx frame=379 dropped: HeaderRsFailed
 [flicker] rx frame=380 dropped: HeaderRsFailed
 [flicker] rx frame=381 dropped: HeaderRsFailed
@@ -437,18 +432,18 @@ frame=  524 fps= 13 q=40.0 size=    8662KiB time=00:00:21.83 bitrate=3249.9kbits
 [flicker] rx frame=386 dropped: HeaderRsFailed
 [flicker] rx frame=387 dropped: HeaderRsFailed
 [flicker] rx frame=388 dropped: HeaderRsFailed
-[flicker] rx frame=389 dropped: HeaderRsFailed
+[flicker] rx frame=389 dropped: BlockRsFailed(0)
 [flicker] rx frame=390 dropped: HeaderRsFailed
-[flicker] rx frame=391 dropped: HeaderRsFailed
+[flicker] rx frame=391 dropped: BlockRsFailed(0)
 [flicker] rx frame=392 dropped: HeaderRsFailed
 [flicker] rx frame=393 dropped: HeaderRsFailed
 [flicker] rx frame=394 dropped: HeaderRsFailed
 [flicker] rx frame=395 dropped: HeaderRsFailed
 [flicker] rx frame=396 dropped: HeaderRsFailed
 [flicker] rx frame=397 dropped: HeaderRsFailed
-[flicker] rx frame=398 dropped: BlockRsFailed(0)
-[flicker] rx frame=399 dropped: HeaderRsFailed
-[flicker] rx frame=400 dropped: HeaderRsFailed
+[flicker] rx frame=398 dropped: HeaderRsFailed
+[flicker] rx frame=399 dropped: BlockRsFailed(0)
+[flicker] rx frame=400 dropped: BlockRsFailed(0)
 [flicker] rx frame=401 dropped: HeaderRsFailed
 [flicker] rx frame=402 dropped: HeaderRsFailed
 [flicker] rx frame=403 dropped: HeaderRsFailed
@@ -463,9 +458,9 @@ frame=  524 fps= 13 q=40.0 size=    8662KiB time=00:00:21.83 bitrate=3249.9kbits
 [flicker] rx frame=412 dropped: HeaderRsFailed
 [flicker] rx frame=413 dropped: HeaderRsFailed
 [flicker] rx frame=414 dropped: HeaderRsFailed
-frame=  531 fps= 13 q=39.0 size=    8766KiB time=00:00:22.12 bitrate=3245.7kbits/s speed=0.543x    frame=  538 fps= 13 q=39.0 size=    8879KiB time=00:00:22.41 bitrate=3244.8kbits/s speed=0.543x    frame=  544 fps= 13 q=39.0 size=    8977KiB time=00:00:22.66 bitrate=3244.3kbits/s speed=0.543x    frame=  551 fps= 13 q=39.0 size=    9090KiB time=00:00:22.95 bitrate=3243.6kbits/s speed=0.543x    frame=  558 fps= 13 q=39.0 size=    9203KiB time=00:00:23.25 bitrate=3242.5kbits/s speed=0.543x    frame=  564 fps= 13 q=39.0 size=    9298KiB time=00:00:23.50 bitrate=3241.3kbits/s speed=0.543x    frame=  571 fps= 13 q=40.0 size=    9410KiB time=00:00:23.79 bitrate=3240.0kbits/s speed=0.543x    frame=  578 fps= 13 q=40.0 size=    9517KiB time=00:00:24.08 bitrate=3237.1kbits/s speed=0.543x    [flicker] rx frame=415 dropped: HeaderRsFailed
+frame=  683 fps= 24 q=39.0 size=   11192KiB time=00:00:28.45 bitrate=3221.6kbits/s speed=   1x    frame=  695 fps= 24 q=40.0 size=   11387KiB time=00:00:28.95 bitrate=3221.2kbits/s speed=   1x    frame=  707 fps= 24 q=39.0 size=   11577KiB time=00:00:29.45 bitrate=3219.5kbits/s speed=   1x    frame=  720 fps= 24 q=39.0 size=   11785KiB time=00:00:30.00 bitrate=3218.1kbits/s speed=   1x    [flicker] rx frame=415 dropped: HeaderRsFailed
 [flicker] rx frame=416 dropped: HeaderRsFailed
-[flicker] rx frame=417 dropped: HeaderRsFailed
+[flicker] rx frame=417 dropped: BlockRsFailed(0)
 [flicker] rx frame=418 dropped: HeaderRsFailed
 [flicker] rx frame=419 dropped: HeaderRsFailed
 [flicker] rx frame=420 dropped: HeaderRsFailed
@@ -475,7 +470,7 @@ frame=  531 fps= 13 q=39.0 size=    8766KiB time=00:00:22.12 bitrate=3245.7kbits
 [flicker] rx frame=424 dropped: HeaderRsFailed
 [flicker] rx frame=425 dropped: HeaderRsFailed
 [flicker] rx frame=426 dropped: HeaderRsFailed
-[flicker] rx frame=427 dropped: BlockRsFailed(0)
+[flicker] rx frame=427 dropped: HeaderRsFailed
 [flicker] rx frame=428 dropped: HeaderRsFailed
 [flicker] rx frame=429 dropped: HeaderRsFailed
 [flicker] rx frame=430 dropped: HeaderRsFailed
@@ -512,13 +507,13 @@ frame=  531 fps= 13 q=39.0 size=    8766KiB time=00:00:22.12 bitrate=3245.7kbits
 [flicker] rx frame=461 dropped: HeaderRsFailed
 [flicker] rx frame=462 dropped: HeaderRsFailed
 [flicker] rx frame=463 dropped: HeaderRsFailed
-frame=  584 fps= 13 q=39.0 size=    9612KiB time=00:00:24.33 bitrate=3236.0kbits/s speed=0.542x    frame=  591 fps= 13 q=39.0 size=    9726KiB time=00:00:24.62 bitrate=3235.7kbits/s speed=0.543x    frame=  598 fps= 13 q=40.0 size=    9856KiB time=00:00:24.91 bitrate=3240.3kbits/s speed=0.543x    frame=  605 fps= 13 q=39.0 size=    9953KiB time=00:00:25.20 bitrate=3234.4kbits/s speed=0.543x    frame=  611 fps= 13 q=39.0 size=   10047KiB time=00:00:25.45 bitrate=3233.1kbits/s speed=0.542x    frame=  618 fps= 13 q=39.0 size=   10159KiB time=00:00:25.75 bitrate=3231.8kbits/s speed=0.543x    frame=  625 fps= 13 q=37.0 size=   10271KiB time=00:00:26.04 bitrate=3231.1kbits/s speed=0.543x    frame=  631 fps= 13 q=39.0 size=   10378KiB time=00:00:26.29 bitrate=3233.7kbits/s speed=0.542x    frame=  638 fps= 13 q=39.0 size=   10476KiB time=00:00:26.58 bitrate=3228.2kbits/s speed=0.543x    frame=  645 fps= 13 q=39.0 size=   10590KiB time=00:00:26.87 bitrate=3227.9kbits/s speed=0.543x    frame=  651 fps= 13 q=39.0 size=   10685KiB time=00:00:27.12 bitrate=3226.9kbits/s speed=0.542x    [flicker] rx frame=464 dropped: HeaderRsFailed
-[flicker] rx frame=465 dropped: BlockRsFailed(0)
+frame=  732 fps= 24 q=39.0 size=   11973KiB time=00:00:30.50 bitrate=3215.9kbits/s speed=   1x    frame=  744 fps= 24 q=39.0 size=   12169KiB time=00:00:31.00 bitrate=3215.7kbits/s speed=   1x    frame=  757 fps= 24 q=39.0 size=   12392KiB time=00:00:31.54 bitrate=3218.5kbits/s speed=   1x    frame=  769 fps= 24 q=37.0 size=   12567KiB time=00:00:32.04 bitrate=3213.0kbits/s speed=   1x    [flicker] rx frame=464 dropped: HeaderRsFailed
+[flicker] rx frame=465 dropped: HeaderRsFailed
 [flicker] rx frame=466 dropped: HeaderRsFailed
 [flicker] rx frame=467 dropped: HeaderRsFailed
 [flicker] rx frame=468 dropped: HeaderRsFailed
 [flicker] rx frame=469 dropped: HeaderRsFailed
-[flicker] rx frame=470 dropped: HeaderRsFailed
+[flicker] rx frame=470 dropped: BlockRsFailed(0)
 [flicker] rx frame=471 dropped: HeaderRsFailed
 [flicker] rx frame=472 dropped: HeaderRsFailed
 [flicker] rx frame=473 dropped: HeaderRsFailed
@@ -529,26 +524,26 @@ frame=  584 fps= 13 q=39.0 size=    9612KiB time=00:00:24.33 bitrate=3236.0kbits
 [flicker] rx frame=478 dropped: HeaderRsFailed
 [flicker] rx frame=479 dropped: HeaderRsFailed
 [flicker] rx frame=480 dropped: HeaderRsFailed
-[flicker] rx frame=481 dropped: HeaderRsFailed
+[flicker] rx frame=481 dropped: BlockRsFailed(0)
 [flicker] rx frame=482 dropped: HeaderRsFailed
 [flicker] rx frame=483 dropped: HeaderRsFailed
-[flicker] rx frame=484 dropped: BlockRsFailed(0)
-[flicker] rx frame=485 dropped: HeaderRsFailed
+[flicker] rx frame=484 dropped: HeaderRsFailed
+[flicker] rx frame=485 dropped: BlockRsFailed(0)
 [flicker] rx frame=486 dropped: HeaderRsFailed
-[flicker] rx frame=487 dropped: HeaderRsFailed
+[flicker] rx frame=487 dropped: BlockRsFailed(0)
 [flicker] rx frame=488 dropped: HeaderRsFailed
 [flicker] rx frame=489 dropped: HeaderRsFailed
 [flicker] rx frame=490 dropped: HeaderRsFailed
-[flicker] rx frame=491 dropped: HeaderRsFailed
+[flicker] rx frame=491 dropped: BlockRsFailed(0)
 [flicker] rx frame=492 dropped: HeaderRsFailed
 [flicker] rx frame=493 dropped: HeaderRsFailed
 [flicker] rx frame=494 dropped: HeaderRsFailed
 [flicker] rx frame=495 dropped: HeaderRsFailed
 [flicker] rx frame=496 dropped: HeaderRsFailed
-frame=  658 fps= 13 q=40.0 size=   10797KiB time=00:00:27.41 bitrate=3226.1kbits/s speed=0.543x    [flicker] rx frame=497 dropped: HeaderRsFailed
-[flicker] rx frame=498 dropped: HeaderRsFailed
-[flicker] rx frame=499 dropped: BlockRsFailed(0)
-[flicker] rx frame=500 dropped: HeaderRsFailed
+[flicker] rx frame=497 dropped: HeaderRsFailed
+[flicker] rx frame=498 dropped: BlockRsFailed(0)
+[flicker] rx frame=499 dropped: HeaderRsFailed
+[flicker] rx frame=500 dropped: BlockRsFailed(0)
 [flicker] rx frame=501 dropped: HeaderRsFailed
 [flicker] rx frame=502 dropped: HeaderRsFailed
 [flicker] rx frame=503 dropped: HeaderRsFailed
@@ -561,7 +556,7 @@ frame=  658 fps= 13 q=40.0 size=   10797KiB time=00:00:27.41 bitrate=3226.1kbits
 [flicker] rx frame=510 dropped: HeaderRsFailed
 [flicker] rx frame=511 dropped: HeaderRsFailed
 [flicker] rx frame=512 dropped: HeaderRsFailed
-frame=  665 fps= 13 q=40.0 size=   10909KiB time=00:00:27.70 bitrate=3225.2kbits/s speed=0.543x    frame=  672 fps= 13 q=39.0 size=   11020KiB time=00:00:28.00 bitrate=3224.2kbits/s speed=0.543x    frame=  678 fps= 13 q=39.0 size=   11111KiB time=00:00:28.25 bitrate=3222.1kbits/s speed=0.542x    [flicker] rx frame=513 dropped: HeaderRsFailed
+frame=  781 fps= 24 q=39.0 size=   12756KiB time=00:00:32.54 bitrate=3211.2kbits/s speed=   1x    frame=  794 fps= 24 q=39.0 size=   12966KiB time=00:00:33.08 bitrate=3210.7kbits/s speed=   1x    frame=  806 fps= 24 q=39.0 size=   13173KiB time=00:00:33.58 bitrate=3213.4kbits/s speed=   1x    frame=  819 fps= 24 q=39.0 size=   13359KiB time=00:00:34.12 bitrate=3206.8kbits/s speed=   1x    [flicker] rx frame=513 dropped: HeaderRsFailed
 [flicker] rx frame=514 dropped: HeaderRsFailed
 [flicker] rx frame=515 dropped: HeaderRsFailed
 [flicker] rx frame=516 dropped: HeaderRsFailed
@@ -569,7 +564,7 @@ frame=  665 fps= 13 q=40.0 size=   10909KiB time=00:00:27.70 bitrate=3225.2kbits
 [flicker] rx frame=518 dropped: HeaderRsFailed
 [flicker] rx frame=519 dropped: HeaderRsFailed
 [flicker] rx frame=520 dropped: HeaderRsFailed
-[flicker] rx frame=521 dropped: HeaderRsFailed
+[flicker] rx frame=521 dropped: BlockRsFailed(0)
 [flicker] rx frame=522 dropped: HeaderRsFailed
 [flicker] rx frame=523 dropped: HeaderRsFailed
 [flicker] rx frame=524 dropped: HeaderRsFailed
@@ -587,7 +582,7 @@ frame=  665 fps= 13 q=40.0 size=   10909KiB time=00:00:27.70 bitrate=3225.2kbits
 [flicker] rx frame=536 dropped: HeaderRsFailed
 [flicker] rx frame=537 dropped: HeaderRsFailed
 [flicker] rx frame=538 dropped: HeaderRsFailed
-[flicker] rx frame=539 dropped: BlockRsFailed(0)
+[flicker] rx frame=539 dropped: HeaderRsFailed
 [flicker] rx frame=540 dropped: HeaderRsFailed
 [flicker] rx frame=541 dropped: HeaderRsFailed
 [flicker] rx frame=542 dropped: HeaderRsFailed
@@ -595,7 +590,7 @@ frame=  665 fps= 13 q=40.0 size=   10909KiB time=00:00:27.70 bitrate=3225.2kbits
 [flicker] rx frame=544 dropped: HeaderRsFailed
 [flicker] rx frame=545 dropped: HeaderRsFailed
 [flicker] rx frame=546 dropped: HeaderRsFailed
-[flicker] rx frame=547 dropped: HeaderRsFailed
+[flicker] rx frame=547 dropped: BlockRsFailed(0)
 [flicker] rx frame=548 dropped: HeaderRsFailed
 [flicker] rx frame=549 dropped: HeaderRsFailed
 [flicker] rx frame=550 dropped: HeaderRsFailed
@@ -604,13 +599,13 @@ frame=  665 fps= 13 q=40.0 size=   10909KiB time=00:00:27.70 bitrate=3225.2kbits
 [flicker] rx frame=553 dropped: HeaderRsFailed
 [flicker] rx frame=554 dropped: HeaderRsFailed
 [flicker] rx frame=555 dropped: HeaderRsFailed
-[flicker] rx frame=556 dropped: HeaderRsFailed
+[flicker] rx frame=556 dropped: frame=  831 fps= 24 q=39.0 size=   13554KiB time=00:00:34.62 bitrate=3206.7kbits/s speed=   1x    HeaderRsFailed
 [flicker] rx frame=557 dropped: HeaderRsFailed
 [flicker] rx frame=558 dropped: HeaderRsFailed
 [flicker] rx frame=559 dropped: HeaderRsFailed
 [flicker] rx frame=560 dropped: HeaderRsFailed
 [flicker] rx frame=561 dropped: HeaderRsFailed
-frame=  685 fps= 13 q=39.0 size=   11225KiB time=00:00:28.54 bitrate=3221.7kbits/s speed=0.543x    frame=  692 fps= 13 q=39.0 size=   11340KiB time=00:00:28.83 bitrate=3221.8kbits/s speed=0.543x    frame=  698 fps= 13 q=40.0 size=   11434KiB time=00:00:29.08 bitrate=3220.8kbits/s speed=0.542x    frame=  705 fps= 13 q=39.0 size=   11547KiB time=00:00:29.37 bitrate=3220.1kbits/s speed=0.542x    frame=  712 fps= 13 q=39.0 size=   11674KiB time=00:00:29.66 bitrate=3223.6kbits/s speed=0.543x    frame=  718 fps= 13 q=39.0 size=   11754KiB time=00:00:29.91 bitrate=3218.5kbits/s speed=0.542x    frame=  725 fps= 13 q=39.0 size=   11860KiB time=00:00:30.20 bitrate=3216.3kbits/s speed=0.542x    frame=  731 fps= 13 q=39.0 size=   11957KiB time=00:00:30.45 bitrate=3216.0kbits/s speed=0.542x    frame=  738 fps= 13 q=39.0 size=   12071KiB time=00:00:30.75 bitrate=3215.8kbits/s speed=0.542x    frame=  745 fps= 13 q=40.0 size=   12185KiB time=00:00:31.04 bitrate=3215.7kbits/s speed=0.542x    frame=  752 fps= 13 q=39.0 size=   12296KiB time=00:00:31.33 bitrate=3214.7kbits/s speed=0.543x    [flicker] rx frame=562 dropped: HeaderRsFailed
+frame=  843 fps= 24 q=39.0 size=   13748KiB time=00:00:35.12 bitrate=3206.3kbits/s speed=   1x    frame=  856 fps= 24 q=39.0 size=   13955KiB time=00:00:35.66 bitrate=3205.2kbits/s speed=   1x    frame=  868 fps= 24 q=39.0 size=   14141KiB time=00:00:36.16 bitrate=3203.0kbits/s speed=   1x    [flicker] rx frame=562 dropped: HeaderRsFailed
 [flicker] rx frame=563 dropped: HeaderRsFailed
 [flicker] rx frame=564 dropped: HeaderRsFailed
 [flicker] rx frame=565 dropped: HeaderRsFailed
@@ -622,7 +617,7 @@ frame=  685 fps= 13 q=39.0 size=   11225KiB time=00:00:28.54 bitrate=3221.7kbits
 [flicker] rx frame=571 dropped: HeaderRsFailed
 [flicker] rx frame=572 dropped: HeaderRsFailed
 [flicker] rx frame=573 dropped: HeaderRsFailed
-[flicker] rx frame=574 dropped: HeaderRsFailed
+[flicker] rx frame=574 dropped: BlockRsFailed(0)
 [flicker] rx frame=575 dropped: HeaderRsFailed
 [flicker] rx frame=576 dropped: HeaderRsFailed
 [flicker] rx frame=577 dropped: HeaderRsFailed
@@ -631,16 +626,16 @@ frame=  685 fps= 13 q=39.0 size=   11225KiB time=00:00:28.54 bitrate=3221.7kbits
 [flicker] rx frame=580 dropped: HeaderRsFailed
 [flicker] rx frame=581 dropped: HeaderRsFailed
 [flicker] rx frame=582 dropped: HeaderRsFailed
-[flicker] rx frame=583 dropped: HeaderRsFailed
+[flicker] rx frame=583 dropped: BlockRsFailed(0)
 [flicker] rx frame=584 dropped: HeaderRsFailed
 [flicker] rx frame=585 dropped: HeaderRsFailed
-[flicker] rx frame=586 dropped: BlockRsFailed(0)
+frame=  881 fps= 24 q=39.0 size=   14352KiB time=00:00:36.70 bitrate=3202.9kbits/s speed=   1x    [flicker] rx frame=586 dropped: HeaderRsFailed
 [flicker] rx frame=587 dropped: HeaderRsFailed
 [flicker] rx frame=588 dropped: HeaderRsFailed
 [flicker] rx frame=589 dropped: HeaderRsFailed
 [flicker] rx frame=590 dropped: HeaderRsFailed
 [flicker] rx frame=591 dropped: HeaderRsFailed
-[flicker] rx frame=592 dropped: BlockRsFailed(0)
+[flicker] rx frame=592 dropped: HeaderRsFailed
 [flicker] rx frame=593 dropped: HeaderRsFailed
 [flicker] rx frame=594 dropped: HeaderRsFailed
 [flicker] rx frame=595 dropped: HeaderRsFailed
@@ -652,33 +647,33 @@ frame=  685 fps= 13 q=39.0 size=   11225KiB time=00:00:28.54 bitrate=3221.7kbits
 [flicker] rx frame=601 dropped: HeaderRsFailed
 [flicker] rx frame=602 dropped: HeaderRsFailed
 [flicker] rx frame=603 dropped: HeaderRsFailed
-[flicker] rx frame=604 dropped: BlockRsFailed(0)
+[flicker] rx frame=604 dropped: HeaderRsFailed
 [flicker] rx frame=605 dropped: HeaderRsFailed
 [flicker] rx frame=606 dropped: HeaderRsFailed
 [flicker] rx frame=607 dropped: HeaderRsFailed
 [flicker] rx frame=608 dropped: HeaderRsFailed
 [flicker] rx frame=609 dropped: HeaderRsFailed
 [flicker] rx frame=610 dropped: HeaderRsFailed
-frame=  758 fps= 13 q=39.0 size=   12392KiB time=00:00:31.58 bitrate=3214.3kbits/s speed=0.542x    frame=  765 fps= 13 q=39.0 size=   12504KiB time=00:00:31.87 bitrate=3213.5kbits/s speed=0.542x    frame=  771 fps= 13 q=39.0 size=   12593KiB time=00:00:32.12 bitrate=3211.4kbits/s speed=0.542x    frame=  778 fps= 13 q=39.0 size=   12707KiB time=00:00:32.41 bitrate=3211.2kbits/s speed=0.542x    [flicker] rx frame=611 dropped: HeaderRsFailed
+[flicker] rx frame=611 dropped: HeaderRsFailed
 [flicker] rx frame=612 dropped: HeaderRsFailed
 [flicker] rx frame=613 dropped: HeaderRsFailed
-frame=  785 fps= 13 q=39.0 size=   12822KiB time=00:00:32.70 bitrate=3211.3kbits/s speed=0.542x    [flicker] rx frame=614 dropped: HeaderRsFailed
+[flicker] rx frame=614 dropped: HeaderRsFailed
 [flicker] rx frame=615 dropped: HeaderRsFailed
 [flicker] rx frame=616 dropped: HeaderRsFailed
 [flicker] rx frame=617 dropped: HeaderRsFailed
 [flicker] rx frame=618 dropped: HeaderRsFailed
 [flicker] rx frame=619 dropped: HeaderRsFailed
-[flicker] rx frame=620 dropped: HeaderRsFailed
+[flicker] rx frame=620 dropped: BlockRsFailed(0)
 [flicker] rx frame=621 dropped: HeaderRsFailed
 [flicker] rx frame=622 dropped: HeaderRsFailed
-[flicker] rx frame=623 dropped: HeaderRsFailed
+[flicker] rx frame=623 dropped: BlockRsFailed(0)
 [flicker] rx frame=624 dropped: HeaderRsFailed
 [flicker] rx frame=625 dropped: HeaderRsFailed
 [flicker] rx frame=626 dropped: HeaderRsFailed
 [flicker] rx frame=627 dropped: HeaderRsFailed
 [flicker] rx frame=628 dropped: HeaderRsFailed
 [flicker] rx frame=629 dropped: HeaderRsFailed
-[flicker] rx frame=630 dropped: BlockRsFailed(0)
+[flicker] rx frame=630 dropped: HeaderRsFailed
 [flicker] rx frame=631 dropped: HeaderRsFailed
 [flicker] rx frame=632 dropped: HeaderRsFailed
 [flicker] rx frame=633 dropped: HeaderRsFailed
@@ -700,7 +695,7 @@ frame=  785 fps= 13 q=39.0 size=   12822KiB time=00:00:32.70 bitrate=3211.3kbits
 [flicker] rx frame=649 dropped: HeaderRsFailed
 [flicker] rx frame=650 dropped: HeaderRsFailed
 [flicker] rx frame=651 dropped: HeaderRsFailed
-[flicker] rx frame=652 dropped: BlockRsFailed(0)
+[flicker] rx frame=652 dropped: HeaderRsFailed
 [flicker] rx frame=653 dropped: HeaderRsFailed
 [flicker] rx frame=654 dropped: HeaderRsFailed
 [flicker] rx frame=655 dropped: HeaderRsFailed
@@ -708,7 +703,7 @@ frame=  785 fps= 13 q=39.0 size=   12822KiB time=00:00:32.70 bitrate=3211.3kbits
 [flicker] rx frame=657 dropped: HeaderRsFailed
 [flicker] rx frame=658 dropped: HeaderRsFailed
 [flicker] rx frame=659 dropped: HeaderRsFailed
-frame=  791 fps= 13 q=40.0 size=   12919KiB time=00:00:32.95 bitrate=3211.1kbits/s speed=0.542x    frame=  798 fps= 13 q=39.0 size=   13030KiB time=00:00:33.25 bitrate=3210.3kbits/s speed=0.542x    frame=  805 fps= 13 q=40.0 size=   13142KiB time=00:00:33.54 bitrate=3209.7kbits/s speed=0.542x    frame=  811 fps= 13 q=39.0 size=   13237KiB time=00:00:33.79 bitrate=3208.9kbits/s speed=0.542x    frame=  818 fps= 13 q=40.0 size=   13344KiB time=00:00:34.08 bitrate=3207.2kbits/s speed=0.542x    frame=  824 fps= 13 q=39.0 size=   13439KiB time=00:00:34.33 bitrate=3206.6kbits/s speed=0.541x    frame=  831 fps= 13 q=39.0 size=   13554KiB time=00:00:34.62 bitrate=3206.7kbits/s speed=0.541x    frame=  838 fps= 13 q=40.0 size=   13683KiB time=00:00:34.91 bitrate=3210.3kbits/s speed=0.542x    frame=  845 fps= 13 q=39.0 size=   13779KiB time=00:00:35.20 bitrate=3206.1kbits/s speed=0.542x    frame=  851 fps= 13 q=39.0 size=   13874KiB time=00:00:35.45 bitrate=3205.4kbits/s speed=0.541x    frame=  858 fps= 13 q=39.0 size=   13986KiB time=00:00:35.75 bitrate=3204.9kbits/s speed=0.542x    [flicker] rx frame=660 dropped: HeaderRsFailed
+frame=  893 fps= 24 q=40.0 size=   14545KiB time=00:00:37.20 bitrate=3202.4kbits/s speed=   1x    frame=  905 fps= 24 q=39.0 size=   14736KiB time=00:00:37.70 bitrate=3201.3kbits/s speed=   1x    frame=  918 fps= 24 q=39.0 size=   14956KiB time=00:00:38.25 bitrate=3203.0kbits/s speed=   1x    frame=  930 fps= 24 q=39.0 size=   15135KiB time=00:00:38.75 bitrate=3199.6kbits/s speed=   1x    [flicker] rx frame=660 dropped: HeaderRsFailed
 [flicker] rx frame=661 dropped: HeaderRsFailed
 [flicker] rx frame=662 dropped: HeaderRsFailed
 [flicker] rx frame=663 dropped: HeaderRsFailed
@@ -727,7 +722,7 @@ frame=  791 fps= 13 q=40.0 size=   12919KiB time=00:00:32.95 bitrate=3211.1kbits
 [flicker] rx frame=676 dropped: HeaderRsFailed
 [flicker] rx frame=677 dropped: HeaderRsFailed
 [flicker] rx frame=678 dropped: HeaderRsFailed
-[flicker] rx frame=679 dropped: HeaderRsFailed
+[flicker] rx frame=679 dropped: BlockRsFailed(0)
 [flicker] rx frame=680 dropped: HeaderRsFailed
 [flicker] rx frame=681 dropped: HeaderRsFailed
 [flicker] rx frame=682 dropped: HeaderRsFailed
@@ -742,14 +737,14 @@ frame=  791 fps= 13 q=40.0 size=   12919KiB time=00:00:32.95 bitrate=3211.1kbits
 [flicker] rx frame=691 dropped: HeaderRsFailed
 [flicker] rx frame=692 dropped: HeaderRsFailed
 [flicker] rx frame=693 dropped: HeaderRsFailed
-[flicker] rx frame=694 dropped: HeaderRsFailed
+[flicker] rx frame=694 dropped: BlockRsFailed(0)
 [flicker] rx frame=695 dropped: HeaderRsFailed
 [flicker] rx frame=696 dropped: HeaderRsFailed
 [flicker] rx frame=697 dropped: HeaderRsFailed
 [flicker] rx frame=698 dropped: HeaderRsFailed
 [flicker] rx frame=699 dropped: HeaderRsFailed
 [flicker] rx frame=700 dropped: HeaderRsFailed
-[flicker] rx frame=701 dropped: BlockRsFailed(0)
+[flicker] rx frame=701 dropped: HeaderRsFailed
 [flicker] rx frame=702 dropped: HeaderRsFailed
 [flicker] rx frame=703 dropped: HeaderRsFailed
 [flicker] rx frame=704 dropped: HeaderRsFailed
@@ -757,14 +752,14 @@ frame=  791 fps= 13 q=40.0 size=   12919KiB time=00:00:32.95 bitrate=3211.1kbits
 [flicker] rx frame=706 dropped: HeaderRsFailed
 [flicker] rx frame=707 dropped: HeaderRsFailed
 [flicker] rx frame=708 dropped: HeaderRsFailed
-frame=  865 fps= 13 q=37.0 size=   14098KiB time=00:00:36.04 bitrate=3204.4kbits/s speed=0.542x    frame=  871 fps= 13 q=39.0 size=   14206KiB time=00:00:36.29 bitrate=3206.6kbits/s speed=0.541x    frame=  878 fps= 13 q=39.0 size=   14303KiB time=00:00:36.58 bitrate=3202.9kbits/s speed=0.542x    frame=  884 fps= 13 q=39.0 size=   14401KiB time=00:00:36.83 bitrate=3202.9kbits/s speed=0.541x    [flicker] rx frame=709 dropped: HeaderRsFailed
+frame=  943 fps= 24 q=39.0 size=   15344KiB time=00:00:39.29 bitrate=3199.0kbits/s speed=   1x    frame=  955 fps= 24 q=39.0 size=   15535KiB time=00:00:39.79 bitrate=3198.1kbits/s speed=   1x    frame=  967 fps= 24 q=39.0 size=   15738KiB time=00:00:40.29 bitrate=3199.8kbits/s speed=   1x    frame=  980 fps= 24 q=39.0 size=   15934KiB time=00:00:40.83 bitrate=3196.6kbits/s speed=   1x    [flicker] rx frame=709 dropped: HeaderRsFailed
 [flicker] rx frame=710 dropped: HeaderRsFailed
-[flicker] rx frame=711 dropped: HeaderRsFailed
+[flicker] rx frame=711 dropped: BlockRsFailed(0)
 [flicker] rx frame=712 dropped: HeaderRsFailed
-[flicker] rx frame=713 dropped: HeaderRsFailed
+[flicker] rx frame=713 dropped: BlockRsFailed(0)
 [flicker] rx frame=714 dropped: HeaderRsFailed
 [flicker] rx frame=715 dropped: HeaderRsFailed
-[flicker] rx frame=716 dropped: HeaderRsFailed
+[flicker] rx frame=716 dropped: BlockRsFailed(0)
 [flicker] rx frame=717 dropped: HeaderRsFailed
 [flicker] rx frame=718 dropped: HeaderRsFailed
 [flicker] rx frame=719 dropped: HeaderRsFailed
@@ -784,7 +779,7 @@ frame=  865 fps= 13 q=37.0 size=   14098KiB time=00:00:36.04 bitrate=3204.4kbits
 [flicker] rx frame=733 dropped: HeaderRsFailed
 [flicker] rx frame=734 dropped: HeaderRsFailed
 [flicker] rx frame=735 dropped: HeaderRsFailed
-[flicker] rx frame=736 dropped: BlockRsFailed(0)
+[flicker] rx frame=736 dropped: HeaderRsFailed
 [flicker] rx frame=737 dropped: HeaderRsFailed
 [flicker] rx frame=738 dropped: HeaderRsFailed
 [flicker] rx frame=739 dropped: HeaderRsFailed
@@ -801,19 +796,19 @@ frame=  865 fps= 13 q=37.0 size=   14098KiB time=00:00:36.04 bitrate=3204.4kbits
 [flicker] rx frame=750 dropped: HeaderRsFailed
 [flicker] rx frame=751 dropped: HeaderRsFailed
 [flicker] rx frame=752 dropped: HeaderRsFailed
-[flicker] rx frame=753 dropped: BlockRsFailed(0)
+[flicker] rx frame=753 dropped: HeaderRsFailed
 [flicker] rx frame=754 dropped: HeaderRsFailed
 [flicker] rx frame=755 dropped: HeaderRsFailed
 [flicker] rx frame=756 dropped: HeaderRsFailed
 [flicker] rx frame=757 dropped: HeaderRsFailed
-frame=  891 fps= 13 q=39.0 size=   14513KiB time=00:00:37.12 bitrate=3202.5kbits/s speed=0.541x    frame=  898 fps= 13 q=39.0 size=   14625KiB time=00:00:37.41 bitrate=3201.9kbits/s speed=0.541x    frame=  904 fps= 13 q=39.0 size=   14720KiB time=00:00:37.66 bitrate=3201.4kbits/s speed=0.541x    frame=  911 fps= 13 q=39.0 size=   14832KiB time=00:00:37.95 bitrate=3201.1kbits/s speed=0.541x    [flicker] rx frame=758 dropped: HeaderRsFailed
+frame=  992 fps= 24 q=39.0 size=   16125KiB time=00:00:41.33 bitrate=3195.8kbits/s speed=   1x    frame= 1004 fps= 24 q=39.0 size=   16316KiB time=00:00:41.83 bitrate=3195.0kbits/s speed=   1x    frame= 1017 fps= 24 q=39.0 size=   16519KiB time=00:00:42.37 bitrate=3193.4kbits/s speed=   1x    frame= 1029 fps= 24 q=39.0 size=   16715KiB time=00:00:42.87 bitrate=3193.7kbits/s speed=   1x    [flicker] rx frame=758 dropped: HeaderRsFailed
 [flicker] rx frame=759 dropped: HeaderRsFailed
 [flicker] rx frame=760 dropped: HeaderRsFailed
 [flicker] rx frame=761 dropped: HeaderRsFailed
 [flicker] rx frame=762 dropped: HeaderRsFailed
 [flicker] rx frame=763 dropped: HeaderRsFailed
 [flicker] rx frame=764 dropped: HeaderRsFailed
-[flicker] rx frame=765 dropped: BlockRsFailed(0)
+[flicker] rx frame=765 dropped: HeaderRsFailed
 [flicker] rx frame=766 dropped: HeaderRsFailed
 [flicker] rx frame=767 dropped: HeaderRsFailed
 [flicker] rx frame=768 dropped: HeaderRsFailed
@@ -824,7 +819,7 @@ frame=  891 fps= 13 q=39.0 size=   14513KiB time=00:00:37.12 bitrate=3202.5kbits
 [flicker] rx frame=773 dropped: HeaderRsFailed
 [flicker] rx frame=774 dropped: HeaderRsFailed
 [flicker] rx frame=775 dropped: HeaderRsFailed
-[flicker] rx frame=776 dropped: HeaderRsFailed
+[flicker] rx frame=776 dropped: BlockRsFailed(0)
 [flicker] rx frame=777 dropped: HeaderRsFailed
 [flicker] rx frame=778 dropped: HeaderRsFailed
 [flicker] rx frame=779 dropped: HeaderRsFailed
@@ -834,13 +829,13 @@ frame=  891 fps= 13 q=39.0 size=   14513KiB time=00:00:37.12 bitrate=3202.5kbits
 [flicker] rx frame=783 dropped: HeaderRsFailed
 [flicker] rx frame=784 dropped: HeaderRsFailed
 [flicker] rx frame=785 dropped: HeaderRsFailed
-frame=  918 fps= 13 q=39.0 size=   14956KiB time=00:00:38.25 bitrate=3203.0kbits/s speed=0.541x    [flicker] rx frame=786 dropped: BlockRsFailed(0)
+[flicker] rx frame=786 dropped: HeaderRsFailed
 [flicker] rx frame=787 dropped: HeaderRsFailed
 [flicker] rx frame=788 dropped: HeaderRsFailed
 [flicker] rx frame=789 dropped: HeaderRsFailed
 [flicker] rx frame=790 dropped: HeaderRsFailed
 [flicker] rx frame=791 dropped: HeaderRsFailed
-[flicker] rx frame=792 dropped: HeaderRsFailed
+[flicker] rx frame=792 dropped: BlockRsFailed(0)
 [flicker] rx frame=793 dropped: HeaderRsFailed
 [flicker] rx frame=794 dropped: HeaderRsFailed
 [flicker] rx frame=795 dropped: HeaderRsFailed
@@ -855,7 +850,7 @@ frame=  918 fps= 13 q=39.0 size=   14956KiB time=00:00:38.25 bitrate=3203.0kbits
 [flicker] rx frame=804 dropped: HeaderRsFailed
 [flicker] rx frame=805 dropped: HeaderRsFailed
 [flicker] rx frame=806 dropped: HeaderRsFailed
-frame=  924 fps= 13 q=39.0 size=   15037KiB time=00:00:38.50 bitrate=3199.5kbits/s speed=0.541x    frame=  931 fps= 13 q=39.0 size=   15151KiB time=00:00:38.79 bitrate=3199.6kbits/s speed=0.541x    frame=  938 fps= 13 q=40.0 size=   15264KiB time=00:00:39.08 bitrate=3199.3kbits/s speed=0.541x    frame=  944 fps= 13 q=39.0 size=   15359KiB time=00:00:39.33 bitrate=3198.7kbits/s speed=0.541x    frame=  951 fps= 13 q=39.0 size=   15471KiB time=00:00:39.62 bitrate=3198.4kbits/s speed=0.541x    frame=  958 fps= 13 q=39.0 size=   15581KiB time=00:00:39.91 bitrate=3197.8kbits/s speed=0.541x    frame=  964 fps= 13 q=39.0 size=   15672KiB time=00:00:40.16 bitrate=3196.3kbits/s speed=0.541x    frame=  971 fps= 13 q=39.0 size=   15787KiB time=00:00:40.45 bitrate=3196.5kbits/s speed=0.541x    frame=  978 fps= 13 q=39.0 size=   15901KiB time=00:00:40.75 bitrate=3196.6kbits/s speed=0.541x    frame=  984 fps= 13 q=39.0 size=   15997KiB time=00:00:41.00 bitrate=3196.2kbits/s speed=0.541x    frame=  991 fps= 13 q=39.0 size=   16109KiB time=00:00:41.29 bitrate=3195.8kbits/s speed=0.541x    [flicker] rx frame=807 dropped: HeaderRsFailed
+frame= 1041 fps= 24 q=40.0 size=   16907KiB time=00:00:43.37 bitrate=3193.2kbits/s speed=   1x    frame= 1054 fps= 24 q=39.0 size=   17114KiB time=00:00:43.91 bitrate=3192.4kbits/s speed=   1x    frame= 1066 fps= 24 q=39.0 size=   17303KiB time=00:00:44.41 bitrate=3191.2kbits/s speed=   1x    frame= 1079 fps= 24 q=39.0 size=   17512KiB time=00:00:44.95 bitrate=3190.9kbits/s speed=   1x    [flicker] rx frame=807 dropped: BlockRsFailed(0)
 [flicker] rx frame=808 dropped: HeaderRsFailed
 [flicker] rx frame=809 dropped: HeaderRsFailed
 [flicker] rx frame=810 dropped: HeaderRsFailed
@@ -883,11 +878,11 @@ frame=  924 fps= 13 q=39.0 size=   15037KiB time=00:00:38.50 bitrate=3199.5kbits
 [flicker] rx frame=832 dropped: HeaderRsFailed
 [flicker] rx frame=833 dropped: HeaderRsFailed
 [flicker] rx frame=834 dropped: HeaderRsFailed
-[flicker] rx frame=835 dropped: HeaderRsFailed
+[flicker] rx frame=835 dropped: BlockRsFailed(0)
 [flicker] rx frame=836 dropped: HeaderRsFailed
 [flicker] rx frame=837 dropped: HeaderRsFailed
 [flicker] rx frame=838 dropped: HeaderRsFailed
-[flicker] rx frame=839 dropped: BlockRsFailed(0)
+[flicker] rx frame=839 dropped: HeaderRsFailed
 [flicker] rx frame=840 dropped: HeaderRsFailed
 [flicker] rx frame=841 dropped: BlockRsFailed(0)
 [flicker] rx frame=842 dropped: HeaderRsFailed
@@ -898,13 +893,13 @@ frame=  924 fps= 13 q=39.0 size=   15037KiB time=00:00:38.50 bitrate=3199.5kbits
 [flicker] rx frame=847 dropped: HeaderRsFailed
 [flicker] rx frame=848 dropped: HeaderRsFailed
 [flicker] rx frame=849 dropped: HeaderRsFailed
-[flicker] rx frame=850 dropped: BlockRsFailed(0)
+[flicker] rx frame=850 dropped: HeaderRsFailed
 [flicker] rx frame=851 dropped: HeaderRsFailed
 [flicker] rx frame=852 dropped: HeaderRsFailed
 [flicker] rx frame=853 dropped: HeaderRsFailed
 [flicker] rx frame=854 dropped: HeaderRsFailed
-[flicker] rx frame=855 dropped: HeaderRsFailed
-frame=  998 fps= 13 q=39.0 size=   16237KiB time=00:00:41.58 bitrate=3198.7kbits/s speed=0.541x    frame= 1004 fps= 13 q=39.0 size=   16316KiB time=00:00:41.83 bitrate=3195.0kbits/s speed=0.541x    frame= 1011 fps= 13 q=39.0 size=   16422KiB time=00:00:42.12 bitrate=3193.6kbits/s speed=0.541x    frame= 1018 fps= 13 q=39.0 size=   16535KiB time=00:00:42.41 bitrate=3193.5kbits/s speed=0.541x    [flicker] rx frame=856 dropped: HeaderRsFailed
+[flicker] rx frame=855 dropped: BlockRsFailed(0)
+frame= 1091 fps= 24 q=40.0 size=   17704KiB time=00:00:45.45 bitrate=3190.5kbits/s speed=   1x    frame= 1103 fps= 24 q=39.0 size=   17895KiB time=00:00:45.95 bitrate=3189.7kbits/s speed=   1x    frame= 1116 fps= 24 q=39.0 size=   18100KiB time=00:00:46.50 bitrate=3188.7kbits/s speed=   1x    frame= 1128 fps= 24 q=39.0 size=   18295KiB time=00:00:47.00 bitrate=3188.7kbits/s speed=   1x    [flicker] rx frame=856 dropped: HeaderRsFailed
 [flicker] rx frame=857 dropped: HeaderRsFailed
 [flicker] rx frame=858 dropped: HeaderRsFailed
 [flicker] rx frame=859 dropped: HeaderRsFailed
@@ -912,13 +907,13 @@ frame=  998 fps= 13 q=39.0 size=   16237KiB time=00:00:41.58 bitrate=3198.7kbits
 [flicker] rx frame=861 dropped: HeaderRsFailed
 [flicker] rx frame=862 dropped: HeaderRsFailed
 [flicker] rx frame=863 dropped: HeaderRsFailed
-[flicker] rx frame=864 dropped: BlockRsFailed(0)
+[flicker] rx frame=864 dropped: HeaderRsFailed
 [flicker] rx frame=865 dropped: HeaderRsFailed
 [flicker] rx frame=866 dropped: HeaderRsFailed
 [flicker] rx frame=867 dropped: HeaderRsFailed
 [flicker] rx frame=868 dropped: HeaderRsFailed
 [flicker] rx frame=869 dropped: HeaderRsFailed
-[flicker] rx frame=870 dropped: BlockRsFailed(0)
+[flicker] rx frame=870 dropped: HeaderRsFailed
 [flicker] rx frame=871 dropped: HeaderRsFailed
 [flicker] rx frame=872 dropped: HeaderRsFailed
 [flicker] rx frame=873 dropped: HeaderRsFailed
@@ -933,12 +928,12 @@ frame=  998 fps= 13 q=39.0 size=   16237KiB time=00:00:41.58 bitrate=3198.7kbits
 [flicker] rx frame=882 dropped: HeaderRsFailed
 [flicker] rx frame=883 dropped: HeaderRsFailed
 [flicker] rx frame=884 dropped: HeaderRsFailed
-[flicker] rx frame=885 dropped: BlockRsFailed(0)
-[flicker] rx frame=886 dropped: BlockRsFailed(0)
+[flicker] rx frame=885 dropped: HeaderRsFailed
+[flicker] rx frame=886 dropped: HeaderRsFailed
 [flicker] rx frame=887 dropped: HeaderRsFailed
 [flicker] rx frame=888 dropped: HeaderRsFailed
 [flicker] rx frame=889 dropped: HeaderRsFailed
-[flicker] rx frame=890 dropped: BlockRsFailed(0)
+[flicker] rx frame=890 dropped: HeaderRsFailed
 [flicker] rx frame=891 dropped: HeaderRsFailed
 [flicker] rx frame=892 dropped: HeaderRsFailed
 [flicker] rx frame=893 dropped: HeaderRsFailed
@@ -953,12 +948,12 @@ frame=  998 fps= 13 q=39.0 size=   16237KiB time=00:00:41.58 bitrate=3198.7kbits
 [flicker] rx frame=902 dropped: HeaderRsFailed
 [flicker] rx frame=903 dropped: HeaderRsFailed
 [flicker] rx frame=904 dropped: HeaderRsFailed
-frame= 1024 fps= 13 q=39.0 size=   16634KiB time=00:00:42.66 bitrate=3193.7kbits/s speed=0.541x    frame= 1031 fps= 13 q=39.0 size=   16763KiB time=00:00:42.95 bitrate=3196.7kbits/s speed=0.541x    frame= 1038 fps= 13 q=39.0 size=   16859KiB time=00:00:43.25 bitrate=3193.3kbits/s speed=0.541x    frame= 1044 fps= 13 q=39.0 size=   16954KiB time=00:00:43.50 bitrate=3192.8kbits/s speed=0.541x    frame= 1051 fps= 13 q=39.0 size=   17067KiB time=00:00:43.79 bitrate=3192.6kbits/s speed=0.541x    frame= 1058 fps= 13 q=40.0 size=   17174KiB time=00:00:44.08 bitrate=3191.5kbits/s speed=0.541x    frame= 1064 fps= 13 q=39.0 size=   17286KiB time=00:00:44.33 bitrate=3194.2kbits/s speed=0.541x    frame= 1071 fps= 13 q=39.0 size=   17384KiB time=00:00:44.62 bitrate=3191.3kbits/s speed=0.541x    frame= 1077 fps= 13 q=40.0 size=   17482KiB time=00:00:44.87 bitrate=3191.4kbits/s speed=0.541x    frame= 1084 fps= 13 q=39.0 size=   17593KiB time=00:00:45.16 bitrate=3190.9kbits/s speed=0.541x    frame= 1091 fps= 13 q=40.0 size=   17704KiB time=00:00:45.45 bitrate=3190.5kbits/s speed=0.541x    [flicker] rx frame=905 dropped: HeaderRsFailed
+frame= 1140 fps= 24 q=39.0 size=   18486KiB time=00:00:47.50 bitrate=3188.1kbits/s speed=   1x    frame= 1153 fps= 24 q=37.0 size=   18694KiB time=00:00:48.04 bitrate=3187.6kbits/s speed=   1x    frame= 1165 fps= 24 q=39.0 size=   18882KiB time=00:00:48.54 bitrate=3186.6kbits/s speed=   1x    frame= 1178 fps= 24 q=40.0 size=   19093KiB time=00:00:49.08 bitrate=3186.6kbits/s speed=   1x    [flicker] rx frame=905 dropped: HeaderRsFailed
 [flicker] rx frame=906 dropped: HeaderRsFailed
 [flicker] rx frame=907 dropped: HeaderRsFailed
 [flicker] rx frame=908 dropped: HeaderRsFailed
 [flicker] rx frame=909 dropped: HeaderRsFailed
-[flicker] rx frame=910 dropped: BlockRsFailed(0)
+[flicker] rx frame=910 dropped: HeaderRsFailed
 [flicker] rx frame=911 dropped: HeaderRsFailed
 [flicker] rx frame=912 dropped: HeaderRsFailed
 [flicker] rx frame=913 dropped: HeaderRsFailed
@@ -966,24 +961,24 @@ frame= 1024 fps= 13 q=39.0 size=   16634KiB time=00:00:42.66 bitrate=3193.7kbits
 [flicker] rx frame=915 dropped: HeaderRsFailed
 [flicker] rx frame=916 dropped: HeaderRsFailed
 [flicker] rx frame=917 dropped: HeaderRsFailed
-[flicker] rx frame=918 dropped: BlockRsFailed(0)
+[flicker] rx frame=918 dropped: HeaderRsFailed
 [flicker] rx frame=919 dropped: HeaderRsFailed
 [flicker] rx frame=920 dropped: HeaderRsFailed
 [flicker] rx frame=921 dropped: HeaderRsFailed
 [flicker] rx frame=922 dropped: HeaderRsFailed
-[flicker] rx frame=923 dropped: HeaderRsFailed
-[flicker] rx frame=924 dropped: HeaderRsFailed
+frame= 1190 fps= 24 q=39.0 size=   19284KiB time=00:00:49.58 bitrate=3186.0kbits/s speed=   1x    [flicker] rx frame=923 dropped: HeaderRsFailed
+[flicker] rx frame=924 dropped: BlockRsFailed(0)
 [flicker] rx frame=925 dropped: HeaderRsFailed
 [flicker] rx frame=926 dropped: HeaderRsFailed
 [flicker] rx frame=927 dropped: HeaderRsFailed
-[flicker] rx frame=928 dropped: HeaderRsFailed
+[flicker] rx frame=928 dropped: BlockRsFailed(0)
 [flicker] rx frame=929 dropped: HeaderRsFailed
 [flicker] rx frame=930 dropped: HeaderRsFailed
 [flicker] rx frame=931 dropped: HeaderRsFailed
 [flicker] rx frame=932 dropped: HeaderRsFailed
 [flicker] rx frame=933 dropped: HeaderRsFailed
 [flicker] rx frame=934 dropped: HeaderRsFailed
-[flicker] rx frame=935 dropped: BlockRsFailed(0)
+[flicker] rx frame=935 dropped: HeaderRsFailed
 [flicker] rx frame=936 dropped: HeaderRsFailed
 [flicker] rx frame=937 dropped: HeaderRsFailed
 [flicker] rx frame=938 dropped: HeaderRsFailed
@@ -999,12 +994,12 @@ frame= 1024 fps= 13 q=39.0 size=   16634KiB time=00:00:42.66 bitrate=3193.7kbits
 [flicker] rx frame=948 dropped: HeaderRsFailed
 [flicker] rx frame=949 dropped: HeaderRsFailed
 [flicker] rx frame=950 dropped: HeaderRsFailed
-[flicker] rx frame=951 dropped: BlockRsFailed(0)
+[flicker] rx frame=951 dropped: HeaderRsFailed
 [flicker] rx frame=952 dropped: HeaderRsFailed
 [flicker] rx frame=953 dropped: HeaderRsFailed
-frame= 1097 fps= 13 q=39.0 size=   17799KiB time=00:00:45.70 bitrate=3190.0kbits/s speed=0.541x    frame= 1104 fps= 13 q=39.0 size=   17911KiB time=00:00:46.00 bitrate=3189.7kbits/s speed=0.541x    frame= 1111 fps= 13 q=39.0 size=   18019KiB time=00:00:46.29 bitrate=3188.7kbits/s speed=0.541x    frame= 1117 fps= 13 q=39.0 size=   18116KiB time=00:00:46.54 bitrate=3188.6kbits/s speed=0.54x    [flicker] rx frame=954 dropped: HeaderRsFailed
+frame= 1202 fps= 24 q=40.0 size=   19471KiB time=00:00:50.08 bitrate=3184.8kbits/s speed=   1x    frame= 1215 fps= 24 q=39.0 size=   19681KiB time=00:00:50.62 bitrate=3184.7kbits/s speed=   1x    frame= 1227 fps= 24 q=39.0 size=   19874KiB time=00:00:51.12 bitrate=3184.6kbits/s speed=   1x    frame= 1240 fps= 24 q=39.0 size=   20098KiB time=00:00:51.66 bitrate=3186.7kbits/s speed=   1x    [flicker] rx frame=954 dropped: HeaderRsFailed
 [flicker] rx frame=955 dropped: HeaderRsFailed
-[flicker] rx frame=956 dropped: HeaderRsFailed
+[flicker] rx frame=956 dropped: BlockRsFailed(0)
 [flicker] rx frame=957 dropped: HeaderRsFailed
 [flicker] rx frame=958 dropped: HeaderRsFailed
 [flicker] rx frame=959 dropped: HeaderRsFailed
@@ -1013,7 +1008,7 @@ frame= 1097 fps= 13 q=39.0 size=   17799KiB time=00:00:45.70 bitrate=3190.0kbits
 [flicker] rx frame=962 dropped: HeaderRsFailed
 [flicker] rx frame=963 dropped: HeaderRsFailed
 [flicker] rx frame=964 dropped: HeaderRsFailed
-frame= 1124 fps= 13 q=39.0 size=   18230KiB time=00:00:46.83 bitrate=3188.8kbits/s speed=0.541x    [flicker] rx frame=965 dropped: HeaderRsFailed
+[flicker] rx frame=965 dropped: HeaderRsFailed
 [flicker] rx frame=966 dropped: HeaderRsFailed
 [flicker] rx frame=967 dropped: HeaderRsFailed
 [flicker] rx frame=968 dropped: HeaderRsFailed
@@ -1032,11 +1027,11 @@ frame= 1124 fps= 13 q=39.0 size=   18230KiB time=00:00:46.83 bitrate=3188.8kbits
 [flicker] rx frame=981 dropped: HeaderRsFailed
 [flicker] rx frame=982 dropped: HeaderRsFailed
 [flicker] rx frame=983 dropped: HeaderRsFailed
-[flicker] rx frame=984 dropped: BlockRsFailed(0)
+[flicker] rx frame=984 dropped: HeaderRsFailed
 [flicker] rx frame=985 dropped: HeaderRsFailed
 [flicker] rx frame=986 dropped: HeaderRsFailed
 [flicker] rx frame=987 dropped: HeaderRsFailed
-[flicker] rx frame=988 dropped: HeaderRsFailed
+[flicker] rx frame=988 dropped: BlockRsFailed(0)
 [flicker] rx frame=989 dropped: HeaderRsFailed
 [flicker] rx frame=990 dropped: HeaderRsFailed
 [flicker] rx frame=991 dropped: HeaderRsFailed
@@ -1051,9 +1046,9 @@ frame= 1124 fps= 13 q=39.0 size=   18230KiB time=00:00:46.83 bitrate=3188.8kbits
 [flicker] rx frame=1000 dropped: HeaderRsFailed
 [flicker] rx frame=1001 dropped: HeaderRsFailed
 [flicker] rx frame=1002 dropped: HeaderRsFailed
-frame= 1131 fps= 13 q=39.0 size=   18343KiB time=00:00:47.12 bitrate=3188.6kbits/s speed=0.541x    frame= 1137 fps= 13 q=39.0 size=   18438KiB time=00:00:47.37 bitrate=3188.3kbits/s speed=0.54x    frame= 1144 fps= 13 q=39.0 size=   18550KiB time=00:00:47.66 bitrate=3188.0kbits/s speed=0.541x    frame= 1151 fps= 13 q=40.0 size=   18662KiB time=00:00:47.95 bitrate=3187.8kbits/s speed=0.541x    frame= 1157 fps= 13 q=39.0 size=   18752KiB time=00:00:48.20 bitrate=3186.6kbits/s speed=0.54x    frame= 1164 fps= 13 q=39.0 size=   18866KiB time=00:00:48.50 bitrate=3186.6kbits/s speed=0.541x    frame= 1171 fps= 13 q=39.0 size=   18980KiB time=00:00:48.79 bitrate=3186.7kbits/s speed=0.541x    frame= 1177 fps= 13 q=39.0 size=   19093KiB time=00:00:49.04 bitrate=3189.3kbits/s speed=0.54x    frame= 1184 fps= 13 q=39.0 size=   19188KiB time=00:00:49.33 bitrate=3186.2kbits/s speed=0.54x    frame= 1191 fps= 13 q=40.0 size=   19300KiB time=00:00:49.62 bitrate=3186.1kbits/s speed=0.541x    [flicker] rx frame=1003 dropped: HeaderRsFailed
+frame= 1252 fps= 24 q=39.0 size=   20268KiB time=00:00:52.16 bitrate=3182.9kbits/s speed=   1x    frame= 1264 fps= 24 q=39.0 size=   20464KiB time=00:00:52.66 bitrate=3183.0kbits/s speed=   1x    frame= 1276 fps= 24 q=39.0 size=   20656KiB time=00:00:53.16 bitrate=3182.7kbits/s speed=   1x    frame= 1289 fps= 24 q=40.0 size=   20864KiB time=00:00:53.70 bitrate=3182.3kbits/s speed=   1x    [flicker] rx frame=1003 dropped: HeaderRsFailed
 [flicker] rx frame=1004 dropped: HeaderRsFailed
-[flicker] rx frame=1005 dropped: HeaderRsFailed
+[flicker] rx frame=1005 dropped: BlockRsFailed(0)
 [flicker] rx frame=1006 dropped: HeaderRsFailed
 [flicker] rx frame=1007 dropped: HeaderRsFailed
 [flicker] rx frame=1008 dropped: HeaderRsFailed
@@ -1063,8 +1058,8 @@ frame= 1131 fps= 13 q=39.0 size=   18343KiB time=00:00:47.12 bitrate=3188.6kbits
 [flicker] rx frame=1012 dropped: HeaderRsFailed
 [flicker] rx frame=1013 dropped: HeaderRsFailed
 [flicker] rx frame=1014 dropped: HeaderRsFailed
-[flicker] rx frame=1015 dropped: HeaderRsFailed
-frame= 1197 fps= 13 q=39.0 size=   19396KiB time=00:00:49.87 bitrate=3185.8kbits/s speed=0.54x    [flicker] rx frame=1016 dropped: HeaderRsFailed
+[flicker] rx frame=1015 dropped: BlockRsFailed(0)
+[flicker] rx frame=1016 dropped: HeaderRsFailed
 [flicker] rx frame=1017 dropped: HeaderRsFailed
 [flicker] rx frame=1018 dropped: HeaderRsFailed
 [flicker] rx frame=1019 dropped: HeaderRsFailed
@@ -1076,11 +1071,11 @@ frame= 1197 fps= 13 q=39.0 size=   19396KiB time=00:00:49.87 bitrate=3185.8kbits
 [flicker] rx frame=1025 dropped: HeaderRsFailed
 [flicker] rx frame=1026 dropped: HeaderRsFailed
 [flicker] rx frame=1027 dropped: HeaderRsFailed
-[flicker] rx frame=1028 dropped: BlockRsFailed(0)
+[flicker] rx frame=1028 dropped: HeaderRsFailed
 [flicker] rx frame=1029 dropped: HeaderRsFailed
 [flicker] rx frame=1030 dropped: HeaderRsFailed
 [flicker] rx frame=1031 dropped: HeaderRsFailed
-[flicker] rx frame=1032 dropped: HeaderRsFailed
+[flicker] rx frame=1032 dropped: BlockRsFailed(0)
 [flicker] rx frame=1033 dropped: HeaderRsFailed
 [flicker] rx frame=1034 dropped: HeaderRsFailed
 [flicker] rx frame=1035 dropped: HeaderRsFailed
@@ -1092,15 +1087,15 @@ frame= 1197 fps= 13 q=39.0 size=   19396KiB time=00:00:49.87 bitrate=3185.8kbits
 [flicker] rx frame=1041 dropped: HeaderRsFailed
 [flicker] rx frame=1042 dropped: HeaderRsFailed
 [flicker] rx frame=1043 dropped: HeaderRsFailed
-[flicker] rx frame=1044 dropped: HeaderRsFailed
+[flicker] rx frame=1044 dropped: BlockRsFailed(0)
 [flicker] rx frame=1045 dropped: HeaderRsFailed
 [flicker] rx frame=1046 dropped: HeaderRsFailed
 [flicker] rx frame=1047 dropped: HeaderRsFailed
 [flicker] rx frame=1048 dropped: HeaderRsFailed
 [flicker] rx frame=1049 dropped: HeaderRsFailed
-[flicker] rx frame=1050 dropped: HeaderRsFailed
+[flicker] rx frame=1050 dropped: BlockRsFailed(0)
 [flicker] rx frame=1051 dropped: HeaderRsFailed
-frame= 1204 fps= 13 q=39.0 size=   19503KiB time=00:00:50.16 bitrate=3184.7kbits/s speed=0.541x    frame= 1210 fps= 13 q=39.0 size=   19616KiB time=00:00:50.41 bitrate=3187.4kbits/s speed=0.54x    frame= 1217 fps= 13 q=39.0 size=   19713KiB time=00:00:50.70 bitrate=3184.7kbits/s speed=0.54x    frame= 1224 fps= 13 q=39.0 size=   19826KiB time=00:00:51.00 bitrate=3184.6kbits/s speed=0.54x    [flicker] rx frame=1052 dropped: HeaderRsFailed
+frame= 1301 fps= 24 q=39.0 size=   21050KiB time=00:00:54.20 bitrate=3181.2kbits/s speed=   1x    frame= 1314 fps= 24 q=39.0 size=   21262KiB time=00:00:54.75 bitrate=3181.3kbits/s speed=   1x    frame= 1326 fps= 24 q=39.0 size=   21454KiB time=00:00:55.25 bitrate=3181.0kbits/s speed=   1x    frame= 1338 fps= 24 q=39.0 size=   21645KiB time=00:00:55.75 bitrate=3180.5kbits/s speed=   1x    [flicker] rx frame=1052 dropped: HeaderRsFailed
 [flicker] rx frame=1053 dropped: HeaderRsFailed
 [flicker] rx frame=1054 dropped: HeaderRsFailed
 [flicker] rx frame=1055 dropped: HeaderRsFailed
@@ -1113,7 +1108,7 @@ frame= 1204 fps= 13 q=39.0 size=   19503KiB time=00:00:50.16 bitrate=3184.7kbits
 [flicker] rx frame=1062 dropped: HeaderRsFailed
 [flicker] rx frame=1063 dropped: HeaderRsFailed
 [flicker] rx frame=1064 dropped: HeaderRsFailed
-[flicker] rx frame=1065 dropped: HeaderRsFailed
+[flicker] rx frame=1065 dropped: BlockRsFailed(0)
 [flicker] rx frame=1066 dropped: HeaderRsFailed
 [flicker] rx frame=1067 dropped: HeaderRsFailed
 [flicker] rx frame=1068 dropped: HeaderRsFailed
@@ -1147,14 +1142,14 @@ frame= 1204 fps= 13 q=39.0 size=   19503KiB time=00:00:50.16 bitrate=3184.7kbits
 [flicker] rx frame=1096 dropped: HeaderRsFailed
 [flicker] rx frame=1097 dropped: HeaderRsFailed
 [flicker] rx frame=1098 dropped: HeaderRsFailed
-[flicker] rx frame=1099 dropped: BlockRsFailed(0)
+[flicker] rx frame=1099 dropped: HeaderRsFailed
 [flicker] rx frame=1100 dropped: HeaderRsFailed
-frame= 1231 fps= 13 q=39.0 size=   19938KiB time=00:00:51.29 bitrate=3184.4kbits/s speed=0.541x    frame= 1237 fps= 13 q=39.0 size=   20034KiB time=00:00:51.54 bitrate=3184.2kbits/s speed=0.54x    frame= 1244 fps= 13 q=39.0 size=   20145KiB time=00:00:51.83 bitrate=3183.9kbits/s speed=0.54x    frame= 1250 fps= 13 q=40.0 size=   20237KiB time=00:00:52.08 bitrate=3183.1kbits/s speed=0.54x    frame= 1257 fps= 13 q=39.0 size=   20349KiB time=00:00:52.37 bitrate=3182.8kbits/s speed=0.54x    frame= 1264 fps= 13 q=39.0 size=   20464KiB time=00:00:52.66 bitrate=3183.0kbits/s speed=0.54x    frame= 1270 fps= 13 q=39.0 size=   20560KiB time=00:00:52.91 bitrate=3182.9kbits/s speed=0.54x    frame= 1277 fps= 13 q=39.0 size=   20672KiB time=00:00:53.20 bitrate=3182.7kbits/s speed=0.54x    frame= 1284 fps= 13 q=39.0 size=   20783KiB time=00:00:53.50 bitrate=3182.4kbits/s speed=0.54x    frame= 1290 fps= 13 q=39.0 size=   20895KiB time=00:00:53.75 bitrate=3184.6kbits/s speed=0.54x    frame= 1297 fps= 13 q=37.0 size=   20991KiB time=00:00:54.04 bitrate=3182.0kbits/s speed=0.54x    [flicker] rx frame=1101 dropped: HeaderRsFailed
+frame= 1351 fps= 24 q=39.0 size=   21848KiB time=00:00:56.29 bitrate=3179.5kbits/s speed=   1x    frame= 1363 fps= 24 q=39.0 size=   22044KiB time=00:00:56.79 bitrate=3179.7kbits/s speed=   1x    frame= 1376 fps= 24 q=39.0 size=   22252KiB time=00:00:57.33 bitrate=3179.4kbits/s speed=   1x    frame= 1388 fps= 24 q=39.0 size=   22459KiB time=00:00:57.83 bitrate=3181.3kbits/s speed=   1x    [flicker] rx frame=1101 dropped: HeaderRsFailed
 [flicker] rx frame=1102 dropped: HeaderRsFailed
 [flicker] rx frame=1103 dropped: HeaderRsFailed
 [flicker] rx frame=1104 dropped: HeaderRsFailed
 [flicker] rx frame=1105 dropped: HeaderRsFailed
-[flicker] rx frame=1106 dropped: HeaderRsFailed
+[flicker] rx frame=1106 dropped: BlockRsFailed(0)
 [flicker] rx frame=1107 dropped: HeaderRsFailed
 [flicker] rx frame=1108 dropped: HeaderRsFailed
 [flicker] rx frame=1109 dropped: HeaderRsFailed
@@ -1177,13 +1172,13 @@ frame= 1231 fps= 13 q=39.0 size=   19938KiB time=00:00:51.29 bitrate=3184.4kbits
 [flicker] rx frame=1126 dropped: HeaderRsFailed
 [flicker] rx frame=1127 dropped: HeaderRsFailed
 [flicker] rx frame=1128 dropped: HeaderRsFailed
-[flicker] rx frame=1129 dropped: HeaderRsFailed
-[flicker] rx frame=1130 dropped: HeaderRsFailed
+[flicker] rx frame=1129 dropped: BlockRsFailed(0)
+frame= 1400 fps= 24 q=39.0 size=   22629KiB time=00:00:58.33 bitrate=3178.0kbits/s speed=   1x    [flicker] rx frame=1130 dropped: HeaderRsFailed
 [flicker] rx frame=1131 dropped: HeaderRsFailed
-[flicker] rx frame=1132 dropped: BlockRsFailed(0)
+[flicker] rx frame=1132 dropped: HeaderRsFailed
 [flicker] rx frame=1133 dropped: HeaderRsFailed
 [flicker] rx frame=1134 dropped: HeaderRsFailed
-[flicker] rx frame=1135 dropped: HeaderRsFailed
+[flicker] rx frame=1135 dropped: BlockRsFailed(0)
 [flicker] rx frame=1136 dropped: HeaderRsFailed
 [flicker] rx frame=1137 dropped: HeaderRsFailed
 [flicker] rx frame=1138 dropped: HeaderRsFailed
@@ -1191,23 +1186,23 @@ frame= 1231 fps= 13 q=39.0 size=   19938KiB time=00:00:51.29 bitrate=3184.4kbits
 [flicker] rx frame=1140 dropped: HeaderRsFailed
 [flicker] rx frame=1141 dropped: HeaderRsFailed
 [flicker] rx frame=1142 dropped: HeaderRsFailed
-[flicker] rx frame=1143 dropped: HeaderRsFailed
+[flicker] rx frame=1143 dropped: BlockRsFailed(0)
 [flicker] rx frame=1144 dropped: HeaderRsFailed
 [flicker] rx frame=1145 dropped: HeaderRsFailed
-[flicker] rx frame=1146 dropped: HeaderRsFailed
+[flicker] rx frame=1146 dropped: BlockRsFailed(0)
 [flicker] rx frame=1147 dropped: HeaderRsFailed
 [flicker] rx frame=1148 dropped: HeaderRsFailed
 [flicker] rx frame=1149 dropped: HeaderRsFailed
-frame= 1304 fps= 13 q=39.0 size=   21099KiB time=00:00:54.33 bitrate=3181.2kbits/s speed=0.54x    frame= 1310 fps= 13 q=39.0 size=   21197KiB time=00:00:54.58 bitrate=3181.3kbits/s speed=0.54x    frame= 1317 fps= 13 q=39.0 size=   21310KiB time=00:00:54.87 bitrate=3181.3kbits/s speed=0.54x    frame= 1324 fps= 13 q=39.0 size=   21422KiB time=00:00:55.16 bitrate=3181.1kbits/s speed=0.54x    [flicker] rx frame=1150 dropped: HeaderRsFailed
+frame= 1413 fps= 24 q=39.0 size=   22843KiB time=00:00:58.87 bitrate=3178.4kbits/s speed=   1x    frame= 1425 fps= 24 q=39.0 size=   23034KiB time=00:00:59.37 bitrate=3178.0kbits/s speed=   1x    frame= 1437 fps= 24 q=39.0 size=   23224KiB time=00:00:59.87 bitrate=3177.5kbits/s speed=   1x    [flicker] rx frame=1150 dropped: HeaderRsFailed
 [flicker] rx frame=1151 dropped: HeaderRsFailed
 [flicker] rx frame=1152 dropped: HeaderRsFailed
 [flicker] rx frame=1153 dropped: HeaderRsFailed
 [flicker] rx frame=1154 dropped: HeaderRsFailed
 [flicker] rx frame=1155 dropped: HeaderRsFailed
-[flicker] rx frame=1156 dropped: BlockRsFailed(0)
+[flicker] rx frame=1156 dropped: HeaderRsFailed
 [flicker] rx frame=1157 dropped: HeaderRsFailed
 [flicker] rx frame=1158 dropped: HeaderRsFailed
-[flicker] rx frame=1159 dropped: HeaderRsFailed
+[flicker] rx frame=1159 dropped: BlockRsFailed(0)
 [flicker] rx frame=1160 dropped: HeaderRsFailed
 [flicker] rx frame=1161 dropped: HeaderRsFailed
 [flicker] rx frame=1162 dropped: HeaderRsFailed
@@ -1216,20 +1211,20 @@ frame= 1304 fps= 13 q=39.0 size=   21099KiB time=00:00:54.33 bitrate=3181.2kbits
 [flicker] rx frame=1165 dropped: HeaderRsFailed
 [flicker] rx frame=1166 dropped: HeaderRsFailed
 [flicker] rx frame=1167 dropped: HeaderRsFailed
-[flicker] rx frame=1168 dropped: HeaderRsFailed
+[flicker] rx frame=1168 dropped: BlockRsFailed(0)
 [flicker] rx frame=1169 dropped: HeaderRsFailed
 [flicker] rx frame=1170 dropped: HeaderRsFailed
 [flicker] rx frame=1171 dropped: HeaderRsFailed
 [flicker] rx frame=1172 dropped: HeaderRsFailed
-[flicker] rx frame=1173 dropped: HeaderRsFailed
+frame= 1450 fps= 24 q=39.0 size=   23429KiB time=00:01:00.41 bitrate=3176.8kbits/s speed=   1x    [flicker] rx frame=1173 dropped: HeaderRsFailed
 [flicker] rx frame=1174 dropped: HeaderRsFailed
 [flicker] rx frame=1175 dropped: HeaderRsFailed
 [flicker] rx frame=1176 dropped: HeaderRsFailed
 [flicker] rx frame=1177 dropped: HeaderRsFailed
 [flicker] rx frame=1178 dropped: HeaderRsFailed
-[flicker] rx frame=1179 dropped: HeaderRsFailed
+[flicker] rx frame=1179 dropped: BlockRsFailed(0)
 [flicker] rx frame=1180 dropped: HeaderRsFailed
-[flicker] rx frame=1181 dropped: HeaderRsFailed
+[flicker] rx frame=1181 dropped: BlockRsFailed(0)
 [flicker] rx frame=1182 dropped: HeaderRsFailed
 [flicker] rx frame=1183 dropped: HeaderRsFailed
 [flicker] rx frame=1184 dropped: HeaderRsFailed
@@ -1239,7 +1234,7 @@ frame= 1304 fps= 13 q=39.0 size=   21099KiB time=00:00:54.33 bitrate=3181.2kbits
 [flicker] rx frame=1188 dropped: HeaderRsFailed
 [flicker] rx frame=1189 dropped: HeaderRsFailed
 [flicker] rx frame=1190 dropped: HeaderRsFailed
-[flicker] rx frame=1191 dropped: BlockRsFailed(0)
+[flicker] rx frame=1191 dropped: HeaderRsFailed
 [flicker] rx frame=1192 dropped: HeaderRsFailed
 [flicker] rx frame=1193 dropped: HeaderRsFailed
 [flicker] rx frame=1194 dropped: HeaderRsFailed
@@ -1247,7 +1242,7 @@ frame= 1304 fps= 13 q=39.0 size=   21099KiB time=00:00:54.33 bitrate=3181.2kbits
 [flicker] rx frame=1196 dropped: HeaderRsFailed
 [flicker] rx frame=1197 dropped: HeaderRsFailed
 [flicker] rx frame=1198 dropped: HeaderRsFailed
-frame= 1330 fps= 13 q=40.0 size=   21518KiB time=00:00:55.41 bitrate=3180.9kbits/s speed=0.54x    frame= 1337 fps= 13 q=39.0 size=   21629KiB time=00:00:55.70 bitrate=3180.6kbits/s speed=0.54x    frame= 1344 fps= 13 q=39.0 size=   21741KiB time=00:00:56.00 bitrate=3180.4kbits/s speed=0.54x    frame= 1350 fps= 13 q=39.0 size=   21833KiB time=00:00:56.25 bitrate=3179.6kbits/s speed=0.54x    [flicker] rx frame=1199 dropped: HeaderRsFailed
+frame= 1462 fps= 24 q=39.0 size=   23624KiB time=00:01:00.91 bitrate=3176.9kbits/s speed=   1x    frame= 1475 fps= 24 q=40.0 size=   23832KiB time=00:01:01.45 bitrate=3176.6kbits/s speed=   1x    frame= 1487 fps= 24 q=39.0 size=   24022KiB time=00:01:01.95 bitrate=3176.2kbits/s speed=   1x    frame= 1499 fps= 24 q=39.0 size=   24212KiB time=00:01:02.45 bitrate=3175.6kbits/s speed=   1x    [flicker] rx frame=1199 dropped: HeaderRsFailed
 [flicker] rx frame=1200 dropped: HeaderRsFailed
 [flicker] rx frame=1201 dropped: HeaderRsFailed
 [flicker] rx frame=1202 dropped: HeaderRsFailed
@@ -1263,7 +1258,7 @@ frame= 1330 fps= 13 q=40.0 size=   21518KiB time=00:00:55.41 bitrate=3180.9kbits
 [flicker] rx frame=1212 dropped: HeaderRsFailed
 [flicker] rx frame=1213 dropped: HeaderRsFailed
 [flicker] rx frame=1214 dropped: HeaderRsFailed
-frame= 1357 fps= 13 q=39.0 size=   21947KiB time=00:00:56.54 bitrate=3179.8kbits/s speed=0.54x    [flicker] rx frame=1215 dropped: BlockRsFailed(0)
+[flicker] rx frame=1215 dropped: HeaderRsFailed
 [flicker] rx frame=1216 dropped: HeaderRsFailed
 [flicker] rx frame=1217 dropped: HeaderRsFailed
 [flicker] rx frame=1218 dropped: HeaderRsFailed
@@ -1281,27 +1276,27 @@ frame= 1357 fps= 13 q=39.0 size=   21947KiB time=00:00:56.54 bitrate=3179.8kbits
 [flicker] rx frame=1230 dropped: HeaderRsFailed
 [flicker] rx frame=1231 dropped: HeaderRsFailed
 [flicker] rx frame=1232 dropped: HeaderRsFailed
-[flicker] rx frame=1233 dropped: BlockRsFailed(0)
+[flicker] rx frame=1233 dropped: HeaderRsFailed
 [flicker] rx frame=1234 dropped: HeaderRsFailed
 [flicker] rx frame=1235 dropped: HeaderRsFailed
 [flicker] rx frame=1236 dropped: HeaderRsFailed
 [flicker] rx frame=1237 dropped: HeaderRsFailed
-[flicker] rx frame=1238 dropped: HeaderRsFailed
+[flicker] rx frame=1238 dropped: BlockRsFailed(0)
 [flicker] rx frame=1239 dropped: HeaderRsFailed
 [flicker] rx frame=1240 dropped: HeaderRsFailed
 [flicker] rx frame=1241 dropped: HeaderRsFailed
 [flicker] rx frame=1242 dropped: HeaderRsFailed
 [flicker] rx frame=1243 dropped: HeaderRsFailed
-[flicker] rx frame=1244 dropped: HeaderRsFailed
+[flicker] rx frame=1244 dropped: BlockRsFailed(0)
 [flicker] rx frame=1245 dropped: HeaderRsFailed
 [flicker] rx frame=1246 dropped: HeaderRsFailed
 [flicker] rx frame=1247 dropped: HeaderRsFailed
-frame= 1364 fps= 13 q=39.0 size=   22060KiB time=00:00:56.83 bitrate=3179.8kbits/s speed=0.54x    frame= 1370 fps= 13 q=39.0 size=   22156KiB time=00:00:57.08 bitrate=3179.6kbits/s speed=0.54x    frame= 1377 fps= 13 q=39.0 size=   22268KiB time=00:00:57.37 bitrate=3179.4kbits/s speed=0.54x    frame= 1384 fps= 13 q=39.0 size=   22379KiB time=00:00:57.66 bitrate=3179.1kbits/s speed=0.54x    frame= 1390 fps= 13 q=39.0 size=   22474KiB time=00:00:57.91 bitrate=3178.9kbits/s speed=0.54x    frame= 1397 fps= 13 q=39.0 size=   22581KiB time=00:00:58.20 bitrate=3177.9kbits/s speed=0.54x    frame= 1404 fps= 13 q=39.0 size=   22711KiB time=00:00:58.50 bitrate=3180.3kbits/s speed=0.54x    frame= 1410 fps= 13 q=39.0 size=   22793KiB time=00:00:58.75 bitrate=3178.2kbits/s speed=0.54x    frame= 1417 fps= 13 q=39.0 size=   22906KiB time=00:00:59.04 bitrate=3178.2kbits/s speed=0.54x    frame= 1424 fps= 13 q=39.0 size=   23018KiB time=00:00:59.33 bitrate=3178.0kbits/s speed=0.54x    frame= 1430 fps= 13 q=39.0 size=   23113KiB time=00:00:59.58 bitrate=3177.8kbits/s speed=0.54x    [flicker] rx frame=1248 dropped: HeaderRsFailed
+frame= 1512 fps= 24 q=39.0 size=   24423KiB time=00:01:03.00 bitrate=3175.7kbits/s speed=   1x    frame= 1524 fps= 24 q=39.0 size=   24613KiB time=00:01:03.50 bitrate=3175.2kbits/s speed=   1x    frame= 1536 fps= 24 q=39.0 size=   24804KiB time=00:01:04.00 bitrate=3175.0kbits/s speed=   1x    frame= 1549 fps= 24 q=39.0 size=   25010KiB time=00:01:04.54 bitrate=3174.4kbits/s speed=   1x    [flicker] rx frame=1248 dropped: HeaderRsFailed
 [flicker] rx frame=1249 dropped: HeaderRsFailed
 [flicker] rx frame=1250 dropped: HeaderRsFailed
 [flicker] rx frame=1251 dropped: HeaderRsFailed
 [flicker] rx frame=1252 dropped: HeaderRsFailed
-[flicker] rx frame=1253 dropped: BlockRsFailed(0)
+[flicker] rx frame=1253 dropped: HeaderRsFailed
 [flicker] rx frame=1254 dropped: HeaderRsFailed
 [flicker] rx frame=1255 dropped: HeaderRsFailed
 [flicker] rx frame=1256 dropped: HeaderRsFailed
@@ -1312,13 +1307,13 @@ frame= 1364 fps= 13 q=39.0 size=   22060KiB time=00:00:56.83 bitrate=3179.8kbits
 [flicker] rx frame=1261 dropped: HeaderRsFailed
 [flicker] rx frame=1262 dropped: HeaderRsFailed
 [flicker] rx frame=1263 dropped: HeaderRsFailed
-[flicker] rx frame=1264 dropped: HeaderRsFailed
+[flicker] rx frame=1264 dropped: BlockRsFailed(0)
 [flicker] rx frame=1265 dropped: HeaderRsFailed
-[flicker] rx frame=1266 dropped: HeaderRsFailed
+[flicker] rx frame=1266 dropped: BlockRsFailed(0)
 [flicker] rx frame=1267 dropped: HeaderRsFailed
 [flicker] rx frame=1268 dropped: HeaderRsFailed
 [flicker] rx frame=1269 dropped: HeaderRsFailed
-[flicker] rx frame=1270 dropped: BlockRsFailed(0)
+[flicker] rx frame=1270 dropped: HeaderRsFailed
 [flicker] rx frame=1271 dropped: HeaderRsFailed
 [flicker] rx frame=1272 dropped: HeaderRsFailed
 [flicker] rx frame=1273 dropped: HeaderRsFailed
@@ -1339,27 +1334,27 @@ frame= 1364 fps= 13 q=39.0 size=   22060KiB time=00:00:56.83 bitrate=3179.8kbits
 [flicker] rx frame=1288 dropped: HeaderRsFailed
 [flicker] rx frame=1289 dropped: HeaderRsFailed
 [flicker] rx frame=1290 dropped: HeaderRsFailed
-[flicker] rx frame=1291 dropped: HeaderRsFailed
+[flicker] rx frame=1291 dropped: BlockRsFailed(0)
 [flicker] rx frame=1292 dropped: HeaderRsFailed
 [flicker] rx frame=1293 dropped: HeaderRsFailed
-[flicker] rx frame=1294 dropped: HeaderRsFailed
+[flicker] rx frame=1294 dropped: BlockRsFailed(0)
 [flicker] rx frame=1295 dropped: HeaderRsFailed
-[flicker] rx frame=1296 dropped: HeaderRsFailed
-[out#0/flv @ 000001fc82be9880] video:23132KiB audio:15KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.334421%
-frame= 1436 fps= 13 q=40.0 Lsize=   23225KiB time=00:00:59.83 bitrate=3179.8kbits/s speed=0.54x    
-[libx264 @ 000001fc8277d300] frame I:30    Avg QP:36.28  size: 12316
-[libx264 @ 000001fc8277d300] frame P:1406  Avg QP:38.95  size: 16584
-[libx264 @ 000001fc8277d300] mb I  I16..4: 100.0%  0.0%  0.0%
-[libx264 @ 000001fc8277d300] mb P  I16..4: 36.0%  0.0%  0.0%  P16..4: 63.5%  0.0%  0.0%  0.0%  0.0%    skip: 0.4%
-[libx264 @ 000001fc8277d300] coded y,uvDC,uvAC intra: 1.0% 0.0% 0.0% inter: 96.4% 0.0% 0.0%
-[libx264 @ 000001fc8277d300] i16 v,h,dc,p: 14% 17% 58% 11%
-[libx264 @ 000001fc8277d300] i8c dc,h,v,p: 100%  0%  0%  0%
-[libx264 @ 000001fc8277d300] kb/s:3167.04
-[aac @ 000001fc82784640] Qavg: 65520.164
-[vost#0:0/rawvideo @ 0000023f44b9ec40] Error submitting a packet to the muxer: Invalid argument
+[flicker] rx frame=1296 dropped: BlockRsFailed(0)
+frame= 1561 fps= 24 q=39.0 size=   25204KiB time=00:01:05.04 bitrate=3174.4kbits/s speed=   1x    frame= 1574 fps= 24 q=39.0 size=   25411KiB time=00:01:05.58 bitrate=3174.1kbits/s speed=   1x    [out#0/flv @ 000001dec0b99ec0] video:25406KiB audio:17KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.332693%
+frame= 1579 fps= 24 q=39.0 Lsize=   25508KiB time=00:01:05.79 bitrate=3176.1kbits/s speed=   1x    
+[libx264 @ 000001dec06dd5c0] frame I:33    Avg QP:36.32  size: 12286
+[libx264 @ 000001dec06dd5c0] frame P:1546  Avg QP:38.97  size: 16565
+[libx264 @ 000001dec06dd5c0] mb I  I16..4: 100.0%  0.0%  0.0%
+[libx264 @ 000001dec06dd5c0] mb P  I16..4: 36.0%  0.0%  0.0%  P16..4: 63.5%  0.0%  0.0%  0.0%  0.0%    skip: 0.4%
+[libx264 @ 000001dec06dd5c0] coded y,uvDC,uvAC intra: 1.0% 0.0% 0.0% inter: 96.4% 0.0% 0.0%
+[libx264 @ 000001dec06dd5c0] i16 v,h,dc,p: 14% 17% 58% 11%
+[libx264 @ 000001dec06dd5c0] i8c dc,h,v,p: 100%  0%  0%  0%
+[libx264 @ 000001dec06dd5c0] kb/s:3163.36
+[aac @ 000001dec06e6540] Qavg: 65521.445
+[vost#0:0/rawvideo @ 00000202db0f7780] Error submitting a packet to the muxer: Invalid argument
     Last message repeated 1 times
-[out#0/rawvideo @ 0000023f44806e80] Error muxing a packet
-[out#0/rawvideo @ 0000023f44806e80] Task finished with error code: -22 (Invalid argument)
-[out#0/rawvideo @ 0000023f44806e80] Terminating thread with return code -22 (Invalid argument)
-[out#0/rawvideo @ 0000023f44806e80] Error writing trailer: Invalid argument
-[out#0/rawvideo @ 0000023f44806e80] Error closing file: Invalid argument
+[out#0/rawvideo @ 00000202da9399c0] Error muxing a packet
+[out#0/rawvideo @ 00000202da9399c0] Task finished with error code: -22 (Invalid argument)
+[out#0/rawvideo @ 00000202da9399c0] Terminating thread with return code -22 (Invalid argument)
+[out#0/rawvideo @ 00000202da9399c0] Error writing trailer: Invalid argument
+[out#0/rawvideo @ 00000202da9399c0] Error closing file: Invalid argument
