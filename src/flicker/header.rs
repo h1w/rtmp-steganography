@@ -1,4 +1,7 @@
-//! Main frame header: 22 bytes data + 11 bytes RS(33,22) parity.
+//! Main frame header: 22 bytes data + 22 bytes RS(44,22) parity.
+//! Corrects up to 11 byte erasures — twice the original 5.5-erasure budget.
+//! The extra 11 bytes add 44 cells (~2%) to the overhead but header RS
+//! failure dominated real-world VK transcoder drops at the original RS(33,22).
 
 use anyhow::{anyhow, Result};
 use reed_solomon_erasure::galois_8::ReedSolomon;
@@ -8,8 +11,8 @@ use crate::flicker::ModulationMode;
 pub const SYNC_WORD: [u8; 4] = [0xF1, 0x1C, 0x4E, 0x52];
 pub const PROTOCOL_VERSION: u8 = 0x02;
 pub const HEADER_DATA_BYTES: usize = 22;
-pub const HEADER_PARITY_BYTES: usize = 11;
-pub const HEADER_TOTAL_BYTES: usize = 33;
+pub const HEADER_PARITY_BYTES: usize = 22;
+pub const HEADER_TOTAL_BYTES: usize = 44;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct FecScheme(pub u8);
@@ -125,21 +128,34 @@ mod tests {
     }
 
     #[test]
-    fn header_rs_corrects_5_byte_errors() {
+    fn header_rs_corrects_11_byte_erasures() {
         let h = sample();
         let encoded = encode_header(&h).unwrap();
         let mut shards = [None; HEADER_TOTAL_BYTES];
         for i in 0..HEADER_TOTAL_BYTES {
             shards[i] = Some(encoded[i]);
         }
-        // Erase 5 bytes (within RS(33,22) capability of 11 erasures).
-        shards[3] = None;
-        shards[7] = None;
-        shards[11] = None;
-        shards[18] = None;
-        shards[25] = None;
+        // Erase 11 bytes — RS(44,22) capability.
+        for &i in &[3, 7, 11, 15, 18, 22, 25, 29, 32, 36, 40] {
+            shards[i] = None;
+        }
         let back = decode_header(&shards).unwrap();
         assert_eq!(back.frame_counter, h.frame_counter);
+    }
+
+    #[test]
+    fn header_rs_fails_above_capacity() {
+        let h = sample();
+        let encoded = encode_header(&h).unwrap();
+        let mut shards = [None; HEADER_TOTAL_BYTES];
+        for i in 0..HEADER_TOTAL_BYTES {
+            shards[i] = Some(encoded[i]);
+        }
+        // 23 erasures — above the 22-byte parity budget.
+        for i in 0..23 {
+            shards[i] = None;
+        }
+        assert!(decode_header(&shards).is_err());
     }
 
     #[test]

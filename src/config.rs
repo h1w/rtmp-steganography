@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 
 use crate::flicker::ModulationMode;
+use crate::peer::DEFAULT_RX_WARMUP_MS;
 
 #[derive(Clone, Debug)]
 pub struct PeerConfig {
@@ -10,6 +11,7 @@ pub struct PeerConfig {
     pub their_stream_name: String,
     pub modulation_mode: ModulationMode,
     pub frag_timeout_ms: u64,
+    pub rx_warmup_ms: u64,
     pub log_every_frame: bool,
 }
 
@@ -21,6 +23,7 @@ pub fn load_peer() -> Result<PeerConfig> {
         their_stream_name: env_opt("peer_their_stream_name"),
         modulation_mode: parse_mode(env_opt("flicker_modulation_mode").as_str())?,
         frag_timeout_ms: env_u64("flicker_frag_timeout_ms")?.unwrap_or(2000),
+        rx_warmup_ms: env_u64("peer_rx_warmup_ms")?.unwrap_or(DEFAULT_RX_WARMUP_MS),
         log_every_frame: env_flag("flicker_log_every_frame"),
     })
 }
@@ -79,7 +82,8 @@ mod tests {
         let mut c = PeerConfig {
             my_rtmp_url: String::new(), my_stream_key: String::new(),
             their_vk_channel: String::new(), their_stream_name: String::new(),
-            modulation_mode: ModulationMode::B, frag_timeout_ms: 2000, log_every_frame: false,
+            modulation_mode: ModulationMode::B, frag_timeout_ms: 2000,
+            rx_warmup_ms: 0, log_every_frame: false,
         };
         assert!(validate_tx(&c).is_err());
         c.my_rtmp_url = "rtmp://x".into();
