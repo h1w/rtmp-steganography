@@ -1,3 +1,4 @@
+pub mod app;
 pub mod ffmpeg_publish;
 pub mod ffmpeg_read;
 pub mod vk_live;
