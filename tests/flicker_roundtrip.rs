@@ -35,13 +35,13 @@ fn roundtrip_mode_b_single_fragment_small() {
 fn roundtrip_mode_b_max_size() {
     let mut buf = vec![0u8; FRAME_BYTES_RGB24];
     let mut enc = FrameEncoder { mode: ModulationMode::B, channel_id: 1, frame_counter: 5 };
-    // 240 byte frame budget - 9 byte fragment header = 231 bytes payload.
-    let payload: Vec<u8> = (0..231u8).collect();
+    // 240 byte frame budget - 9 byte fragment header - 4 byte payload CRC = 227 bytes.
+    let payload: Vec<u8> = (0..227u8).collect();
     let frag = make_frag(0x02, payload.clone());
     enc.encode(&mut buf, &[frag]).unwrap();
     match FrameDecoder.decode(&buf) {
         DecodeOutcome::Ok { fragments, .. } => {
-            assert_eq!(fragments[0].payload[..231], payload[..]);
+            assert_eq!(fragments[0].payload[..227], payload[..]);
         }
         o => panic!("{o:?}"),
     }

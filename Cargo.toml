@@ -15,6 +15,9 @@ crc32fast = "1"
 rand_chacha = "0.3"
 rand_core = "0.6"
 
+[dev-dependencies]
+rand = "0.8"
+
 [features]
 ffmpeg-integration = []
 

@@ -57,7 +57,10 @@ impl FrameEncoder {
         paint_markers(out_buf);
         let markers = marker_cell_indices();
 
-        // 1. Serialize fragments into payload byte buffer.
+        // 1. Serialize fragments into payload byte buffer + CRC32 trailer.
+        // The payload-zone CRC32 is what lets the decoder detect silent corruption
+        // that slips through the RS erasure code (bytes that the soft-decision
+        // layer read with high confidence but that quantised to the wrong level).
         let total_capacity = self.payload_bytes_per_frame();
         let mut payload_bytes = Vec::with_capacity(total_capacity);
         for f in fragments {
@@ -66,6 +69,8 @@ impl FrameEncoder {
             payload_bytes.extend_from_slice(&hdr);
             payload_bytes.extend_from_slice(&f.payload);
         }
+        let crc = crc32fast::hash(&payload_bytes);
+        payload_bytes.extend_from_slice(&crc.to_le_bytes());
         let payload_len = payload_bytes.len();
         if payload_len > total_capacity {
             return Err(anyhow!("fragments too large: {} > {}", payload_len, total_capacity));
@@ -161,6 +166,7 @@ pub enum DropReason {
     HeaderCrc,
     PilotValidationFailed(f32),
     BlockRsFailed(usize),
+    PayloadCrcMismatch,
     FragmentParse,
 }
 
@@ -248,10 +254,28 @@ impl FrameDecoder {
             }
         }
 
-        // Step 6: concatenate blocks, trim to payload_len, parse fragments.
+        // Step 6: concatenate blocks, trim to payload_len, verify CRC, parse fragments.
         let mut payload_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
         for b in &decoded_blocks { payload_bytes.extend_from_slice(b); }
         payload_bytes.truncate(header.payload_len as usize);
+
+        // Payload CRC32 (last 4 bytes of payload_bytes, little-endian) — detects
+        // silent corruption that slipped past erasure thresholding.
+        if payload_bytes.len() < 4 {
+            return DecodeOutcome::Dropped { reason: DropReason::PayloadCrcMismatch };
+        }
+        let crc_start = payload_bytes.len() - 4;
+        let got_crc = u32::from_le_bytes([
+            payload_bytes[crc_start],
+            payload_bytes[crc_start + 1],
+            payload_bytes[crc_start + 2],
+            payload_bytes[crc_start + 3],
+        ]);
+        let expected_crc = crc32fast::hash(&payload_bytes[..crc_start]);
+        if got_crc != expected_crc {
+            return DecodeOutcome::Dropped { reason: DropReason::PayloadCrcMismatch };
+        }
+        payload_bytes.truncate(crc_start);
 
         let mut fragments = Vec::new();
         let mut cursor = 0usize;
