@@ -2,12 +2,14 @@ use std::process::{Child, Command, Stdio};
 
 use anyhow::{Context, Result};
 
-use crate::config::HttpConfig;
 use crate::flicker::{FPS, HEIGHT, WIDTH};
 
+const USER_AGENT: &str =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
 /// Build ffmpeg args that drain an HLS/DASH URL to raw RGB24 on stdout with
-/// aggressive low-latency flags (no probe, no analyze, nearest-neighbor scale).
-pub fn read_args(input_url: &str, http: &HttpConfig, input_is_hls: bool) -> Vec<String> {
+/// aggressive low-latency flags and the browser-ish headers okcdn expects.
+pub fn read_args(input_url: &str, page_url: &str, input_is_hls: bool) -> Vec<String> {
     let size_arg = format!("{}x{}", WIDTH, HEIGHT);
     let mut args: Vec<String> = vec![
         "-hide_banner".into(),
@@ -38,10 +40,6 @@ pub fn read_args(input_url: &str, http: &HttpConfig, input_is_hls: bool) -> Vec<
     ];
 
     if input_is_hls {
-        // `-live_start_index -1` jumps to the newest HLS segment (instead of
-        // ffmpeg's default of 3 segments back). Combined with the reader-thread
-        // drop-stale loop below, this puts us as close to live edge as the
-        // CDN allows.
         args.push("-live_start_index".into());
         args.push("-1".into());
         args.push("-http_persistent".into());
@@ -50,22 +48,12 @@ pub fn read_args(input_url: &str, http: &HttpConfig, input_is_hls: bool) -> Vec<
         args.push("2".into());
     }
 
-    if let Some(ua) = http.user_agent.as_ref() {
-        args.push("-user_agent".into());
-        args.push(ua.clone());
-    }
-
-    let mut header_lines: Vec<String> = Vec::new();
-    if let Some(r) = http.referer.as_ref() {
-        header_lines.push(format!("Referer: {r}"));
-    }
-    if let Some(o) = http.origin.as_ref() {
-        header_lines.push(format!("Origin: {o}"));
-    }
-    if !header_lines.is_empty() {
-        args.push("-headers".into());
-        args.push(header_lines.join("\r\n") + "\r\n");
-    }
+    args.push("-user_agent".into());
+    args.push(USER_AGENT.into());
+    args.push("-headers".into());
+    args.push(format!(
+        "Referer: {page_url}\r\nOrigin: https://live.vkvideo.ru\r\n"
+    ));
 
     args.push("-i".into());
     args.push(input_url.to_string());

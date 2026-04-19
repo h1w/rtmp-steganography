@@ -9,64 +9,27 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::config::{HttpConfig, ServerConfig, SourceConfig};
+use crate::config::ServerConfig;
 
 const BACKOFF_SEQ_SECS: &[u64] = &[1, 2, 5, 10];
 
 struct ResolvedSource {
     url: String,
-    http: HttpConfig,
     is_hls: bool,
 }
 
-fn resolve(
-    source: &SourceConfig,
-    base_http: &HttpConfig,
-    running: &Arc<AtomicBool>,
-) -> Result<ResolvedSource> {
-    match source {
-        SourceConfig::DirectUrl(u) => {
-            let url = sanitize_url(u);
-            let is_hls = looks_like_hls(&url);
-            Ok(ResolvedSource {
-                url,
-                http: base_http.clone(),
-                is_hls,
-            })
-        }
-        SourceConfig::VkLiveSlug(slug) => {
-            let page_url = format!("https://live.vkvideo.ru/{slug}");
-            let referer = base_http
-                .referer
-                .clone()
-                .unwrap_or_else(|| page_url.clone());
-            let origin = base_http
-                .origin
-                .clone()
-                .unwrap_or_else(|| "https://live.vkvideo.ru".to_string());
-            let r = vk_live::wait_for_playback_ready(slug, &referer, &origin, running)?;
-            let url = vk_live::pick_playback_url(&r)
-                .context("VK Live: no dash/hls after wait")?;
-            let url = sanitize_url(&url);
-            let is_hls = looks_like_hls(&url);
-            let mut http = base_http.clone();
-            http.referer = Some(referer);
-            http.origin = Some(origin);
-            if http.user_agent.is_none() {
-                http.user_agent = Some(
-                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                        .to_string(),
-                );
-            }
-            eprintln!(
-                "[flicker/server] VK `{}` -> {} ({})",
-                slug,
-                url.chars().take(80).collect::<String>(),
-                if is_hls { "hls" } else { "dash" }
-            );
-            Ok(ResolvedSource { url, http, is_hls })
-        }
-    }
+fn resolve(page_url: &str) -> Result<ResolvedSource> {
+    let r = vk_live::resolve_page(page_url)?;
+    let url = vk_live::pick_playback_url(&r)
+        .context("no live_hls / live_dash on page")?;
+    let url = sanitize_url(&url);
+    let is_hls = looks_like_hls(&url);
+    eprintln!(
+        "[flicker/server] resolved -> {} ({})",
+        url.chars().take(96).collect::<String>(),
+        if is_hls { "hls" } else { "dash" }
+    );
+    Ok(ResolvedSource { url, is_hls })
 }
 
 fn looks_like_hls(url: &str) -> bool {
@@ -74,13 +37,13 @@ fn looks_like_hls(url: &str) -> bool {
     u.contains(".m3u8") || u.contains("/hls")
 }
 
-/// Strip okcdn CMAF ultra-low-latency flag (`low-latency=yes|1`) from the query.
-/// VK Live's ULL CMAF chunks are not consumed correctly by stock ffmpeg; removing
-/// this param forces the CDN to serve regular segments that ffmpeg can parse.
+/// Strip okcdn CMAF ultra-low-latency flag from the query; stock ffmpeg
+/// can't decode ULL fragments, so this forces regular segments.
 fn sanitize_url(url: &str) -> String {
     let Some((base, query)) = url.split_once('?') else {
         return url.to_string();
     };
+    let original_parts = query.split('&').count();
     let kept: Vec<&str> = query
         .split('&')
         .filter(|kv| {
@@ -90,42 +53,13 @@ fn sanitize_url(url: &str) -> String {
                 || lower == "low-latency=true")
         })
         .collect();
-    let mut changed = kept.len() != query.split('&').count();
-    if !changed {
+    if kept.len() == original_parts {
         return url.to_string();
     }
     if kept.is_empty() {
-        changed = true;
-        let _ = changed;
         return base.to_string();
     }
     format!("{base}?{}", kept.join("&"))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::sanitize_url;
-
-    #[test]
-    fn strips_low_latency_yes() {
-        let u = "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s?low-latency=yes";
-        assert_eq!(
-            sanitize_url(u),
-            "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s"
-        );
-    }
-
-    #[test]
-    fn keeps_other_query_params() {
-        let u = "https://x.ru/m.mpd?foo=bar&low-latency=yes&baz=1";
-        assert_eq!(sanitize_url(u), "https://x.ru/m.mpd?foo=bar&baz=1");
-    }
-
-    #[test]
-    fn leaves_unrelated_urls_alone() {
-        let u = "https://x.ru/m.mpd?foo=bar";
-        assert_eq!(sanitize_url(u), u);
-    }
 }
 
 pub fn run(cfg: ServerConfig) -> Result<()> {
@@ -136,10 +70,13 @@ pub fn run(cfg: ServerConfig) -> Result<()> {
         cfg.grid.cell,
         cfg.grid.total_cells.min(64),
     );
+    eprintln!("[flicker/server] page: {}", cfg.page_url);
     if cfg.log_every_frame {
         eprintln!("[flicker/server] logging every frame (stream_log_every_frame=1)");
     } else {
-        eprintln!("[flicker/server] logging on ts change (set stream_log_every_frame=1 for per-frame)");
+        eprintln!(
+            "[flicker/server] logging on ts change (set stream_log_every_frame=1 for per-frame)"
+        );
     }
 
     let running = Arc::new(AtomicBool::new(true));
@@ -160,7 +97,7 @@ pub fn run(cfg: ServerConfig) -> Result<()> {
 
     let mut attempt: usize = 0;
     while running.load(Ordering::SeqCst) {
-        let resolved = match resolve(&cfg.source, &cfg.http, &running) {
+        let resolved = match resolve(&cfg.page_url) {
             Ok(r) => r,
             Err(e) => {
                 if !running.load(Ordering::SeqCst) {
@@ -173,7 +110,7 @@ pub fn run(cfg: ServerConfig) -> Result<()> {
             }
         };
 
-        let args = ingest::read_args(&resolved.url, &resolved.http, resolved.is_hls);
+        let args = ingest::read_args(&resolved.url, &cfg.page_url, resolved.is_hls);
         let mut child = match ingest::spawn(&args) {
             Ok(c) => c,
             Err(e) => {
@@ -243,5 +180,31 @@ fn backoff(attempt: usize, running: &Arc<AtomicBool>) {
     while waited < total && running.load(Ordering::SeqCst) {
         thread::sleep(step);
         waited += step;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::sanitize_url;
+
+    #[test]
+    fn strips_low_latency_yes() {
+        let u = "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s?low-latency=yes";
+        assert_eq!(
+            sanitize_url(u),
+            "https://vsd208.okcdn.ru/cmaf/14/sig/x/urls/1/t704368.v.m4s"
+        );
+    }
+
+    #[test]
+    fn keeps_other_query_params() {
+        let u = "https://x.ru/m.mpd?foo=bar&low-latency=yes&baz=1";
+        assert_eq!(sanitize_url(u), "https://x.ru/m.mpd?foo=bar&baz=1");
+    }
+
+    #[test]
+    fn leaves_unrelated_urls_alone() {
+        let u = "https://x.ru/m.mpd?foo=bar";
+        assert_eq!(sanitize_url(u), u);
     }
 }

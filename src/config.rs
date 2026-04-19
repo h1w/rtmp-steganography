@@ -11,22 +11,9 @@ pub struct ClientConfig {
 }
 
 pub struct ServerConfig {
+    pub page_url: String,
     pub grid: GridConfig,
-    pub source: SourceConfig,
-    pub http: HttpConfig,
     pub log_every_frame: bool,
-}
-
-pub enum SourceConfig {
-    DirectUrl(String),
-    VkLiveSlug(String),
-}
-
-#[derive(Clone, Default)]
-pub struct HttpConfig {
-    pub user_agent: Option<String>,
-    pub referer: Option<String>,
-    pub origin: Option<String>,
 }
 
 pub fn load_grid() -> Result<GridConfig> {
@@ -36,9 +23,10 @@ pub fn load_grid() -> Result<GridConfig> {
 }
 
 pub fn load_client() -> Result<ClientConfig> {
-    let key = std::env::var("stream_key").context("stream_key not set in .env")?;
+    let key = std::env::var("client_stream_key")
+        .context("client_stream_key not set in .env")?;
     let server = std::env::var("rtmp_server").context("rtmp_server not set in .env")?;
-    let rtmp_url = format!("{}/{}", server.trim_end_matches('/'), key);
+    let rtmp_url = format!("{}/{}", server.trim_end_matches('/'), key.trim());
     Ok(ClientConfig {
         rtmp_url,
         grid: load_grid()?,
@@ -46,27 +34,19 @@ pub fn load_client() -> Result<ClientConfig> {
 }
 
 pub fn load_server() -> Result<ServerConfig> {
-    let grid = load_grid()?;
-    let source = if let Some(u) = env_nonempty("stream_read_url") {
-        SourceConfig::DirectUrl(u)
-    } else if let Some(slug) = env_nonempty("vk_live_channel") {
-        SourceConfig::VkLiveSlug(slug)
-    } else {
-        return Err(anyhow!(
-            "set stream_read_url or vk_live_channel in .env"
-        ));
-    };
-    let http = HttpConfig {
-        user_agent: env_nonempty("stream_user_agent"),
-        referer: env_nonempty("stream_referer"),
-        origin: env_nonempty("stream_origin"),
-    };
-    let log_every_frame = env_flag("stream_log_every_frame");
+    let channel = env_nonempty("vk_live_channel")
+        .ok_or_else(|| anyhow!("vk_live_channel not set in .env"))?;
+    let name = env_nonempty("client_stream_name")
+        .ok_or_else(|| anyhow!("client_stream_name not set in .env"))?;
+    let page_url = format!(
+        "https://live.vkvideo.ru/{}/stream/{}",
+        channel.trim_matches('/'),
+        name.trim_matches('/')
+    );
     Ok(ServerConfig {
-        grid,
-        source,
-        http,
-        log_every_frame,
+        page_url,
+        grid: load_grid()?,
+        log_every_frame: env_flag("stream_log_every_frame"),
     })
 }
 
