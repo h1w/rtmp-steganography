@@ -33,6 +33,11 @@ pub struct PeerArgs {
     pub receive_only: bool,
     #[arg(long = "tunnel-socks")]
     pub tunnel_socks: Option<std::net::SocketAddr>,
+    /// When in tunnel mode, also bring up embedded http_echo (18080) and
+    /// tcp_dns (18053) listeners on 127.0.0.1 so remote bench drivers can
+    /// reach them via tunnel egress.
+    #[arg(long = "with-bench-support")]
+    pub with_bench_support: bool,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -69,7 +74,7 @@ pub enum ReportCmd {
 
 pub enum PeerMode {
     Heartbeat(Direction),
-    Tunnel { dir: Direction, socks_bind: std::net::SocketAddr },
+    Tunnel { dir: Direction, socks_bind: std::net::SocketAddr, with_bench_support: bool },
 }
 
 pub enum Resolved {
@@ -92,8 +97,15 @@ impl Cli {
                     if !(dir.tx && dir.rx) {
                         return Err(anyhow!("--tunnel-socks requires bidirectional peer (cannot combine with --publish-only or --receive-only)"));
                     }
-                    Ok(Resolved::Peer(PeerMode::Tunnel { dir, socks_bind: addr }))
+                    Ok(Resolved::Peer(PeerMode::Tunnel {
+                        dir,
+                        socks_bind: addr,
+                        with_bench_support: args.with_bench_support,
+                    }))
                 } else {
+                    if args.with_bench_support {
+                        return Err(anyhow!("--with-bench-support requires --tunnel-socks"));
+                    }
                     Ok(Resolved::Peer(PeerMode::Heartbeat(dir)))
                 }
             }

@@ -71,7 +71,12 @@ pub fn run_peer(cfg: PeerConfig, dir: Direction) -> Result<()> {
     Ok(())
 }
 
-pub fn run_peer_tunnel(cfg: PeerConfig, dir: Direction, socks_bind: std::net::SocketAddr) -> Result<()> {
+pub fn run_peer_tunnel(
+    cfg: PeerConfig,
+    dir: Direction,
+    socks_bind: std::net::SocketAddr,
+    with_bench_support: bool,
+) -> Result<()> {
     // Tunnel requires bidirectional channels — caller already enforced this,
     // but double-check here as a defensive guard.
     if !(dir.tx && dir.rx) {
@@ -107,7 +112,7 @@ pub fn run_peer_tunnel(cfg: PeerConfig, dir: Direction, socks_bind: std::net::So
     }));
 
     // App (tunnel) runs on the main thread.
-    app::run_tunnel(app_out_tx, app_in_rx, Arc::clone(&running), socks_bind);
+    app::run_tunnel(app_out_tx, app_in_rx, Arc::clone(&running), socks_bind, with_bench_support);
 
     for h in handles { let _ = h.join(); }
     Ok(())

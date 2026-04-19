@@ -70,6 +70,7 @@ pub fn run_tunnel(
     inbound_rx: std::sync::mpsc::Receiver<crate::flicker::InboundMessage>,
     running: std::sync::Arc<std::sync::atomic::AtomicBool>,
     socks_bind: std::net::SocketAddr,
+    with_bench_support: bool,
 ) {
     use crate::tunnel::{adapter::FlickerChannel, kcp::Profile, metrics::{EventEmitter, new_run_id}, Tunnel};
     use std::sync::Arc;
@@ -107,6 +108,23 @@ pub fn run_tunnel(
                 return;
             }
         };
+
+        if with_bench_support {
+            let running_async = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+            let echo_bind: std::net::SocketAddr = "127.0.0.1:18080".parse().unwrap();
+            let dns_bind: std::net::SocketAddr = "127.0.0.1:18053".parse().unwrap();
+            let fixtures = std::path::PathBuf::from("./fixtures/dns.txt");
+            if let Err(e) = crate::bench::support::spawn_http_echo(echo_bind, std::sync::Arc::clone(&running_async)).await {
+                eprintln!("[peer/tunnel] bench-support http_echo bind failed: {e}");
+            } else {
+                eprintln!("[peer/tunnel] bench-support http_echo listening on {echo_bind}");
+            }
+            if let Err(e) = crate::bench::support::spawn_tcp_dns(dns_bind, &fixtures, std::sync::Arc::clone(&running_async)).await {
+                eprintln!("[peer/tunnel] bench-support tcp_dns bind failed: {e}");
+            } else {
+                eprintln!("[peer/tunnel] bench-support tcp_dns listening on {dns_bind}");
+            }
+        }
 
         while running.load(std::sync::atomic::Ordering::SeqCst) {
             tokio::time::sleep(std::time::Duration::from_millis(200)).await;

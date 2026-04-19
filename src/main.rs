@@ -15,7 +15,8 @@ fn main() -> Result<()> {
             let cfg = config::load_peer()?;
             match mode {
                 PeerMode::Heartbeat(dir) => peer::run_peer(cfg, dir),
-                PeerMode::Tunnel { dir, socks_bind } => peer::run_peer_tunnel(cfg, dir, socks_bind),
+                PeerMode::Tunnel { dir, socks_bind, with_bench_support } =>
+                    peer::run_peer_tunnel(cfg, dir, socks_bind, with_bench_support),
             }
         }
         Resolved::Bench(cmd) => run_bench(cmd),
