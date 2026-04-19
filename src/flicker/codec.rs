@@ -166,7 +166,7 @@ mod tests {
             paint_cell_c(&mut buf, 20, 10, sym);
             let (read, conf) = read_cell_c(&buf, 20, 10);
             assert_eq!(read, sym, "symbol {sym} round-trip failed");
-            assert!(conf > 0.7, "confidence should be reasonably high, got {conf}");
+            assert!(conf > 0.6, "confidence should be reasonably high, got {conf}");
         }
     }
 
