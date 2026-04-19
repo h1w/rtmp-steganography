@@ -14,9 +14,18 @@ reed-solomon-erasure = "6"
 crc32fast = "1"
 rand_chacha = "0.3"
 rand_core = "0.6"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros", "process"] }
+kcp = "0.5"
+yamux = "0.13"
+tokio-util = { version = "0.7", features = ["compat"] }
+hdrhistogram = "7"
+futures = "0.3"
+async-trait = "0.1"
+rand = "0.8"
 
 [dev-dependencies]
 rand = "0.8"
+tempfile = "3"
 
 [features]
 ffmpeg-integration = []

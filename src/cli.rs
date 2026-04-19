@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use clap::{Parser, Subcommand};
 
-use crate::config::PeerConfig;
 use crate::peer::Direction;
 
 #[derive(Parser, Debug)]
@@ -14,6 +13,16 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Mode {
     Peer(PeerArgs),
+    /// Run bench workloads (realistic or saturation)
+    Bench {
+        #[command(subcommand)]
+        cmd: BenchCmd,
+    },
+    /// Aggregate an events.jsonl into summary.json
+    Report {
+        #[command(subcommand)]
+        cmd: ReportCmd,
+    },
 }
 
 #[derive(clap::Args, Debug)]
@@ -22,17 +31,113 @@ pub struct PeerArgs {
     pub publish_only: bool,
     #[arg(long = "receive-only")]
     pub receive_only: bool,
+    #[arg(long = "tunnel-socks")]
+    pub tunnel_socks: Option<std::net::SocketAddr>,
+    /// When in tunnel mode, also bring up embedded http_echo (18080) and
+    /// tcp_dns (18053) listeners on 127.0.0.1 so remote bench drivers can
+    /// reach them via tunnel egress.
+    #[arg(long = "with-bench-support")]
+    pub with_bench_support: bool,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub enum BenchCmd {
+    /// Quick live-channel smoke: N x http_echo + one iperf3 ramp step + summary.
+    /// Designed to fit in ~5 minutes on a real VK Live channel.
+    Smoke {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        echo_host: String,
+        #[arg(long, default_value_t = 18080)]            echo_port: u16,
+        #[arg(long, default_value_t = 1024)]             payload_bytes: usize,
+        #[arg(long, default_value_t = 10)]               iterations: usize,
+        #[arg(long, default_value = "127.0.0.1")]        iperf_host: String,
+        #[arg(long, default_value_t = 15201)]            iperf_port: u16,
+        #[arg(long, default_value_t = 20)]               iperf_rate_kbps: u32,
+        #[arg(long, default_value_t = 30)]               iperf_duration_s: u64,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+        #[arg(long)]                                     skip_iperf: bool,
+        /// Native Rust raw-TCP throughput test: streams this many bytes through
+        /// the tunnel to peer B's raw_echo (18090) and back, measuring real
+        /// goodput. 0 disables. This is the gold-standard goodput measurement
+        /// (no proxychains, no iperf3 — pure Rust through SOCKS5).
+        #[arg(long, default_value_t = 65536)]            throughput_bytes: u64,
+        #[arg(long, default_value = "127.0.0.1")]        raw_echo_host: String,
+        #[arg(long, default_value_t = 18090)]            raw_echo_port: u16,
+    },
+    Realistic {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        echo_host: String,
+        #[arg(long, default_value_t = 18080)]            echo_port: u16,
+        #[arg(long, default_value = "127.0.0.1")]        dns_host: String,
+        #[arg(long, default_value_t = 18053)]            dns_port: u16,
+        #[arg(long)]                                     ssh_target: Option<String>,
+        #[arg(long, default_value = "./fixtures")]       fixtures_dir: std::path::PathBuf,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+    },
+    Saturation {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        iperf_host: String,
+        #[arg(long, default_value_t = 15201)]            iperf_port: u16,
+        #[arg(long, value_enum, default_value_t = ProfileArg::Both)] profile: ProfileArg,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+    },
+}
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum ProfileArg { Throughput, Latency, Both }
+
+#[derive(clap::Subcommand, Debug)]
+pub enum ReportCmd {
+    /// Aggregate one or more events.jsonl into a single summary.json.
+    /// Pass individual files, or use --metrics-dir to merge every peer and
+    /// bench-runner run under that directory into one centralised summary.
+    Summarize {
+        #[arg(required = false)]
+        events: Vec<std::path::PathBuf>,
+        #[arg(long)] out: std::path::PathBuf,
+        #[arg(long)] metrics_dir: Option<std::path::PathBuf>,
+    },
+}
+
+pub enum PeerMode {
+    Heartbeat(Direction),
+    Tunnel { dir: Direction, socks_bind: std::net::SocketAddr, with_bench_support: bool },
+}
+
+pub enum Resolved {
+    Peer(PeerMode),
+    Bench(BenchCmd),
+    Report(ReportCmd),
 }
 
 impl Cli {
-    pub fn resolve(self, _cfg: &PeerConfig) -> Result<Direction> {
+    pub fn resolve(self) -> Result<Resolved> {
         match self.command {
-            Mode::Peer(args) => match (args.publish_only, args.receive_only) {
-                (false, false) => Ok(Direction { tx: true, rx: true }),
-                (true, false) => Ok(Direction { tx: true, rx: false }),
-                (false, true) => Ok(Direction { tx: false, rx: true }),
-                (true, true) => Err(anyhow!("--publish-only and --receive-only are mutually exclusive")),
-            },
+            Mode::Peer(args) => {
+                let dir = match (args.publish_only, args.receive_only) {
+                    (false, false) => Direction { tx: true, rx: true },
+                    (true, false)  => Direction { tx: true, rx: false },
+                    (false, true)  => Direction { tx: false, rx: true },
+                    (true, true)   => return Err(anyhow!("--publish-only and --receive-only are mutually exclusive")),
+                };
+                if let Some(addr) = args.tunnel_socks {
+                    if !(dir.tx && dir.rx) {
+                        return Err(anyhow!("--tunnel-socks requires bidirectional peer (cannot combine with --publish-only or --receive-only)"));
+                    }
+                    Ok(Resolved::Peer(PeerMode::Tunnel {
+                        dir,
+                        socks_bind: addr,
+                        with_bench_support: args.with_bench_support,
+                    }))
+                } else {
+                    if args.with_bench_support {
+                        return Err(anyhow!("--with-bench-support requires --tunnel-socks"));
+                    }
+                    Ok(Resolved::Peer(PeerMode::Heartbeat(dir)))
+                }
+            }
+            Mode::Bench { cmd } => Ok(Resolved::Bench(cmd)),
+            Mode::Report { cmd } => Ok(Resolved::Report(cmd)),
         }
     }
 }

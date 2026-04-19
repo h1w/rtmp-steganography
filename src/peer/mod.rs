@@ -15,7 +15,7 @@ use anyhow::{Context, Result};
 use crate::config::{self, PeerConfig};
 use crate::flicker::fragment::{Fragment, Reassembler, FRAGMENT_HEADER_BYTES};
 use crate::flicker::frame::{FrameDecoder, FrameEncoder, DecodeOutcome};
-use crate::flicker::grid::FRAME_BYTES_RGB24;
+use crate::flicker::grid::FlickerParams;
 use crate::flicker::{InboundMessage, OutboundMessage};
 
 #[derive(Copy, Clone, Debug)]
@@ -71,35 +71,98 @@ pub fn run_peer(cfg: PeerConfig, dir: Direction) -> Result<()> {
     Ok(())
 }
 
+pub fn run_peer_tunnel(
+    cfg: PeerConfig,
+    dir: Direction,
+    socks_bind: std::net::SocketAddr,
+    with_bench_support: bool,
+) -> Result<()> {
+    // Tunnel requires bidirectional channels — caller already enforced this,
+    // but double-check here as a defensive guard.
+    if !(dir.tx && dir.rx) {
+        return Err(anyhow::anyhow!("run_peer_tunnel requires bidirectional peer"));
+    }
+    config::validate_tx(&cfg)?;
+    config::validate_rx(&cfg)?;
+
+    let running = Arc::new(AtomicBool::new(true));
+    let running_signal = Arc::clone(&running);
+    ctrlc::set_handler(move || {
+        running_signal.store(false, Ordering::SeqCst);
+    }).context("ctrlc handler")?;
+
+    let (app_out_tx, app_out_rx) = mpsc::channel::<OutboundMessage>();
+    let (app_in_tx, app_in_rx)   = mpsc::channel::<InboundMessage>();
+
+    let mut handles = Vec::new();
+    let cfg_tx = cfg.clone();
+    let run_tx = Arc::clone(&running);
+    handles.push(thread::spawn(move || {
+        if let Err(e) = tx_thread(cfg_tx, app_out_rx, run_tx) {
+            eprintln!("[peer/tx] error: {e}");
+        }
+    }));
+
+    let cfg_rx = cfg.clone();
+    let run_rx = Arc::clone(&running);
+    handles.push(thread::spawn(move || {
+        if let Err(e) = rx_thread(cfg_rx, app_in_tx, run_rx) {
+            eprintln!("[peer/rx] error: {e}");
+        }
+    }));
+
+    // App (tunnel) runs on the main thread.
+    app::run_tunnel(app_out_tx, app_in_rx, Arc::clone(&running), socks_bind, with_bench_support);
+
+    for h in handles { let _ = h.join(); }
+    Ok(())
+}
+
 /// Default warm-up delay before the rx thread starts looking for the other
-/// peer's stream. Both peers' publishes need a few seconds to register with
-/// VK before HLS becomes available. Overridable via env `peer_rx_warmup_ms`.
-pub const DEFAULT_RX_WARMUP_MS: u64 = 10_000;
-const RETRY_INITIAL_MS: u64 = 2_000;
-const RETRY_MAX_MS: u64 = 16_000;
+/// peer's stream. Kept short — the tight retry loop below will poll VK as
+/// soon as it responds. Overridable via env `peer_rx_warmup_ms`.
+pub const DEFAULT_RX_WARMUP_MS: u64 = 2_000;
+/// Initial retry delay. Short so we catch the stream within ~1s of it
+/// becoming available — VK typically publishes playerUrls within 2-5s of
+/// RTMP ingest starting.
+const RETRY_INITIAL_MS: u64 = 500;
+/// Cap on backoff. Kept low on purpose: "stream offline" is transient and
+/// we want to pick up as soon as it flips.
+const RETRY_MAX_MS: u64 = 3_000;
 
 fn sleep_backoff(prev_ms: u64) -> u64 {
-    let next = (prev_ms.saturating_mul(2)).min(RETRY_MAX_MS);
+    // Gentler growth factor (×1.5 rounded) so we stay responsive without
+    // hammering VK: 500 → 750 → 1125 → 1687 → 2500 → 3000 cap.
+    let next = ((prev_ms * 3) / 2).min(RETRY_MAX_MS).max(RETRY_INITIAL_MS);
     thread::sleep(Duration::from_millis(prev_ms));
     next
 }
 
 fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<AtomicBool>) -> Result<()> {
     let rtmp_url = format!("{}/{}", cfg.my_rtmp_url.trim_end_matches('/'), cfg.my_stream_key);
+    let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
+    if let Err(e) = params.validate() { return Err(anyhow::anyhow!("flicker params: {e}")); }
+    let fps = cfg.flicker_fps.max(1);
     let mut backoff_ms = RETRY_INITIAL_MS;
     let mut encoder = FrameEncoder {
+        params,
         mode: cfg.modulation_mode,
         channel_id: 1,
         frame_counter: 0,
     };
-    let mut frame_buf = vec![0u8; FRAME_BYTES_RGB24];
-    let frame_interval = Duration::from_nanos(1_000_000_000 / crate::flicker::grid::FPS as u64);
+    let mut frame_buf = vec![0u8; params.frame_bytes_rgb24()];
+    let frame_interval = Duration::from_nanos(1_000_000_000 / fps as u64);
     let mut next_msg_id: u32 = 0;
 
-    // Outer loop: if ffmpeg publish dies, restart it. RTMP ingest hiccups,
-    // VK rejecting a connection, etc. shouldn't kill the peer.
     while running.load(Ordering::SeqCst) {
-        let args = ffmpeg_publish::publish_args(&rtmp_url);
+        let args = ffmpeg_publish::publish_args(&ffmpeg_publish::PublishOpts {
+            rtmp_url: &rtmp_url,
+            flicker_width: params.width,
+            flicker_height: params.height,
+            stream_width: cfg.stream_width,
+            stream_height: cfg.stream_height,
+            fps, x264_qp: cfg.x264_qp, x264_bitrate_kbps: cfg.x264_bitrate_kbps,
+        });
         let spawn_result = std::process::Command::new("ffmpeg")
             .args(&args)
             .stdin(std::process::Stdio::piped())
@@ -133,7 +196,9 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
             // Gather one message worth of fragments for this frame.
             let mut fragments: Vec<Fragment> = Vec::new();
             let capacity = encoder.payload_bytes_per_frame();
-            let max_payload = capacity.saturating_sub(FRAGMENT_HEADER_BYTES);
+            // Leave room for the payload-zone CRC32 (4 bytes) that the encoder
+            // appends after fragment serialisation.
+            let max_payload = capacity.saturating_sub(FRAGMENT_HEADER_BYTES).saturating_sub(4);
             match outbound.recv_timeout(Duration::from_millis(10)) {
                 Ok(msg) => {
                     if msg.payload.len() <= max_payload {
@@ -195,9 +260,11 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
 fn rx_thread(cfg: PeerConfig, inbound: Sender<InboundMessage>, running: Arc<AtomicBool>) -> Result<()> {
     let page_url = format!("https://live.vkvideo.ru/{}/stream/{}", cfg.their_vk_channel, cfg.their_stream_name);
     let warmup_ms = cfg.rx_warmup_ms;
+    let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
+    let fps = cfg.flicker_fps.max(1);
     let mut backoff_ms = RETRY_INITIAL_MS;
-    let mut buf = vec![0u8; FRAME_BYTES_RGB24];
-    let dec = FrameDecoder;
+    let mut buf = vec![0u8; params.frame_bytes_rgb24()];
+    let dec = FrameDecoder { params };
     let mut reassembler = Reassembler::new(cfg.frag_timeout_ms);
     let mut frame_idx: u64 = 0;
 
@@ -229,7 +296,14 @@ fn rx_thread(cfg: PeerConfig, inbound: Sender<InboundMessage>, running: Arc<Atom
             }
         };
         eprintln!("[peer/rx] stream resolved: is_hls={is_hls} url_head={}", &stream_url.chars().take(80).collect::<String>());
-        let args = ffmpeg_read::read_args(&stream_url, &page_url, is_hls);
+        let args = ffmpeg_read::read_args(&ffmpeg_read::ReadOpts {
+            input_url: &stream_url,
+            page_url: &page_url,
+            input_is_hls: is_hls,
+            flicker_width: params.width,
+            flicker_height: params.height,
+            fps,
+        });
         let mut child = match ffmpeg_read::spawn(&args) {
             Ok(c) => c,
             Err(e) => {

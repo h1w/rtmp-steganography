@@ -10,19 +10,28 @@ pub const RS_BLOCK_K: usize = 120;
 pub const RS_BLOCK_PARITY: usize = RS_BLOCK_N - RS_BLOCK_K; // 52
 
 /// Encode `k` data bytes into `n` shard bytes (data + parity).
+/// Reed-Solomon codec instance. Building one costs ~1-5 ms (Cauchy GF(256)
+/// matrix init) — prohibitive to do per block on large grids where we encode
+/// 20+ blocks per frame × 24 fps × two peers. Build it once and reuse.
+static RS_CODEC: std::sync::OnceLock<ReedSolomon> = std::sync::OnceLock::new();
+fn rs() -> &'static ReedSolomon {
+    RS_CODEC.get_or_init(|| {
+        ReedSolomon::new(RS_BLOCK_K, RS_BLOCK_PARITY)
+            .expect("ReedSolomon::new(120, 52) must succeed — constants")
+    })
+}
+
 /// Input must be exactly RS_BLOCK_K bytes; output is RS_BLOCK_N bytes.
 pub fn encode_block(data: &[u8]) -> Result<Vec<u8>> {
     if data.len() != RS_BLOCK_K {
         return Err(anyhow!("encode_block expects {} bytes, got {}", RS_BLOCK_K, data.len()));
     }
-    let rs = ReedSolomon::new(RS_BLOCK_K, RS_BLOCK_PARITY)
-        .map_err(|e| anyhow!("RS init: {e}"))?;
     // reed-solomon-erasure operates on shards-of-shards; we use byte-per-shard (shard size = 1).
     let mut shards: Vec<Vec<u8>> = data.iter().map(|b| vec![*b]).collect();
     for _ in 0..RS_BLOCK_PARITY {
         shards.push(vec![0u8]);
     }
-    rs.encode(&mut shards).map_err(|e| anyhow!("RS encode: {e}"))?;
+    rs().encode(&mut shards).map_err(|e| anyhow!("RS encode: {e}"))?;
     Ok(shards.into_iter().map(|s| s[0]).collect())
 }
 
@@ -32,10 +41,8 @@ pub fn decode_block(shards: &[Option<u8>]) -> Result<Vec<u8>> {
     if shards.len() != RS_BLOCK_N {
         return Err(anyhow!("decode_block expects {} shards, got {}", RS_BLOCK_N, shards.len()));
     }
-    let rs = ReedSolomon::new(RS_BLOCK_K, RS_BLOCK_PARITY)
-        .map_err(|e| anyhow!("RS init: {e}"))?;
     let mut mutable: Vec<Option<Vec<u8>>> = shards.iter().map(|o| o.map(|b| vec![b])).collect();
-    rs.reconstruct(&mut mutable).map_err(|e| anyhow!("RS decode: {e}"))?;
+    rs().reconstruct(&mut mutable).map_err(|e| anyhow!("RS decode: {e}"))?;
     let out: Vec<u8> = mutable.iter().take(RS_BLOCK_K).map(|o| o.as_ref().unwrap()[0]).collect();
     Ok(out)
 }

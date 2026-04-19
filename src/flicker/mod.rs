@@ -9,6 +9,16 @@ pub mod levels;
 pub mod markers;
 pub mod pilot;
 
+/// Legacy fallback for the 256x144 mode B grid (block_count=2):
+/// 2 * 120 − 9 (FRAGMENT_HEADER_BYTES) − 4 (payload CRC32) = 227.
+///
+/// DEPRECATED as a constant source of truth: the real per-frame
+/// application-byte capacity is computed at runtime from `FlickerParams`
+/// and `ModulationMode` via `frame::block_count_for`, and piped into the
+/// tunnel through `FlickerChannel::new(.., max_payload)`. Kept here only
+/// so pre-runtime callers and the baseline test still resolve.
+pub const FLICKER_MAX_PAYLOAD_BYTES: usize = 227;
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ModulationMode {
     B = 1,

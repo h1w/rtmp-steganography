@@ -6,3 +6,5 @@ docs/reference/
 *.exe
 *.pdb
 .env.peer-*
+metrics/
+target/
