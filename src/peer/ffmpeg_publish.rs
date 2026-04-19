@@ -24,6 +24,16 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
         "scale={}:{}:flags=neighbor,format=yuv420p",
         opts.stream_width, opts.stream_height
     );
+    // Bitrate proportional to pixel area × fps. Anchor: 256×144@24 → 500 kbps
+    // (empirically verified carriable through VK transcode while keeping cell
+    // quantisation intact). Scale linearly with resolution so 640×360@24 gets
+    // ~3.1 Mbps — enough headroom for libx264 to keep 4×4 cells crisp without
+    // blurring them together under low-bitrate CBR.
+    let pixels = opts.stream_width as u64 * opts.stream_height as u64;
+    let kbps_u64 = (pixels * opts.fps as u64 * 500) / (256 * 144 * 24);
+    let kbps = kbps_u64.max(500) as u32;
+    let bv_arg = format!("{}k", kbps);
+    let bufsize_arg = format!("{}k", kbps * 2);
 
     let mut args: Vec<String> = Vec::with_capacity(64);
     let push = |args: &mut Vec<String>, s: &str| args.push(s.to_string());
@@ -51,9 +61,9 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
     push(&mut args, "-profile:v"); push(&mut args, "baseline");
     push(&mut args, "-level"); push(&mut args, "3.0");
     push(&mut args, "-pix_fmt"); push(&mut args, "yuv420p");
-    push(&mut args, "-b:v"); push(&mut args, "500k");
-    push(&mut args, "-maxrate"); push(&mut args, "500k");
-    push(&mut args, "-bufsize"); push(&mut args, "1000k");
+    push(&mut args, "-b:v"); args.push(bv_arg.clone());
+    push(&mut args, "-maxrate"); args.push(bv_arg);
+    push(&mut args, "-bufsize"); args.push(bufsize_arg);
     push(&mut args, "-g"); args.push(gop_arg);
     push(&mut args, "-keyint_min"); args.push(rate_arg);
     push(&mut args, "-c:a"); push(&mut args, "aac");

@@ -1,29 +1,919 @@
 [peer/rx] warm-up 10000ms before first resolve
-[peer/tunnel] run_id=1776611681-5i1l metrics_dir=./metrics\1776611681-5i1l
+[peer/tunnel] run_id=1776612609-jtv9 metrics_dir=./metrics\1776612609-jtv9
 [peer/tunnel] profile=Throughput socks_bind=127.0.0.1:11081
 [peer/tunnel] bench-support http_echo listening on 127.0.0.1:18080
 [peer/tunnel] bench-support tcp_dns listening on 127.0.0.1:18053
 [peer/tunnel] bench-support raw_echo listening on 127.0.0.1:18090
 Input #0, rawvideo, from 'fd:':
-  Duration: N/A, start: 1776611681.458333, bitrate: 21233 kb/s
-  Stream #0:0: Video: rawvideo (RGB[24] / 0x18424752), rgb24, 256x144, 21233 kb/s, 24 tbr, 24 tbn
+  Duration: N/A, start: 1776612609.708333, bitrate: 132710 kb/s
+  Stream #0:0: Video: rawvideo (RGB[24] / 0x18424752), rgb24, 640x360, 132710 kb/s, 24 tbr, 24 tbn
 Input #1, lavfi, from 'anullsrc=channel_layout=stereo:sample_rate=44100':
   Duration: N/A, start: 0.000000, bitrate: 705 kb/s
   Stream #1:0: Audio: pcm_u8, 44100 Hz, stereo, u8, 705 kb/s
 Stream mapping:
   Stream #0:0 -> #0:0 (rawvideo (native) -> h264 (libx264))
   Stream #1:0 -> #0:1 (pcm_u8 (native) -> aac (native))
-[libx264 @ 000001d79b27aa80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2 AVX512
-[libx264 @ 000001d79b27aa80] profile Constrained Baseline, level 3.0, 4:2:0, 8-bit
-[libx264 @ 000001d79b27aa80] 264 - core 164 r3204 373697b - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=0 ref=1 deblock=0:0:0 analyse=0:0 me=dia subme=0 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=0 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=0 threads=5 lookahead_threads=5 sliced_threads=1 slices=5 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=0 keyint=48 keyint_min=24 scenecut=0 intra_refresh=0 rc_lookahead=0 rc=cbr mbtree=0 bitrate=500 ratetol=1.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 vbv_maxrate=500 vbv_bufsize=1000 nal_hrd=none filler=0 ip_ratio=1.40 aq=0
+[libx264 @ 000001ea93ffd300] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2 AVX512
+[libx264 @ 000001ea93ffd300] profile Constrained Baseline, level 3.0, 4:2:0, 8-bit
+[libx264 @ 000001ea93ffd300] 264 - core 164 r3204 373697b - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=0 ref=1 deblock=0:0:0 analyse=0:0 me=dia subme=0 psy=1 psy_rd=1.00:0.00 mixed_ref=0 me_range=16 chroma_me=1 trellis=0 8x8dct=0 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=0 threads=5 lookahead_threads=5 sliced_threads=1 slices=5 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=0 keyint=48 keyint_min=24 scenecut=0 intra_refresh=0 rc_lookahead=0 rc=cbr mbtree=0 bitrate=3125 ratetol=1.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 vbv_maxrate=3125 vbv_bufsize=6250 nal_hrd=none filler=0 ip_ratio=1.40 aq=0
 Output #0, flv, to 'rtmp://vsu.mycdn.me/input/1125899968167671_1125899968167671_71_yvik4q2m5y':
   Metadata:
     encoder         : Lavf61.7.100
-  Stream #0:0: Video: h264 ([7][0][0][0] / 0x0007), yuv420p(tv, progressive), 640x360, q=2-31, 500 kb/s, 24 fps, 1k tbn
+  Stream #0:0: Video: h264 ([7][0][0][0] / 0x0007), yuv420p(tv, progressive), 640x360, q=2-31, 3125 kb/s, 24 fps, 1k tbn
       Metadata:
         encoder         : Lavc61.19.101 libx264
       Side data:
-        cpb: bitrate max/min/avg: 500000/0/500000 buffer size: 1000000 vbv_delay: N/A
+        cpb: bitrate max/min/avg: 3125000/0/3125000 buffer size: 6250000 vbv_delay: N/A
   Stream #0:1: Audio: aac (LC) ([10][0][0][0] / 0x000A), 44100 Hz, stereo, fltp, 64 kb/s
       Metadata:
         encoder         : Lavc61.19.101 aac
+frame=    9 fps=0.0 q=4.0 size=      64KiB time=00:00:00.37 bitrate=1396.1kbits/s speed=0.717x    frame=   15 fps= 14 q=1.0 size=     108KiB time=00:00:00.62 bitrate=1418.0kbits/s speed=0.603x    frame=   22 fps= 14 q=0.0 size=     165KiB time=00:00:00.91 bitrate=1471.8kbits/s speed=0.593x    frame=   29 fps= 14 q=0.0 size=     217KiB time=00:00:01.20 bitrate=1471.2kbits/s speed=0.583x    frame=   36 fps= 14 q=0.0 size=     270KiB time=00:00:01.50 bitrate=1476.3kbits/s speed=0.581x    frame=   42 fps= 14 q=0.0 size=     319KiB time=00:00:01.75 bitrate=1495.6kbits/s speed=0.565x    frame=   49 fps= 14 q=0.0 size=     374KiB time=00:00:02.04 bitrate=1502.2kbits/s speed=0.566x    frame=   56 fps= 14 q=0.0 size=     434KiB time=00:00:02.33 bitrate=1522.6kbits/s speed=0.565x    frame=   63 fps= 14 q=0.0 size=     485KiB time=00:00:02.62 bitrate=1512.6kbits/s speed=0.564x    frame=   69 fps= 13 q=0.0 size=     531KiB time=00:00:02.87 bitrate=1513.5kbits/s speed=0.557x    frame=   75 fps= 13 q=0.0 size=     576KiB time=00:00:03.12 bitrate=1510.5kbits/s speed=0.551x    frame=   81 fps= 13 q=0.0 size=     625KiB time=00:00:03.37 bitrate=1517.4kbits/s speed=0.544x    frame=   86 fps= 13 q=0.0 size=     662KiB time=00:00:03.58 bitrate=1514.3kbits/s speed=0.534x    frame=   91 fps= 13 q=0.0 size=     702KiB time=00:00:03.79 bitrate=1516.2kbits/s speed=0.525x    frame=   96 fps= 12 q=0.0 size=     740KiB time=00:00:04.00 bitrate=1514.9kbits/s speed=0.517x    frame=  101 fps= 12 q=0.0 size=     791KiB time=00:00:04.20 bitrate=1540.1kbits/s speed=0.51x    frame=  105 fps= 12 q=0.0 size=     813KiB time=00:00:04.37 bitrate=1522.9kbits/s speed=0.499x    frame=  110 fps= 12 q=0.0 size=     853KiB time=00:00:04.58 bitrate=1524.2kbits/s speed=0.493x    frame=  115 fps= 12 q=0.0 size=     890KiB time=00:00:04.79 bitrate=1521.3kbits/s speed=0.489x    frame=  119 fps= 12 q=0.0 size=     921KiB time=00:00:04.95 bitrate=1520.8kbits/s speed=0.481x    frame=  124 fps= 11 q=0.0 size=     958KiB time=00:00:05.16 bitrate=1518.5kbits/s speed=0.477x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd255.okcdn.ru/hls/14017552517878.m3u8/sig/36HUp1duDrI/expires/17766990
+frame=  129 fps= 11 q=0.0 size=     998KiB time=00:00:05.37 bitrate=1520.9kbits/s speed=0.474x    [in#0 @ 000001de95053880] Error opening input: Invalid data found when processing input
+Error opening input file https://vsd255.okcdn.ru/hls/14017552517878.m3u8/sig/36HUp1duDrI/expires/1776699020933/srcIp/90.189.151.213/urls/185.226.53.54/clientType/36/srcAg/CHROME/mid/13509137287158/video.m3u8?p.
+Error opening input files: Invalid data found when processing input
+[peer/rx] ffmpeg stdout ended — will re-resolve
+frame=  134 fps= 11 q=0.0 size=    1037KiB time=00:00:05.58 bitrate=1520.9kbits/s speed=0.47x    frame=  139 fps= 11 q=0.0 size=    1075KiB time=00:00:05.79 bitrate=1520.0kbits/s speed=0.468x    frame=  144 fps= 11 q=0.0 size=    1114KiB time=00:00:06.00 bitrate=1520.5kbits/s speed=0.465x    frame=  149 fps= 11 q=0.0 size=    1165KiB time=00:00:06.20 bitrate=1537.2kbits/s speed=0.463x    frame=  154 fps= 11 q=0.0 size=    1195KiB time=00:00:06.41 bitrate=1526.1kbits/s speed=0.461x    frame=  159 fps= 11 q=0.0 size=    1232KiB time=00:00:06.62 bitrate=1523.3kbits/s speed=0.459x    frame=  163 fps= 11 q=0.0 size=    1261KiB time=00:00:06.79 bitrate=1521.0kbits/s speed=0.454x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd255.okcdn.ru/hls/14017552517878.m3u8/sig/kR4JDwDOkLM/expires/17766990
+frame=  168 fps= 11 q=0.0 size=    1299KiB time=00:00:07.00 bitrate=1519.6kbits/s speed=0.452x    [in#0 @ 000002975dba3880] Error opening input: Invalid data found when processing input
+Error opening input file https://vsd255.okcdn.ru/hls/14017552517878.m3u8/sig/kR4JDwDOkLM/expires/1776699024993/srcIp/90.189.151.213/urls/185.226.52.95/clientType/36/srcAg/CHROME/mid/13509137287158/video.m3u8?p.
+Error opening input files: Invalid data found when processing input
+[peer/rx] ffmpeg stdout ended — will re-resolve
+frame=  173 fps= 11 q=0.0 size=    1335KiB time=00:00:07.20 bitrate=1516.6kbits/s speed=0.451x    frame=  178 fps= 11 q=0.0 size=    1372KiB time=00:00:07.41 bitrate=1515.1kbits/s speed=0.449x    frame=  183 fps= 11 q=0.0 size=    1410KiB time=00:00:07.62 bitrate=1514.8kbits/s speed=0.448x    frame=  187 fps= 11 q=0.0 size=    1441KiB time=00:00:07.79 bitrate=1515.2kbits/s speed=0.444x    frame=  193 fps= 11 q=0.0 size=    1483KiB time=00:00:08.04 bitrate=1511.1kbits/s speed=0.446x    frame=  198 fps= 11 q=0.0 size=    1536KiB time=00:00:08.25 bitrate=1525.0kbits/s speed=0.444x    frame=  202 fps= 11 q=0.0 size=    1559KiB time=00:00:08.41 bitrate=1517.2kbits/s speed=0.441x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd159.okcdn.ru/hls/14017552517878.m3u8/sig/-Oas5jPmtGs/expires/17766990
+[in#0 @ 000001ad51653880] Error opening input: Invalid data found when processing input
+Error opening input file https://vsd159.okcdn.ru/hls/14017552517878.m3u8/sig/-Oas5jPmtGs/expires/1776699028954/srcIp/90.189.151.213/urls/185.226.53.54/clientType/36/srcAg/CHROME/mid/13509137287158/video.m3u8?p.
+Error opening input files: Invalid data found when processing input
+[peer/rx] ffmpeg stdout ended — will re-resolve
+frame=  207 fps= 11 q=0.0 size=    1597KiB time=00:00:08.62 bitrate=1516.7kbits/s speed=0.44x    frame=  212 fps= 11 q=0.0 size=    1632KiB time=00:00:08.83 bitrate=1513.9kbits/s speed=0.439x    frame=  216 fps= 10 q=0.0 size=    1662KiB time=00:00:09.00 bitrate=1512.4kbits/s speed=0.436x    frame=  222 fps= 10 q=0.0 size=    1708KiB time=00:00:09.25 bitrate=1512.9kbits/s speed=0.437x    frame=  227 fps= 10 q=0.0 size=    1745KiB time=00:00:09.45 bitrate=1511.5kbits/s speed=0.436x    frame=  234 fps= 11 q=0.0 size=    1796KiB time=00:00:09.75 bitrate=1509.0kbits/s speed=0.439x    [peer/rx] stream resolved: is_hls=true url_head=https://vsd94.okcdn.ru/hls/14017552517878.m3u8/sig/gGFZCn1xojc/expires/177669903
+frame=  239 fps= 11 q=0.0 size=    1833KiB time=00:00:09.95 bitrate=1507.7kbits/s speed=0.439x    frame=  244 fps= 11 q=0.0 size=    1878KiB time=00:00:10.16 bitrate=1513.3kbits/s speed=0.438x    [hls @ 000001c5edb13c00] Could not find codec parameters for stream 2 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+[hls @ 000001c5edb13c00] Could not find codec parameters for stream 3 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+[hls @ 000001c5edb13c00] Could not find codec parameters for stream 4 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+[hls @ 000001c5edb13c00] Could not find codec parameters for stream 5 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+[hls @ 000001c5edb13c00] Could not find codec parameters for stream 6 (Video: h264 ([27][0][0][0] / 0x001B), none): unspecified size
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+[hls @ 000001c5edb13c00] Could not find codec parameters for stream 7 (Audio: aac ([15][0][0][0] / 0x000F), 0 channels, fltp): unspecified sample rate
+Consider increasing the value for the 'analyzeduration' (500000) and 'probesize' (500000) options
+frame=  249 fps= 10 q=0.0 size=    1916KiB time=00:00:10.37 bitrate=1513.0kbits/s speed=0.437x    [flicker] rx frame=0 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=1 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=2 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=3 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  255 fps= 11 q=0.0 size=    1962KiB time=00:00:10.62 bitrate=1512.8kbits/s speed=0.438x    [flicker] rx frame=4 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=5 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=6 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=7 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=8 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  259 fps= 10 q=0.0 size=    1993KiB time=00:00:10.79 bitrate=1513.0kbits/s speed=0.436x    [flicker] rx frame=9 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=10 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=11 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=12 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=13 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  264 fps= 10 q=0.0 size=    2029KiB time=00:00:11.00 bitrate=1511.4kbits/s speed=0.435x    [flicker] rx frame=14 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=15 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=16 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=17 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=18 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=19 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  268 fps= 10 q=0.0 size=    2062KiB time=00:00:11.16 bitrate=1512.7kbits/s speed=0.433x    [flicker] rx frame=20 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=21 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=22 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=23 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=24 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  273 fps= 10 q=0.0 size=    2102KiB time=00:00:11.37 bitrate=1513.8kbits/s speed=0.432x    [flicker] rx frame=25 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=26 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=27 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=28 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=29 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=30 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  277 fps= 10 q=0.0 size=    2132KiB time=00:00:11.54 bitrate=1513.5kbits/s speed=0.43x    [flicker] rx frame=31 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=32 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=33 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=34 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=35 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  282 fps= 10 q=0.0 size=    2172KiB time=00:00:11.75 bitrate=1514.1kbits/s speed=0.43x    [flicker] rx frame=36 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=37 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=38 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=39 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=40 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  286 fps= 10 q=0.0 size=    2204KiB time=00:00:11.91 bitrate=1515.4kbits/s speed=0.428x    [flicker] rx frame=41 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=42 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=43 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=44 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=45 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  291 fps= 10 q=0.0 size=    2249KiB time=00:00:12.12 bitrate=1519.3kbits/s speed=0.427x    [flicker] rx frame=46 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=47 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=48 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=49 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=50 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  295 fps= 10 q=0.0 size=    2288KiB time=00:00:12.29 bitrate=1524.9kbits/s speed=0.425x    [flicker] rx frame=51 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=52 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=53 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=54 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=55 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  300 fps= 10 q=0.0 size=    2319KiB time=00:00:12.50 bitrate=1519.7kbits/s speed=0.425x    [flicker] rx frame=56 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=57 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=58 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=59 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=60 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=61 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  305 fps= 10 q=0.0 size=    2359KiB time=00:00:12.70 bitrate=1520.8kbits/s speed=0.425x    [flicker] rx frame=62 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=63 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=64 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=65 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=66 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=67 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=68 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  310 fps= 10 q=0.0 size=    2397KiB time=00:00:12.91 bitrate=1520.4kbits/s speed=0.424x    [flicker] rx frame=69 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=70 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=71 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=72 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=73 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  314 fps= 10 q=0.0 size=    2426KiB time=00:00:13.08 bitrate=1519.0kbits/s speed=0.423x    [flicker] rx frame=74 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=75 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=76 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=77 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=78 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=79 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=80 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  319 fps= 10 q=0.0 size=    2465KiB time=00:00:13.29 bitrate=1519.2kbits/s speed=0.422x    [flicker] rx frame=81 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=82 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=83 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=84 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=85 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  323 fps= 10 q=0.0 size=    2496KiB time=00:00:13.45 bitrate=1519.2kbits/s speed=0.421x    [flicker] rx frame=86 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=87 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=88 ch=1 mode=B payload_len=49 pilots=1.00
+[flicker] rx frame=89 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=90 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=91 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  328 fps= 10 q=0.0 size=    2536KiB time=00:00:13.66 bitrate=1520.3kbits/s speed=0.421x    [flicker] rx frame=92 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=93 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=94 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=95 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=96 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  333 fps= 10 q=0.0 size=    2576KiB time=00:00:13.87 bitrate=1520.9kbits/s speed=0.42x    [flicker] rx frame=97 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=98 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=99 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=100 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=101 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  338 fps= 10 q=0.0 size=    2621KiB time=00:00:14.08 bitrate=1524.6kbits/s speed=0.42x    [flicker] rx frame=102 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=103 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=104 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=105 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=106 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  343 fps= 10 q=0.0 size=    2659KiB time=00:00:14.29 bitrate=1524.4kbits/s speed=0.42x    [flicker] rx frame=107 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=108 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=109 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=110 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=111 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  347 fps= 10 q=0.0 size=    2689KiB time=00:00:14.45 bitrate=1523.3kbits/s speed=0.418x    [flicker] rx frame=112 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=113 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=114 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=115 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=116 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=117 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  352 fps= 10 q=0.0 size=    2727KiB time=00:00:14.66 bitrate=1523.4kbits/s speed=0.418x    [flicker] rx frame=118 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=119 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=120 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=121 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=122 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  356 fps= 10 q=0.0 size=    2757KiB time=00:00:14.83 bitrate=1522.5kbits/s speed=0.416x    [flicker] rx frame=123 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=124 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=125 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=126 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=127 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  360 fps= 10 q=0.0 size=    2793KiB time=00:00:15.00 bitrate=1525.3kbits/s speed=0.415x    [flicker] rx frame=128 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=129 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=130 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=131 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=132 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=133 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  365 fps= 10 q=0.0 size=    2826KiB time=00:00:15.20 bitrate=1522.3kbits/s speed=0.415x    [flicker] rx frame=134 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=135 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=136 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=137 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=138 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=139 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  370 fps= 10 q=0.0 size=    2863KiB time=00:00:15.41 bitrate=1521.1kbits/s speed=0.415x    [flicker] rx frame=140 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=141 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=142 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=143 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=144 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=145 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  374 fps=9.9 q=0.0 size=    2894KiB time=00:00:15.58 bitrate=1521.5kbits/s speed=0.414x    [flicker] rx frame=146 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=147 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=148 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=149 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=150 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=151 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=152 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  380 fps=9.9 q=0.0 size=    2942KiB time=00:00:15.83 bitrate=1522.3kbits/s speed=0.415x    [flicker] rx frame=153 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=154 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=155 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=156 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=157 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=158 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  384 fps=9.9 q=0.0 size=    2971KiB time=00:00:16.00 bitrate=1521.4kbits/s speed=0.413x    [flicker] rx frame=159 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=160 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=161 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=162 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=163 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=164 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=165 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=166 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  390 fps=9.9 q=0.0 size=    3023KiB time=00:00:16.25 bitrate=1524.2kbits/s speed=0.414x    [flicker] rx frame=167 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=168 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=169 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=170 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=171 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=172 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  395 fps=9.9 q=0.0 size=    3060KiB time=00:00:16.45 bitrate=1523.0kbits/s speed=0.414x    [flicker] rx frame=173 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=174 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=175 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=176 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=177 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=178 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=179 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=180 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  400 fps=9.9 q=0.0 size=    3098KiB time=00:00:16.66 bitrate=1522.5kbits/s speed=0.414x    [flicker] rx frame=181 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=182 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=183 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=184 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=185 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=186 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  404 fps=9.9 q=0.0 size=    3130KiB time=00:00:16.83 bitrate=1523.1kbits/s speed=0.413x    [flicker] rx frame=187 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=188 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=189 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=190 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=191 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=192 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  409 fps=9.9 q=0.0 size=    3176KiB time=00:00:17.04 bitrate=1526.6kbits/s speed=0.413x    [flicker] rx frame=193 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=194 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=195 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=196 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=197 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  414 fps=9.9 q=0.0 size=    3207KiB time=00:00:17.25 bitrate=1523.1kbits/s speed=0.413x    [flicker] rx frame=198 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=199 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=200 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=201 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=202 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  419 fps=9.9 q=0.0 size=    3246KiB time=00:00:17.45 bitrate=1523.1kbits/s speed=0.412x    [flicker] rx frame=203 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=204 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=205 ch=1 mode=B payload_len=49 pilots=1.00
+[flicker] rx frame=206 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  424 fps=9.9 q=0.0 size=    3285KiB time=00:00:17.66 bitrate=1523.0kbits/s speed=0.412x    [flicker] rx frame=207 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=208 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=209 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=210 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=211 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  429 fps=9.9 q=0.0 size=    3325KiB time=00:00:17.87 bitrate=1523.6kbits/s speed=0.412x    [flicker] rx frame=212 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=213 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=214 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=215 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=216 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  433 fps=9.9 q=0.0 size=    3357KiB time=00:00:18.04 bitrate=1524.2kbits/s speed=0.411x    [flicker] rx frame=217 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=218 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=219 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=220 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=221 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=222 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  438 fps=9.9 q=0.0 size=    3402KiB time=00:00:18.25 bitrate=1526.9kbits/s speed=0.411x    [flicker] rx frame=223 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=224 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=225 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=226 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=227 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=228 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  443 fps=9.9 q=0.0 size=    3439KiB time=00:00:18.45 bitrate=1526.2kbits/s speed=0.411x    [flicker] rx frame=229 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=230 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=231 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=232 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=233 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  447 fps=9.8 q=0.0 size=    3469KiB time=00:00:18.62 bitrate=1526.0kbits/s speed=0.41x    [flicker] rx frame=234 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=235 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=236 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=237 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=238 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  452 fps=9.8 q=0.0 size=    3508KiB time=00:00:18.83 bitrate=1525.7kbits/s speed=0.41x    [flicker] rx frame=239 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=240 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=241 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=242 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=243 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=244 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=245 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  456 fps=9.8 q=0.0 size=    3539KiB time=00:00:19.00 bitrate=1525.7kbits/s speed=0.409x    [flicker] rx frame=246 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=247 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=248 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=249 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=250 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=251 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  461 fps=9.8 q=0.0 size=    3579KiB time=00:00:19.20 bitrate=1526.2kbits/s speed=0.409x    [flicker] rx frame=252 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=253 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=254 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=255 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=256 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  465 fps=9.8 q=0.0 size=    3609KiB time=00:00:19.37 bitrate=1525.9kbits/s speed=0.408x    [flicker] rx frame=257 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=258 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=259 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=260 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=261 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=262 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  470 fps=9.8 q=0.0 size=    3646KiB time=00:00:19.58 bitrate=1525.3kbits/s speed=0.408x    [flicker] rx frame=263 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=264 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=265 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=266 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=267 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=268 ch=1 mode=B payload_len=37 pilots=1.00
+[flicker] rx frame=269 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  475 fps=9.8 q=0.0 size=    3683KiB time=00:00:19.79 bitrate=1524.6kbits/s speed=0.408x    [flicker] rx frame=270 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=271 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=272 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=273 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=274 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  480 fps=9.8 q=0.0 size=    3727KiB time=00:00:20.00 bitrate=1526.6kbits/s speed=0.408x    [flicker] rx frame=275 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=276 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=277 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=278 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=279 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=280 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  485 fps=9.8 q=0.0 size=    3770KiB time=00:00:20.20 bitrate=1528.1kbits/s speed=0.408x    [flicker] rx frame=281 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=282 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=283 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=284 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=285 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  489 fps=9.8 q=0.0 size=    3798KiB time=00:00:20.37 bitrate=1527.0kbits/s speed=0.407x    [flicker] rx frame=286 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=287 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=288 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=289 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=290 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=291 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  494 fps=9.8 q=0.0 size=    3836KiB time=00:00:20.58 bitrate=1526.8kbits/s speed=0.407x    [flicker] rx frame=292 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=293 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=294 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=295 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=296 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  499 fps=9.8 q=0.0 size=    3874KiB time=00:00:20.79 bitrate=1526.4kbits/s speed=0.407x    [flicker] rx frame=297 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=298 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=299 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=300 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=301 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  503 fps=9.7 q=0.0 size=    3904KiB time=00:00:20.95 bitrate=1526.1kbits/s speed=0.406x    [flicker] rx frame=302 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=303 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=304 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=305 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  508 fps=9.7 q=0.0 size=    3941KiB time=00:00:21.16 bitrate=1525.2kbits/s speed=0.406x    [flicker] rx frame=306 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=307 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=308 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=309 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=310 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  513 fps=9.7 q=0.0 size=    3979KiB time=00:00:21.37 bitrate=1524.9kbits/s speed=0.406x    [flicker] rx frame=311 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=312 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=313 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=314 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=315 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=316 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  518 fps=9.7 q=0.0 size=    4017KiB time=00:00:21.58 bitrate=1524.7kbits/s speed=0.406x    [flicker] rx frame=317 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=318 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=319 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=320 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=321 ch=1 mode=B payload_len=37 pilots=1.00
+frame=  523 fps=9.7 q=0.0 size=    4057KiB time=00:00:21.79 bitrate=1525.2kbits/s speed=0.406x    [flicker] rx frame=322 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=323 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=324 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=325 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=326 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  527 fps=9.7 q=0.0 size=    4087KiB time=00:00:21.95 bitrate=1524.7kbits/s speed=0.405x    [flicker] rx frame=327 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=328 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=329 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=330 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=331 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=332 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  532 fps=9.7 q=0.0 size=    4133KiB time=00:00:22.16 bitrate=1527.6kbits/s speed=0.405x    [flicker] rx frame=333 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=334 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=335 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=336 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=337 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  537 fps=9.7 q=0.0 size=    4174KiB time=00:00:22.37 bitrate=1528.3kbits/s speed=0.405x    [flicker] rx frame=338 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=339 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=340 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=341 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=342 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  541 fps=9.7 q=0.0 size=    4205KiB time=00:00:22.54 bitrate=1528.0kbits/s speed=0.405x    [flicker] rx frame=343 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=344 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=345 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=346 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=347 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  545 fps=9.7 q=0.0 size=    4234KiB time=00:00:22.70 bitrate=1527.5kbits/s speed=0.404x    [flicker] rx frame=348 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=349 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=350 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=351 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=352 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=353 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  549 fps=9.7 q=0.0 size=    4264KiB time=00:00:22.87 bitrate=1527.0kbits/s speed=0.403x    [flicker] rx frame=354 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=355 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=356 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=357 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=358 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=359 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  555 fps=9.7 q=0.0 size=    4316KiB time=00:00:23.12 bitrate=1529.0kbits/s speed=0.404x    [flicker] rx frame=360 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=361 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=362 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=363 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=364 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  559 fps=9.7 q=0.0 size=    4337KiB time=00:00:23.29 bitrate=1525.3kbits/s speed=0.403x    [flicker] rx frame=365 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=366 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=367 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=368 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=369 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=370 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  564 fps=9.7 q=0.0 size=    4375KiB time=00:00:23.50 bitrate=1525.1kbits/s speed=0.403x    [flicker] rx frame=371 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=372 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=373 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=374 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=375 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  568 fps=9.7 q=0.0 size=    4405KiB time=00:00:23.66 bitrate=1524.6kbits/s speed=0.402x    [flicker] rx frame=376 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=377 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=378 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=379 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=380 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  573 fps=9.7 q=0.0 size=    4444KiB time=00:00:23.87 bitrate=1524.9kbits/s speed=0.402x    [flicker] rx frame=381 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=382 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=383 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=384 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=385 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  577 fps=9.6 q=0.0 size=    4475KiB time=00:00:24.04 bitrate=1524.8kbits/s speed=0.402x    [flicker] rx frame=386 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=387 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=388 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=389 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=390 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  582 fps=9.6 q=0.0 size=    4520KiB time=00:00:24.25 bitrate=1526.8kbits/s speed=0.402x    [flicker] rx frame=391 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=392 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=393 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=394 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=395 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=396 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  587 fps=9.6 q=0.0 size=    4565KiB time=00:00:24.45 bitrate=1529.0kbits/s speed=0.402x    [flicker] rx frame=397 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=398 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=399 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=400 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=401 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  592 fps=9.6 q=0.0 size=    4595KiB time=00:00:24.66 bitrate=1525.9kbits/s speed=0.402x    [flicker] rx frame=402 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=403 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=404 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=405 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=406 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  597 fps=9.6 q=0.0 size=    4633KiB time=00:00:24.87 bitrate=1525.8kbits/s speed=0.402x    [flicker] rx frame=407 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=408 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=409 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=410 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=411 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  601 fps=9.6 q=0.0 size=    4665KiB time=00:00:25.04 bitrate=1526.2kbits/s speed=0.401x    [flicker] rx frame=412 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=413 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=414 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=415 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=416 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  605 fps=9.6 q=0.0 size=    4696KiB time=00:00:25.20 bitrate=1525.9kbits/s speed= 0.4x    [flicker] rx frame=417 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=418 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=419 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=420 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=421 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=422 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  611 fps=9.6 q=0.0 size=    4742KiB time=00:00:25.45 bitrate=1525.8kbits/s speed=0.401x    [flicker] rx frame=423 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=424 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=425 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=426 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=427 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  615 fps=9.6 q=0.0 size=    4773KiB time=00:00:25.62 bitrate=1525.8kbits/s speed=0.401x    [flicker] rx frame=428 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=429 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=430 ch=1 mode=B payload_len=37 pilots=1.00
+[flicker] rx frame=431 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=432 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  618 fps=9.6 q=0.0 size=    4797KiB time=00:00:25.75 bitrate=1526.0kbits/s speed=0.399x    [flicker] rx frame=433 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=434 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=435 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=436 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=437 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=438 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  623 fps=9.6 q=0.0 size=    4835KiB time=00:00:25.95 bitrate=1526.0kbits/s speed=0.399x    [flicker] rx frame=439 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=440 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=441 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=442 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=443 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  628 fps=9.6 q=0.0 size=    4880KiB time=00:00:26.16 bitrate=1527.9kbits/s speed=0.399x    [flicker] rx frame=444 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=445 ch=1 mode=B payload_len=49 pilots=1.00
+[flicker] rx frame=446 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=447 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=448 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  633 fps=9.6 q=0.0 size=    4920KiB time=00:00:26.37 bitrate=1528.2kbits/s speed=0.399x    [flicker] rx frame=449 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=450 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=451 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=452 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  637 fps=9.6 q=0.0 size=    4952KiB time=00:00:26.54 bitrate=1528.3kbits/s speed=0.399x    [flicker] rx frame=453 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=454 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=455 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=456 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=457 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  642 fps=9.6 q=0.0 size=    4990KiB time=00:00:26.75 bitrate=1528.2kbits/s speed=0.399x    [flicker] rx frame=458 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=459 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=460 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=461 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=462 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=463 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  646 fps=9.6 q=0.0 size=    5020KiB time=00:00:26.91 bitrate=1527.8kbits/s speed=0.398x    [flicker] rx frame=464 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=465 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=466 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=467 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=468 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  651 fps=9.6 q=0.0 size=    5058KiB time=00:00:27.12 bitrate=1527.6kbits/s speed=0.398x    [flicker] rx frame=469 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=470 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=471 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=472 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=473 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  655 fps=9.5 q=0.0 size=    5088KiB time=00:00:27.29 bitrate=1527.3kbits/s speed=0.398x    [flicker] rx frame=474 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=475 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=476 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=477 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=478 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  660 fps=9.5 q=0.0 size=    5128KiB time=00:00:27.50 bitrate=1527.6kbits/s speed=0.398x    [flicker] rx frame=479 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=480 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=481 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=482 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=483 ch=1 mode=B payload_len=49 pilots=1.00
+frame=  664 fps=9.5 q=0.0 size=    5159KiB time=00:00:27.66 bitrate=1527.5kbits/s speed=0.397x    [flicker] rx frame=484 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=485 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=486 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=487 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=488 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  669 fps=9.5 q=0.0 size=    5200KiB time=00:00:27.87 bitrate=1528.2kbits/s speed=0.397x    [flicker] rx frame=489 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=490 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=491 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=492 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=493 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=494 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  673 fps=9.5 q=0.0 size=    5233KiB time=00:00:28.04 bitrate=1528.7kbits/s speed=0.397x    [flicker] rx frame=495 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=496 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=497 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=498 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=499 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  677 fps=9.5 q=0.0 size=    5270KiB time=00:00:28.20 bitrate=1530.5kbits/s speed=0.396x    [flicker] rx frame=500 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=501 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=502 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=503 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=504 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=505 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  682 fps=9.5 q=0.0 size=    5308KiB time=00:00:28.41 bitrate=1530.3kbits/s speed=0.396x    [flicker] rx frame=506 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=507 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=508 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=509 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=510 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  686 fps=9.5 q=0.0 size=    5340KiB time=00:00:28.58 bitrate=1530.4kbits/s speed=0.396x    [flicker] rx frame=511 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=512 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=513 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=514 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=515 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  692 fps=9.5 q=0.0 size=    5382KiB time=00:00:28.83 bitrate=1529.2kbits/s speed=0.396x    [flicker] rx frame=516 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=517 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=518 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=519 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=520 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  696 fps=9.5 q=0.0 size=    5413KiB time=00:00:29.00 bitrate=1529.2kbits/s speed=0.396x    [flicker] rx frame=521 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=522 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=523 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=524 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=525 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=526 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  701 fps=9.5 q=0.0 size=    5452KiB time=00:00:29.20 bitrate=1529.1kbits/s speed=0.396x    [flicker] rx frame=527 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=528 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=529 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=530 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=531 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  706 fps=9.5 q=0.0 size=    5485KiB time=00:00:29.41 bitrate=1527.5kbits/s speed=0.396x    [flicker] rx frame=532 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=533 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=534 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=535 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=536 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  711 fps=9.5 q=0.0 size=    5522KiB time=00:00:29.62 bitrate=1526.9kbits/s speed=0.396x    [flicker] rx frame=537 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=538 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=539 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=540 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=541 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  715 fps=9.5 q=0.0 size=    5554KiB time=00:00:29.79 bitrate=1527.1kbits/s speed=0.396x    [flicker] rx frame=542 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=543 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=544 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=545 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=546 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=547 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  720 fps=9.5 q=0.0 size=    5592KiB time=00:00:30.00 bitrate=1527.1kbits/s speed=0.396x    [flicker] rx frame=548 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=549 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=550 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=551 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=552 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  725 fps=9.5 q=0.0 size=    5640KiB time=00:00:30.20 bitrate=1529.5kbits/s speed=0.396x    [flicker] rx frame=553 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=554 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=555 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=556 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=557 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  729 fps=9.5 q=0.0 size=    5670KiB time=00:00:30.37 bitrate=1529.1kbits/s speed=0.395x    [flicker] rx frame=558 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=559 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=560 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=561 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=562 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=563 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  735 fps=9.5 q=0.0 size=    5716KiB time=00:00:30.62 bitrate=1528.9kbits/s speed=0.396x    [flicker] rx frame=564 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=565 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=566 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=567 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=568 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  739 fps=9.5 q=0.0 size=    5748KiB time=00:00:30.79 bitrate=1529.2kbits/s speed=0.395x    [flicker] rx frame=569 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=570 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=571 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=572 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=573 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=574 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  744 fps=9.5 q=0.0 size=    5784KiB time=00:00:31.00 bitrate=1528.6kbits/s speed=0.395x    [flicker] rx frame=575 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=576 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=577 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=578 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=579 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  749 fps=9.5 q=0.0 size=    5831KiB time=00:00:31.20 bitrate=1530.7kbits/s speed=0.395x    [flicker] rx frame=580 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=581 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=582 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=583 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=584 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=585 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  753 fps=9.5 q=0.0 size=    5855KiB time=00:00:31.37 bitrate=1528.6kbits/s speed=0.395x    [flicker] rx frame=586 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=587 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=588 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=589 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=590 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  758 fps=9.5 q=0.0 size=    5894KiB time=00:00:31.58 bitrate=1528.8kbits/s speed=0.395x    [flicker] rx frame=591 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=592 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=593 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=594 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=595 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  762 fps=9.5 q=0.0 size=    5926KiB time=00:00:31.75 bitrate=1528.9kbits/s speed=0.394x    [flicker] rx frame=596 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=597 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=598 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=599 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=600 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=601 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  767 fps=9.5 q=0.0 size=    5964KiB time=00:00:31.95 bitrate=1528.9kbits/s speed=0.395x    [flicker] rx frame=602 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=603 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=604 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=605 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=606 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=607 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  772 fps=9.5 q=0.0 size=    6010KiB time=00:00:32.16 bitrate=1530.5kbits/s speed=0.395x    [flicker] rx frame=608 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=609 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=610 ch=1 mode=B payload_len=37 pilots=1.00
+[flicker] rx frame=611 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=612 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  777 fps=9.5 q=0.0 size=    6048KiB time=00:00:32.37 bitrate=1530.2kbits/s speed=0.395x    [flicker] rx frame=613 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=614 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=615 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=616 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=617 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  783 fps=9.5 q=0.0 size=    6091KiB time=00:00:32.62 bitrate=1529.4kbits/s speed=0.395x    [flicker] rx frame=618 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=619 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=620 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=621 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  788 fps=9.5 q=0.0 size=    6130KiB time=00:00:32.83 bitrate=1529.4kbits/s speed=0.395x    [flicker] rx frame=622 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=623 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=624 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=625 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=626 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=627 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  793 fps=9.5 q=0.0 size=    6169KiB time=00:00:33.04 bitrate=1529.4kbits/s speed=0.395x    [flicker] rx frame=628 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=629 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=630 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=631 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=632 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=633 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  797 fps=9.5 q=0.0 size=    6199KiB time=00:00:33.20 bitrate=1529.3kbits/s speed=0.395x    [flicker] rx frame=634 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=635 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=636 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=637 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=638 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=639 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  802 fps=9.5 q=0.0 size=    6235KiB time=00:00:33.41 bitrate=1528.6kbits/s speed=0.395x    [flicker] rx frame=640 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=641 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=642 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=643 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=644 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=645 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=646 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  807 fps=9.5 q=0.0 size=    6273KiB time=00:00:33.62 bitrate=1528.3kbits/s speed=0.395x    [flicker] rx frame=647 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=648 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=649 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=650 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=651 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  812 fps=9.5 q=0.0 size=    6311KiB time=00:00:33.83 bitrate=1528.1kbits/s speed=0.395x    [flicker] rx frame=652 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=653 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=654 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=655 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=656 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  817 fps=9.5 q=0.0 size=    6349KiB time=00:00:34.04 bitrate=1527.8kbits/s speed=0.395x    [flicker] rx frame=657 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=658 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=659 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  821 fps=9.5 q=0.0 size=    6385KiB time=00:00:34.20 bitrate=1529.1kbits/s speed=0.395x    [flicker] rx frame=660 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  826 fps=9.5 q=0.0 size=    6424KiB time=00:00:34.41 bitrate=1529.0kbits/s speed=0.395x    [flicker] rx frame=661 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=662 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=663 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=664 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=665 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  831 fps=9.5 q=0.0 size=    6461KiB time=00:00:34.62 bitrate=1528.6kbits/s speed=0.395x    [flicker] rx frame=666 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=667 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=668 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=669 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=670 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=671 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  835 fps=9.5 q=0.0 size=    6491KiB time=00:00:34.79 bitrate=1528.3kbits/s speed=0.394x    [flicker] rx frame=672 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=673 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=674 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=675 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=676 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=677 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=678 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  839 fps=9.5 q=0.0 size=    6522KiB time=00:00:34.95 bitrate=1528.4kbits/s speed=0.394x    [flicker] rx frame=679 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=680 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=681 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=682 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=683 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=684 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=685 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=686 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  844 fps=9.5 q=0.0 size=    6560KiB time=00:00:35.16 bitrate=1528.2kbits/s speed=0.394x    [flicker] rx frame=687 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=688 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=689 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=690 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=691 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=692 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  848 fps=9.4 q=0.0 size=    6591KiB time=00:00:35.33 bitrate=1528.2kbits/s speed=0.394x    [flicker] rx frame=693 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=694 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=695 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=696 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=697 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=698 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  853 fps=9.4 q=0.0 size=    6629KiB time=00:00:35.54 bitrate=1527.8kbits/s speed=0.394x    [flicker] rx frame=699 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=700 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=701 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=702 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=703 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  857 fps=9.4 q=0.0 size=    6657KiB time=00:00:35.70 bitrate=1527.3kbits/s speed=0.393x    [flicker] rx frame=704 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=705 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=706 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=707 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=708 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  863 fps=9.5 q=0.0 size=    6705KiB time=00:00:35.95 bitrate=1527.5kbits/s speed=0.394x    frame=  867 fps=9.4 q=0.0 size=    6743KiB time=00:00:36.12 bitrate=1529.1kbits/s speed=0.393x    frame=  871 fps=9.4 q=0.0 size=    6773KiB time=00:00:36.29 bitrate=1528.8kbits/s speed=0.393x    [flicker] rx frame=709 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  876 fps=9.4 q=0.0 size=    6812KiB time=00:00:36.50 bitrate=1528.8kbits/s speed=0.393x    [flicker] rx frame=710 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=711 ch=1 mode=B payload_len=49 pilots=1.00
+[flicker] rx frame=712 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=713 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=714 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  880 fps=9.4 q=0.0 size=    6844KiB time=00:00:36.66 bitrate=1529.0kbits/s speed=0.393x    [flicker] rx frame=715 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=716 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=717 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=718 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=719 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=720 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  884 fps=9.4 q=0.0 size=    6879KiB time=00:00:36.83 bitrate=1530.0kbits/s speed=0.392x    [flicker] rx frame=721 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=722 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=723 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=724 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=725 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=726 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  889 fps=9.4 q=0.0 size=    6918KiB time=00:00:37.04 bitrate=1530.0kbits/s speed=0.392x    [flicker] rx frame=727 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=728 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=729 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=730 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=731 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=732 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  895 fps=9.4 q=0.0 size=    6971KiB time=00:00:37.29 bitrate=1531.3kbits/s speed=0.393x    [flicker] rx frame=733 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=734 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=735 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=736 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=737 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=738 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  900 fps=9.4 q=0.0 size=    7001KiB time=00:00:37.50 bitrate=1529.5kbits/s speed=0.393x    [flicker] rx frame=739 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=740 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=741 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=742 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=743 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  905 fps=9.4 q=0.0 size=    7038KiB time=00:00:37.70 bitrate=1528.9kbits/s speed=0.393x    [flicker] rx frame=744 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=745 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=746 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=747 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  910 fps=9.4 q=0.0 size=    7078KiB time=00:00:37.91 bitrate=1529.3kbits/s speed=0.393x    [flicker] rx frame=748 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=749 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=750 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=751 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=752 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=753 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  915 fps=9.4 q=0.0 size=    7123KiB time=00:00:38.12 bitrate=1530.5kbits/s speed=0.393x    [flicker] rx frame=754 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=755 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=756 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=757 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  920 fps=9.4 q=0.0 size=    7161KiB time=00:00:38.33 bitrate=1530.4kbits/s speed=0.393x    frame=  924 fps=9.4 q=0.0 size=    7193KiB time=00:00:38.50 bitrate=1530.5kbits/s speed=0.393x    [flicker] rx frame=758 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  928 fps=9.4 q=0.0 size=    7231KiB time=00:00:38.66 bitrate=1532.0kbits/s speed=0.392x    [flicker] rx frame=759 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=760 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=761 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=762 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=763 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=764 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=765 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  933 fps=9.4 q=0.0 size=    7262KiB time=00:00:38.87 bitrate=1530.3kbits/s speed=0.392x    [flicker] rx frame=766 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=767 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=768 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=769 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=770 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=771 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=772 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  938 fps=9.4 q=0.0 size=    7300KiB time=00:00:39.08 bitrate=1530.1kbits/s speed=0.393x    [flicker] rx frame=773 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=774 ch=1 mode=B payload_len=62 pilots=1.00
+[flicker] rx frame=775 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=776 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=777 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  944 fps=9.4 q=0.0 size=    7356KiB time=00:00:39.33 bitrate=1532.0kbits/s speed=0.393x    [flicker] rx frame=778 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=779 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=780 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=781 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=782 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=783 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  949 fps=9.4 q=0.0 size=    7387KiB time=00:00:39.54 bitrate=1530.4kbits/s speed=0.393x    [flicker] rx frame=784 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=785 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=786 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=787 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=788 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=789 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  955 fps=9.4 q=0.0 size=    7432KiB time=00:00:39.79 bitrate=1530.0kbits/s speed=0.393x    [flicker] rx frame=790 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=791 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=792 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=793 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=794 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=795 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  960 fps=9.4 q=0.0 size=    7478KiB time=00:00:40.00 bitrate=1531.6kbits/s speed=0.394x    [flicker] rx frame=796 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=797 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=798 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=799 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  965 fps=9.4 q=0.0 size=    7517KiB time=00:00:40.20 bitrate=1531.5kbits/s speed=0.394x    [flicker] rx frame=800 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=801 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=802 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=803 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=804 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=805 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  969 fps=9.4 q=0.0 size=    7548KiB time=00:00:40.37 bitrate=1531.5kbits/s speed=0.393x    [flicker] rx frame=806 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  974 fps=9.4 q=0.0 size=    7592KiB time=00:00:40.58 bitrate=1532.5kbits/s speed=0.393x    frame=  978 fps=9.4 q=0.0 size=    7617KiB time=00:00:40.75 bitrate=1531.2kbits/s speed=0.393x    [flicker] rx frame=807 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  983 fps=9.4 q=0.0 size=    7655KiB time=00:00:40.95 bitrate=1531.1kbits/s speed=0.393x    [flicker] rx frame=808 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=809 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=810 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=811 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=812 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  988 fps=9.4 q=0.0 size=    7695KiB time=00:00:41.16 bitrate=1531.2kbits/s speed=0.393x    [flicker] rx frame=813 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=814 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=815 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=816 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=817 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  992 fps=9.4 q=0.0 size=    7727KiB time=00:00:41.33 bitrate=1531.4kbits/s speed=0.393x    [flicker] rx frame=818 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=819 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=820 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=821 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=822 ch=1 mode=B payload_len=4 pilots=1.00
+frame=  997 fps=9.4 q=0.0 size=    7766KiB time=00:00:41.54 bitrate=1531.4kbits/s speed=0.393x    [flicker] rx frame=823 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=824 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=825 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=826 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=827 ch=1 mode=B payload_len=4 pilots=1.00
+frame= 1004 fps=9.4 q=0.0 size=    7821KiB time=00:00:41.83 bitrate=1531.6kbits/s speed=0.394x    [flicker] rx frame=828 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=829 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=830 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=831 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=832 ch=1 mode=B payload_len=4 pilots=1.00
+frame= 1010 fps=9.5 q=0.0 size=    7874KiB time=00:00:42.08 bitrate=1532.9kbits/s speed=0.394x    [flicker] rx frame=833 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=834 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=835 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=836 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=837 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=838 ch=1 mode=B payload_len=4 pilots=1.00
+frame= 1014 fps=9.5 q=0.0 size=    7905KiB time=00:00:42.25 bitrate=1532.7kbits/s speed=0.394x    [flicker] rx frame=839 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=840 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=841 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=842 ch=1 mode=B payload_len=4 pilots=1.00
+[flicker] rx frame=843 ch=1 mode=B payload_len=4 pilots=1.00
+[vost#0:0/rawvideo @ 000001c5eecd7700] Error submitting a packet to the muxer: Invalid argument
+    Last message repeated 1 times
+[out#0/rawvideo @ 000001c5eeb1bc00] Error muxing a packet
+[out#0/rawvideo @ 000001c5eeb1bc00] Task finished with error code: -22 (Invalid argument)
+[out#0/rawvideo @ 000001c5eeb1bc00] Terminating thread with return code -22 (Invalid argument)
+[out#0/flv @ 000001ea94469880] video:7878KiB audio:11KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.694810%
+frame= 1018 fps=9.4 q=0.0 Lsize=    7944KiB time=00:00:42.41 bitrate=1534.2kbits/s speed=0.393x    
+[libx264 @ 000001ea93ffd300] frame I:22    Avg QP: 0.60  size: 15055
+[libx264 @ 000001ea93ffd300] frame P:996   Avg QP: 0.07  size:  7766
+[libx264 @ 000001ea93ffd300] mb I  I16..4: 100.0%  0.0%  0.0%
+[libx264 @ 000001ea93ffd300] mb P  I16..4: 43.9%  0.0%  0.0%  P16..4: 20.2%  0.0%  0.0%  0.0%  0.0%    skip:35.8%
+[libx264 @ 000001ea93ffd300] coded y,uvDC,uvAC intra: 0.1% 0.0% 0.0% inter: 7.7% 0.0% 0.0%
+[libx264 @ 000001ea93ffd300] i16 v,h,dc,p: 82%  5% 13%  0%
+[libx264 @ 000001ea93ffd300] i8c dc,h,v,p: 100%  0%  0%  0%
+[libx264 @ 000001ea93ffd300] kb/s:1521.40
+[aac @ 000001ea94004640] Qavg: 65513.539
+[out#0/rawvideo @ 000001c5eeb1bc00] Error writing trailer: Invalid argument
+[out#0/rawvideo @ 000001c5eeb1bc00] Error closing file: Invalid argument
