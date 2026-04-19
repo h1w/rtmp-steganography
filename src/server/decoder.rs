@@ -1,8 +1,8 @@
 use std::io::Read;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 
@@ -21,6 +21,9 @@ struct FrameSlot {
     data: Mutex<Option<Vec<u8>>>,
     cv: Condvar,
     eof: AtomicBool,
+    /// How many frames the reader overwrote before the decoder could take
+    /// them — i.e. how many stale frames we skipped.
+    overwritten: AtomicU64,
 }
 
 impl FrameSlot {
@@ -29,11 +32,15 @@ impl FrameSlot {
             data: Mutex::new(None),
             cv: Condvar::new(),
             eof: AtomicBool::new(false),
+            overwritten: AtomicU64::new(0),
         })
     }
 
     fn put(&self, frame: Vec<u8>) {
         let mut g = self.data.lock().expect("frame-slot mutex poisoned");
+        if g.is_some() {
+            self.overwritten.fetch_add(1, Ordering::Relaxed);
+        }
         *g = Some(frame);
         drop(g);
         self.cv.notify_one();
@@ -61,6 +68,10 @@ impl FrameSlot {
                 .expect("frame-slot cv wait");
             g = g2;
         }
+    }
+
+    fn take_overwritten(&self) -> u64 {
+        self.overwritten.swap(0, Ordering::Relaxed)
     }
 }
 
@@ -113,11 +124,29 @@ fn decoder_loop(
     running: &Arc<AtomicBool>,
     log_every_frame: bool,
 ) -> Result<()> {
+    // Throttle decoder to one frame per ~33 ms (stream rate). During HLS
+    // segment arrival bursts ffmpeg dumps tens of frames into the pipe in
+    // a few ms; the reader keeps draining and overwriting the slot, so by
+    // the time we wake up here the slot already holds the newest frame of
+    // the burst. That lets us hop to the live edge on every tick.
+    let tick = Duration::from_millis(33);
+    let mut next_tick = Instant::now() + tick;
     let mut frame_idx: u64 = 0;
     let mut last_ts: Option<u64> = None;
-    let mut dropped_since_log: u64 = 0;
 
     while running.load(Ordering::SeqCst) {
+        let now = Instant::now();
+        if now < next_tick {
+            thread::sleep(next_tick - now);
+        }
+        next_tick += tick;
+        // If we slept through several ticks (e.g. GC pause, OS scheduling),
+        // realign so we don't spin a burst of back-to-back reads.
+        let now = Instant::now();
+        if next_tick < now {
+            next_tick = now + tick;
+        }
+
         let Some(frame) = slot.take_newest(running) else {
             return Ok(());
         };
@@ -125,15 +154,13 @@ fn decoder_loop(
         let ts_ns = decode_timestamp_frame(&frame, cfg);
         let now_ns = local_now_ns();
         let delta_ms = (now_ns as i128 - ts_ns as i128) / 1_000_000;
+        let dropped = slot.take_overwritten();
 
         if log_every_frame || last_ts != Some(ts_ns) {
             eprintln!(
-                "[flicker] frame={:>8} ts_ns={} Δ={:>6} ms  dropped_stale={}",
-                frame_idx, ts_ns, delta_ms, dropped_since_log
+                "[flicker] frame={:>6} ts_ns={} Δ={:>5} ms  dropped_stale={}",
+                frame_idx, ts_ns, delta_ms, dropped
             );
-            dropped_since_log = 0;
-        } else {
-            dropped_since_log = dropped_since_log.saturating_add(1);
         }
         last_ts = Some(ts_ns);
         frame_idx = frame_idx.saturating_add(1);
