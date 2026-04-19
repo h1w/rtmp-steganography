@@ -1,4 +1,5 @@
 pub mod adapter;
+pub mod egress;
 pub mod framing;
 pub mod kcp;
 pub mod listener;
