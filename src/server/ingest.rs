@@ -58,6 +58,11 @@ pub fn read_args(
     args.push(input_url.to_string());
     args.push("-thread_queue_size".into());
     args.push("1024".into());
+    // Pin to the first video stream — VK's HLS master playlist exposes
+    // multiple renditions (`_high`, `_medium`, etc.) and ffmpeg otherwise
+    // wastes probe time on alternate tracks that don't apply.
+    args.push("-map".into());
+    args.push("0:v:0".into());
     args.push("-an".into());
     args.push("-vf".into());
     args.push(format!(
