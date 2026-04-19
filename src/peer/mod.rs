@@ -71,6 +71,48 @@ pub fn run_peer(cfg: PeerConfig, dir: Direction) -> Result<()> {
     Ok(())
 }
 
+pub fn run_peer_tunnel(cfg: PeerConfig, dir: Direction, socks_bind: std::net::SocketAddr) -> Result<()> {
+    // Tunnel requires bidirectional channels — caller already enforced this,
+    // but double-check here as a defensive guard.
+    if !(dir.tx && dir.rx) {
+        return Err(anyhow::anyhow!("run_peer_tunnel requires bidirectional peer"));
+    }
+    config::validate_tx(&cfg)?;
+    config::validate_rx(&cfg)?;
+
+    let running = Arc::new(AtomicBool::new(true));
+    let running_signal = Arc::clone(&running);
+    ctrlc::set_handler(move || {
+        running_signal.store(false, Ordering::SeqCst);
+    }).context("ctrlc handler")?;
+
+    let (app_out_tx, app_out_rx) = mpsc::channel::<OutboundMessage>();
+    let (app_in_tx, app_in_rx)   = mpsc::channel::<InboundMessage>();
+
+    let mut handles = Vec::new();
+    let cfg_tx = cfg.clone();
+    let run_tx = Arc::clone(&running);
+    handles.push(thread::spawn(move || {
+        if let Err(e) = tx_thread(cfg_tx, app_out_rx, run_tx) {
+            eprintln!("[peer/tx] error: {e}");
+        }
+    }));
+
+    let cfg_rx = cfg.clone();
+    let run_rx = Arc::clone(&running);
+    handles.push(thread::spawn(move || {
+        if let Err(e) = rx_thread(cfg_rx, app_in_tx, run_rx) {
+            eprintln!("[peer/rx] error: {e}");
+        }
+    }));
+
+    // App (tunnel) runs on the main thread.
+    app::run_tunnel(app_out_tx, app_in_rx, Arc::clone(&running), socks_bind);
+
+    for h in handles { let _ = h.join(); }
+    Ok(())
+}
+
 /// Default warm-up delay before the rx thread starts looking for the other
 /// peer's stream. Both peers' publishes need a few seconds to register with
 /// VK before HLS becomes available. Overridable via env `peer_rx_warmup_ms`.

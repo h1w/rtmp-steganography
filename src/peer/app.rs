@@ -64,3 +64,52 @@ fn log_loop(rx: Receiver<InboundMessage>, running: Arc<AtomicBool>) {
         }
     }
 }
+
+pub fn run_tunnel(
+    outbound_tx: std::sync::mpsc::Sender<crate::flicker::OutboundMessage>,
+    inbound_rx: std::sync::mpsc::Receiver<crate::flicker::InboundMessage>,
+    running: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    socks_bind: std::net::SocketAddr,
+) {
+    use crate::tunnel::{adapter::FlickerChannel, kcp::Profile, metrics::{EventEmitter, new_run_id}, Tunnel};
+    use std::sync::Arc;
+
+    let rt = match tokio::runtime::Builder::new_multi_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            eprintln!("[peer/tunnel] runtime init failed: {e}");
+            return;
+        }
+    };
+    rt.block_on(async move {
+        let run_id = new_run_id();
+        let base = std::env::var("METRICS_DIR").unwrap_or_else(|_| "./metrics".into());
+        let dir = std::path::PathBuf::from(base).join(&run_id);
+        let peer_id = std::env::var("PEER_ID").unwrap_or_else(|_| "A".into());
+        let em = match EventEmitter::new(&dir, peer_id) {
+            Ok(e) => Arc::new(e),
+            Err(e) => {
+                eprintln!("[peer/tunnel] metrics dir setup failed: {e}");
+                return;
+            }
+        };
+        eprintln!("[peer/tunnel] run_id={} metrics_dir={}", run_id, dir.display());
+
+        let ch: Arc<dyn crate::tunnel::adapter::DatagramChannel> =
+            Arc::new(FlickerChannel::new(outbound_tx, inbound_rx));
+        let profile = Profile::from_env();
+        eprintln!("[peer/tunnel] profile={:?} socks_bind={}", profile, socks_bind);
+
+        let _t = match Tunnel::start(ch, profile, socks_bind, em).await {
+            Ok(t) => t,
+            Err(e) => {
+                eprintln!("[peer/tunnel] Tunnel::start failed: {e}");
+                return;
+            }
+        };
+
+        while running.load(std::sync::atomic::Ordering::SeqCst) {
+            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+        }
+    });
+}
