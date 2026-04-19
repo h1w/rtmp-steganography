@@ -1,5 +1,4 @@
 pub mod adapter;
+pub mod kcp;
 pub mod metrics;
-
-#[cfg(test)]
 pub mod testchannel;
