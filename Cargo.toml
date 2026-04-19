@@ -20,9 +20,11 @@ yamux = "0.13"
 hdrhistogram = "7"
 futures = "0.3"
 async-trait = "0.1"
+rand = "0.8"
 
 [dev-dependencies]
 rand = "0.8"
+tempfile = "3"
 
 [features]
 ffmpeg-integration = []
