@@ -50,6 +50,15 @@ pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
     }
 }
 
+/// Run a single iperf3 ramp step without the full saturation logic.
+/// Emits the same `bench.goodput` / `bench.iperf3` events. Useful for `bench smoke`.
+pub async fn run_single_step(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitter>) {
+    em.emit(Event::new("bench", "saturation_step")
+        .field("profile", cfg.profile_label)
+        .field("rate_kbps", rate_kbps as i64));
+    let _ = run_iperf(cfg, rate_kbps, secs, em).await;
+}
+
 async fn run_iperf(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitter>) -> bool {
     // iperf3 has no native SOCKS5 — wrap with proxychains on $PATH.
     // Note: proxychains-windows uses the name `proxychains` (the Linux build
@@ -69,6 +78,19 @@ async fn run_iperf(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitte
 
     match out {
         Ok(o) if o.status.success() => {
+            let (bps, bytes_sent, bytes_recv, retr) = parse_iperf_summary(&o.stdout);
+            let delivery_pct = if bytes_sent > 0 {
+                (bytes_recv as f64 / bytes_sent as f64) * 100.0
+            } else { 0.0 };
+            em.emit(Event::new("bench", "goodput")
+                .field("profile", cfg.profile_label)
+                .field("target_kbps", rate_kbps as i64)
+                .field("duration_s", secs as i64)
+                .field("bits_per_second", bps as i64)
+                .field("bytes_sent", bytes_sent as i64)
+                .field("bytes_received", bytes_recv as i64)
+                .field("retransmits", retr as i64)
+                .field("delivery_pct", (delivery_pct * 100.0).round() / 100.0));
             em.emit(Event::new("bench", "iperf3")
                 .field("rate_kbps", rate_kbps as i64)
                 .field("duration_s", secs as i64)
@@ -95,6 +117,22 @@ async fn run_iperf(cfg: &Config, rate_kbps: u32, secs: u64, em: &Arc<EventEmitte
 
 /// Heuristic: >2 retransmits per MB sent is treated as saturation.
 /// Parses iperf3 --json output (key: end.sum_sent).
+/// Parse iperf3 --json output and return (bits_per_second, bytes_sent, bytes_received, retransmits).
+/// Returns zeros on parse failure — caller should treat as untrusted result.
+fn parse_iperf_summary(json_bytes: &[u8]) -> (u64, u64, u64, u64) {
+    let v: serde_json::Value = match serde_json::from_slice(json_bytes) {
+        Ok(v) => v,
+        _ => return (0, 0, 0, 0),
+    };
+    let sent = v.pointer("/end/sum_sent");
+    let recv = v.pointer("/end/sum_received");
+    let bps = sent.and_then(|s| s.get("bits_per_second")).and_then(|x| x.as_f64()).unwrap_or(0.0);
+    let bytes_sent = sent.and_then(|s| s.get("bytes")).and_then(|x| x.as_u64()).unwrap_or(0);
+    let bytes_recv = recv.and_then(|r| r.get("bytes")).and_then(|x| x.as_u64()).unwrap_or(0);
+    let retr = sent.and_then(|s| s.get("retransmits")).and_then(|x| x.as_u64()).unwrap_or(0);
+    (bps as u64, bytes_sent, bytes_recv, retr)
+}
+
 fn retx_predicate(json_bytes: &[u8]) -> bool {
     let v: serde_json::Value = match serde_json::from_slice(json_bytes) {
         Ok(v) => v,

@@ -28,6 +28,33 @@ fn run_bench(cmd: BenchCmd) -> Result<()> {
     let rt = tokio::runtime::Builder::new_multi_thread().enable_all().build()?;
     rt.block_on(async move {
         match cmd {
+            BenchCmd::Smoke {
+                socks, echo_host, echo_port, payload_bytes, iterations,
+                iperf_host, iperf_port, iperf_rate_kbps, iperf_duration_s,
+                metrics_dir, skip_iperf,
+            } => {
+                let run_id = new_run_id();
+                let dir = metrics_dir.join(&run_id);
+                let peer_id = std::env::var("PEER_ID").unwrap_or_else(|_| "A".into());
+                let em = Arc::new(EventEmitter::new(&dir, peer_id)?);
+                bench::smoke::run(
+                    bench::smoke::Config {
+                        socks, echo_host, echo_port, payload_bytes, iterations,
+                        iperf_host, iperf_port, iperf_rate_kbps, iperf_duration_s,
+                        skip_iperf,
+                    },
+                    Arc::clone(&em),
+                ).await;
+                // Flush by dropping the emitter before reading events back.
+                drop(em);
+                let s = bench::report::aggregate(&dir.join("events.jsonl"))?;
+                bench::report::write_summary_json(&s, &dir.join("summary.json"))?;
+                let summary = std::fs::read_to_string(dir.join("summary.json"))?;
+                println!("\n===== BENCH SMOKE SUMMARY =====");
+                println!("metrics dir: {}", dir.display());
+                println!("{}", summary);
+                Ok::<(), anyhow::Error>(())
+            }
             BenchCmd::Realistic {
                 socks, echo_host, echo_port, dns_host, dns_port, ssh_target, fixtures_dir, metrics_dir,
             } => {

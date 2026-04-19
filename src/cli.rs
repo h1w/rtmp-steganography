@@ -42,6 +42,21 @@ pub struct PeerArgs {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum BenchCmd {
+    /// Quick live-channel smoke: N x http_echo + one iperf3 ramp step + summary.
+    /// Designed to fit in ~5 minutes on a real VK Live channel.
+    Smoke {
+        #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
+        #[arg(long, default_value = "127.0.0.1")]        echo_host: String,
+        #[arg(long, default_value_t = 18080)]            echo_port: u16,
+        #[arg(long, default_value_t = 1024)]             payload_bytes: usize,
+        #[arg(long, default_value_t = 10)]               iterations: usize,
+        #[arg(long, default_value = "127.0.0.1")]        iperf_host: String,
+        #[arg(long, default_value_t = 15201)]            iperf_port: u16,
+        #[arg(long, default_value_t = 20)]               iperf_rate_kbps: u32,
+        #[arg(long, default_value_t = 30)]               iperf_duration_s: u64,
+        #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
+        #[arg(long)]                                     skip_iperf: bool,
+    },
     Realistic {
         #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
         #[arg(long, default_value = "127.0.0.1")]        echo_host: String,
