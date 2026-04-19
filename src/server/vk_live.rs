@@ -66,15 +66,26 @@ pub fn resolve_channel(slug: &str) -> Result<VkPlaybackResolved> {
         return Err(anyhow!("VK Live API error field: {err}"));
     }
 
+    let is_online = v.get("isOnline").and_then(|x| x.as_bool()).unwrap_or(false);
+    let is_ended = v.get("isEnded").and_then(|x| x.as_bool()).unwrap_or(false);
     let first = v
         .get("data")
         .and_then(|d| d.as_array())
         .and_then(|a| a.first())
-        .ok_or_else(|| anyhow!(
-            "VK Live: API returned no data[] for slug \"{slug}\" \
-             (channel offline, wrong slug, or API requires different headers). \
-             Workaround: paste the MPD/HLS URL from the browser's network tab into .env as `stream_read_url=...`"
-        ))?;
+        .ok_or_else(|| {
+            if !is_online {
+                anyhow!(
+                    "VK Live `{slug}`: channel is offline (isOnline=false{}). \
+                     Start the stream in VK Live Studio — server will auto-pick it up.",
+                    if is_ended { ", last stream ended" } else { "" }
+                )
+            } else {
+                anyhow!(
+                    "VK Live `{slug}`: isOnline=true but data[] is empty — \
+                     player URLs not yet published by CDN, retrying"
+                )
+            }
+        })?;
 
     let pairs = first
         .get("playerUrls")
