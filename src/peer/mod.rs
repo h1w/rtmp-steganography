@@ -119,14 +119,21 @@ pub fn run_peer_tunnel(
 }
 
 /// Default warm-up delay before the rx thread starts looking for the other
-/// peer's stream. Both peers' publishes need a few seconds to register with
-/// VK before HLS becomes available. Overridable via env `peer_rx_warmup_ms`.
-pub const DEFAULT_RX_WARMUP_MS: u64 = 10_000;
-const RETRY_INITIAL_MS: u64 = 2_000;
-const RETRY_MAX_MS: u64 = 16_000;
+/// peer's stream. Kept short — the tight retry loop below will poll VK as
+/// soon as it responds. Overridable via env `peer_rx_warmup_ms`.
+pub const DEFAULT_RX_WARMUP_MS: u64 = 2_000;
+/// Initial retry delay. Short so we catch the stream within ~1s of it
+/// becoming available — VK typically publishes playerUrls within 2-5s of
+/// RTMP ingest starting.
+const RETRY_INITIAL_MS: u64 = 500;
+/// Cap on backoff. Kept low on purpose: "stream offline" is transient and
+/// we want to pick up as soon as it flips.
+const RETRY_MAX_MS: u64 = 3_000;
 
 fn sleep_backoff(prev_ms: u64) -> u64 {
-    let next = (prev_ms.saturating_mul(2)).min(RETRY_MAX_MS);
+    // Gentler growth factor (×1.5 rounded) so we stay responsive without
+    // hammering VK: 500 → 750 → 1125 → 1687 → 2500 → 3000 cap.
+    let next = ((prev_ms * 3) / 2).min(RETRY_MAX_MS).max(RETRY_INITIAL_MS);
     thread::sleep(Duration::from_millis(prev_ms));
     next
 }

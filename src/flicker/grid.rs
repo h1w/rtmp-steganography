@@ -56,10 +56,15 @@ impl FlickerParams {
     #[inline] pub const fn grid_rows(&self) -> usize { self.h() / self.cs() }
     #[inline] pub const fn total_cells(&self) -> usize { self.grid_cols() * self.grid_rows() }
     #[inline] pub const fn frame_bytes_rgb24(&self) -> usize { self.w() * self.h() * 3 }
-    /// Central readable region offset from cell TL: quarter of cell_size.
-    #[inline] pub const fn read_offset(&self) -> usize { self.cs() / 4 }
-    /// Central readable region size: half of cell_size.
-    #[inline] pub const fn read_size(&self) -> usize { self.cs() / 2 }
+    /// Central readable region offset from cell TL: 1/8 of cell_size (minimum 1).
+    /// Smaller guard lets us average more samples per cell, fighting VK
+    /// transcode noise that jitters individual pixel luma by ±15 levels.
+    #[inline] pub const fn read_offset(&self) -> usize {
+        let v = self.cs() / 8;
+        if v == 0 { 1 } else { v }
+    }
+    /// Central readable region size: 3/4 of cell_size.
+    #[inline] pub const fn read_size(&self) -> usize { self.cs() * 3 / 4 }
 }
 
 /// Convert (col, row) logical cell coords to top-left pixel (x, y).

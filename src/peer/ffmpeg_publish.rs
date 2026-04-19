@@ -61,12 +61,22 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
         args.push(scale_filter);
     }
 
+    // Baseline profile rejects lossless (qp<=1). Fall back to high444 +
+    // yuv444p (also preserves cell luma exactly — no chroma subsampling).
+    let lossless = matches!(opts.x264_qp, Some(0) | Some(1));
+    let (profile, pix_fmt) = if lossless {
+        ("high444", "yuv444p")
+    } else {
+        ("baseline", "yuv420p")
+    };
     push(&mut args, "-c:v"); push(&mut args, "libx264");
     push(&mut args, "-preset"); push(&mut args, "ultrafast");
     push(&mut args, "-tune"); push(&mut args, "zerolatency");
-    push(&mut args, "-profile:v"); push(&mut args, "baseline");
-    push(&mut args, "-level"); push(&mut args, "3.0");
-    push(&mut args, "-pix_fmt"); push(&mut args, "yuv420p");
+    push(&mut args, "-profile:v"); push(&mut args, profile);
+    if !lossless {
+        push(&mut args, "-level"); push(&mut args, "3.0");
+    }
+    push(&mut args, "-pix_fmt"); push(&mut args, pix_fmt);
     // Disable ONLY the in-loop deblocking filter — it's what smears the
     // hard 4x4 cell boundaries into a gradient noise field on decode.
     // Other "visual quality" heuristics (aq-mode, psy-rd, mbtree) stay at
