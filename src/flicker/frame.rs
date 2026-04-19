@@ -12,7 +12,7 @@ use crate::flicker::markers::{paint_markers, frame_offset, MARKER_SIZE};
 use crate::flicker::pilot::{pilot_positions, validate_pilots};
 use crate::flicker::ModulationMode;
 
-pub const PILOT_CONFIDENCE_THRESHOLD: f32 = 0.6;
+pub const PILOT_CONFIDENCE_THRESHOLD: f32 = 0.5;
 pub const PILOT_SUCCESS_MIN: f32 = 0.80;
 
 /// Compute cell indices occupied by corner markers.

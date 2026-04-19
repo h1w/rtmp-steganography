@@ -15,7 +15,7 @@ pub fn publish_args(rtmp_url: &str) -> Vec<String> {
         "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
         "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
         "-profile:v", "baseline", "-level", "3.0", "-pix_fmt", "yuv420p",
-        "-b:v", "300k", "-maxrate", "300k", "-bufsize", "600k",
+        "-b:v", "500k", "-maxrate", "500k", "-bufsize", "1000k",
         "-g", &gop_arg, "-keyint_min", &rate_arg,
         "-c:a", "aac", "-b:a", "64k", "-ar", "44100", "-ac", "2",
         "-shortest", "-flvflags", "no_duration_filesize",
