@@ -14,7 +14,7 @@ pub fn read_args(input_url: &str, http: &HttpConfig, input_is_hls: bool) -> Vec<
         "-loglevel".into(),
         "error".into(),
         "-fflags".into(),
-        "nobuffer+discardcorrupt+flush_packets".into(),
+        "nobuffer+discardcorrupt+flush_packets+genpts".into(),
         "-flags".into(),
         "low_delay".into(),
         "-avioflags".into(),
@@ -23,13 +23,31 @@ pub fn read_args(input_url: &str, http: &HttpConfig, input_is_hls: bool) -> Vec<
         "32k".into(),
         "-analyzeduration".into(),
         "0".into(),
+        "-max_delay".into(),
+        "0".into(),
+        "-rtbufsize".into(),
+        "1M".into(),
+        "-reconnect".into(),
+        "1".into(),
+        "-reconnect_streamed".into(),
+        "1".into(),
+        "-reconnect_at_eof".into(),
+        "1".into(),
+        "-reconnect_delay_max".into(),
+        "2".into(),
     ];
 
     if input_is_hls {
+        // `-live_start_index -1` jumps to the newest HLS segment (instead of
+        // ffmpeg's default of 3 segments back). Combined with the reader-thread
+        // drop-stale loop below, this puts us as close to live edge as the
+        // CDN allows.
         args.push("-live_start_index".into());
         args.push("-1".into());
         args.push("-http_persistent".into());
         args.push("1".into());
+        args.push("-m3u8_hold_counters".into());
+        args.push("2".into());
     }
 
     if let Some(ua) = http.user_agent.as_ref() {
