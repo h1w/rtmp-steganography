@@ -145,44 +145,80 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
 
 fn rx_thread(cfg: PeerConfig, inbound: Sender<InboundMessage>, running: Arc<AtomicBool>) -> Result<()> {
     let page_url = format!("https://live.vkvideo.ru/{}/stream/{}", cfg.their_vk_channel, cfg.their_stream_name);
-    // Resolve VK stream URL.
-    let (stream_url, is_hls) = vk_live::resolve(&cfg.their_vk_channel, &cfg.their_stream_name)
-        .context("vk resolve")?;
-    let args = ffmpeg_read::read_args(&stream_url, &page_url, is_hls);
-    let mut child = ffmpeg_read::spawn(&args)?;
-    let mut stdout = child.stdout.take().ok_or_else(|| anyhow!("no ffmpeg stdout"))?;
-
+    let retry = Duration::from_secs(2);
     let mut buf = vec![0u8; FRAME_BYTES_RGB24];
     let dec = FrameDecoder;
     let mut reassembler = Reassembler::new(cfg.frag_timeout_ms);
     let mut frame_idx: u64 = 0;
 
+    // Outer loop: re-resolve + respawn ffmpeg on any error. Needed because
+    //   (a) peer startup races with the other peer's publish going live,
+    //   (b) a fresh VK HLS playlist may be empty/unparseable for a second or two,
+    //   (c) signed playback URLs can expire mid-session.
     while running.load(Ordering::SeqCst) {
-        if stdout.read_exact(&mut buf).is_err() {
-            eprintln!("[flicker] rx ffmpeg stdout ended");
-            break;
-        }
-        match dec.decode(&buf) {
-            DecodeOutcome::Ok { header, fragments, pilot_success } => {
-                if cfg.log_every_frame {
-                    eprintln!("[flicker] rx frame={frame_idx} ch={} mode={:?} payload_len={} pilots={:.2}",
-                        header.channel_id, header.modulation_mode, header.payload_len, pilot_success);
+        let (stream_url, is_hls) = match vk_live::resolve(&cfg.their_vk_channel, &cfg.their_stream_name) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("[peer/rx] vk resolve failed ({e:#}) — retrying in {}ms", retry.as_millis());
+                thread::sleep(retry);
+                continue;
+            }
+        };
+        eprintln!("[peer/rx] stream resolved: is_hls={is_hls} url_head={}", &stream_url.chars().take(80).collect::<String>());
+        let args = ffmpeg_read::read_args(&stream_url, &page_url, is_hls);
+        let mut child = match ffmpeg_read::spawn(&args) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!("[peer/rx] ffmpeg spawn failed: {e:#} — retrying in {}ms", retry.as_millis());
+                thread::sleep(retry);
+                continue;
+            }
+        };
+        let mut stdout = match child.stdout.take() {
+            Some(s) => s,
+            None => {
+                eprintln!("[peer/rx] no ffmpeg stdout — killing and retrying");
+                let _ = child.kill();
+                let _ = child.wait();
+                thread::sleep(retry);
+                continue;
+            }
+        };
+
+        while running.load(Ordering::SeqCst) {
+            if stdout.read_exact(&mut buf).is_err() {
+                eprintln!("[peer/rx] ffmpeg stdout ended — will re-resolve");
+                break;
+            }
+            match dec.decode(&buf) {
+                DecodeOutcome::Ok { header, fragments, pilot_success } => {
+                    if cfg.log_every_frame {
+                        eprintln!("[flicker] rx frame={frame_idx} ch={} mode={:?} payload_len={} pilots={:.2}",
+                            header.channel_id, header.modulation_mode, header.payload_len, pilot_success);
+                    }
+                    for f in fragments {
+                        if let Some(msg) = reassembler.accept(f) {
+                            if inbound.send(msg).is_err() {
+                                let _ = child.kill();
+                                let _ = child.wait();
+                                return Ok(());
+                            }
+                        }
+                    }
                 }
-                for f in fragments {
-                    if let Some(msg) = reassembler.accept(f) {
-                        if inbound.send(msg).is_err() { return Ok(()); }
+                DecodeOutcome::Dropped { reason } => {
+                    if cfg.log_every_frame {
+                        eprintln!("[flicker] rx frame={frame_idx} dropped: {reason:?}");
                     }
                 }
             }
-            DecodeOutcome::Dropped { reason } => {
-                if cfg.log_every_frame {
-                    eprintln!("[flicker] rx frame={frame_idx} dropped: {reason:?}");
-                }
-            }
+            frame_idx += 1;
         }
-        frame_idx += 1;
+        let _ = child.kill();
+        let _ = child.wait();
+        if running.load(Ordering::SeqCst) {
+            thread::sleep(retry);
+        }
     }
-    let _ = child.kill();
-    let _ = child.wait();
     Ok(())
 }

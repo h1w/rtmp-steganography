@@ -34,6 +34,7 @@ fn heartbeat_loop(tx: Sender<OutboundMessage>, running: Arc<AtomicBool>) {
         if Instant::now() >= next_tick {
             let now_ns = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos() as u64;
             let payload = now_ns.to_be_bytes().to_vec();
+            eprintln!("[app] time_sync ts={now_ns} sent");
             if tx.send(OutboundMessage { msg_type: MSG_TYPE_TIME_SYNC, payload }).is_err() {
                 break;
             }

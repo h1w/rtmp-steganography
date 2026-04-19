@@ -59,14 +59,17 @@ wait 2>/dev/null || true
 summarize() {
     local label="$1"
     local log="$2"
-    local sent rcvd drops pilot_fail hdr_fail crc_fail
-    sent=$(grep -c 'time_sync ts=' "$log" || true)
-    rcvd=$(grep -c '\[app\] time_sync' "$log" || true)
+    local sent rcvd drops pilot_fail hdr_fail crc_fail resolve_fail
+    # Sent side: heartbeat_loop prints "[app] time_sync ts=... sent"
+    sent=$(grep -cE '\[app\] time_sync ts=[0-9]+ sent' "$log" || true)
+    # Rcvd side: log_loop prints "[app] time_sync ts=... Δ=...ms"
+    rcvd=$(grep -cE '\[app\] time_sync ts=[0-9]+ Δ=' "$log" || true)
     drops=$(grep -c 'dropped:' "$log" || true)
     pilot_fail=$(grep -c 'PilotValidationFailed' "$log" || true)
     hdr_fail=$(grep -c 'HeaderRsFailed' "$log" || true)
     crc_fail=$(grep -c 'PayloadCrcMismatch' "$log" || true)
-    echo "[e2e-pair] peer $label: sent=$sent rcvd=$rcvd drops=$drops pilot_fail=$pilot_fail hdr_fail=$hdr_fail crc_fail=$crc_fail"
+    resolve_fail=$(grep -c 'vk resolve failed' "$log" || true)
+    echo "[e2e-pair] peer $label: sent=$sent rcvd=$rcvd drops=$drops pilot_fail=$pilot_fail hdr_fail=$hdr_fail crc_fail=$crc_fail vk_resolve_retries=$resolve_fail"
     if [ "$sent" -gt 0 ]; then
         echo "[e2e-pair] peer $label: delivery = $(( 100 * rcvd / sent ))%"
     fi
