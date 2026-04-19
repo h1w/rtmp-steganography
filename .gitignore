@@ -2,3 +2,7 @@
 .env
 /target
 Cargo.lock
+docs/reference/
+*.exe
+*.pdb
+.env.peer-*

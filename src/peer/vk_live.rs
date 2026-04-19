@@ -144,3 +144,22 @@ pub fn resolve_page(page_url: &str) -> Result<VkPlaybackResolved> {
 pub fn pick_playback_url(r: &VkPlaybackResolved) -> Option<String> {
     r.hls.clone().or_else(|| r.dash_mpd.clone())
 }
+
+/// Adapter for peer mode: given a VK channel slug and stream name, fetch the
+/// playback URL. Returns `(url, is_hls)`. Prefers HLS over DASH when both are
+/// available.
+pub fn resolve(channel: &str, name: &str) -> Result<(String, bool)> {
+    let page_url = format!(
+        "https://live.vkvideo.ru/{}/stream/{}",
+        channel.trim_matches('/'),
+        name.trim_matches('/')
+    );
+    let playback = resolve_page(&page_url)?;
+    if let Some(url) = &playback.hls {
+        return Ok((url.clone(), true));
+    }
+    if let Some(url) = &playback.dash_mpd {
+        return Ok((url.clone(), false));
+    }
+    Err(anyhow!("no playable URL in VK response"))
+}

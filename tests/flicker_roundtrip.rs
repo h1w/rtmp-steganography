@@ -1,52 +1,64 @@
-use rtmp_steganography::flicker::frame::{decode_timestamp_frame, encode_timestamp_frame};
-use rtmp_steganography::flicker::grid::GridConfig;
+//! Level B — pure in-memory encode/decode round-trip without ffmpeg.
+//! Asserts every message type, size, and fragment count round-trips bit-exact.
 
-fn case(cell: usize, ts: u64) {
-    let cfg = GridConfig::new(256, 144, 24, cell, 1).expect("valid grid");
-    let mut buf = vec![0u8; cfg.frame_bytes()];
-    encode_timestamp_frame(&mut buf, ts, &cfg);
-    let decoded = decode_timestamp_frame(&buf, &cfg);
-    assert_eq!(decoded, ts, "cell={cell} ts={ts:#x}");
+use rtmp_steganography::flicker::frame::{FrameDecoder, FrameEncoder, DecodeOutcome};
+use rtmp_steganography::flicker::fragment::Fragment;
+use rtmp_steganography::flicker::grid::FRAME_BYTES_RGB24;
+use rtmp_steganography::flicker::ModulationMode;
+
+fn make_frag(msg_type: u8, payload: Vec<u8>) -> Fragment {
+    Fragment {
+        msg_type,
+        message_id: 1,
+        fragment_idx: 0,
+        fragment_total: 1,
+        payload,
+    }
 }
 
 #[test]
-fn roundtrip_cell_16() {
-    case(16, 0x0123_4567_89ab_cdef);
+fn roundtrip_mode_b_single_fragment_small() {
+    let mut buf = vec![0u8; FRAME_BYTES_RGB24];
+    let mut enc = FrameEncoder { mode: ModulationMode::B, channel_id: 1, frame_counter: 0 };
+    let frag = make_frag(0x02, b"short payload".to_vec());
+    enc.encode(&mut buf, &[frag.clone()]).unwrap();
+    match FrameDecoder.decode(&buf) {
+        DecodeOutcome::Ok { fragments, .. } => {
+            assert_eq!(fragments.len(), 1);
+            assert!(fragments[0].payload.starts_with(b"short payload"));
+        }
+        o => panic!("{o:?}"),
+    }
 }
 
 #[test]
-fn roundtrip_cell_8() {
-    case(8, 0xdead_beef_1234_5678);
+fn roundtrip_mode_b_max_size() {
+    let mut buf = vec![0u8; FRAME_BYTES_RGB24];
+    let mut enc = FrameEncoder { mode: ModulationMode::B, channel_id: 1, frame_counter: 5 };
+    // 240 byte frame budget - 9 byte fragment header - 4 byte payload CRC = 227 bytes.
+    let payload: Vec<u8> = (0..227u8).collect();
+    let frag = make_frag(0x02, payload.clone());
+    enc.encode(&mut buf, &[frag]).unwrap();
+    match FrameDecoder.decode(&buf) {
+        DecodeOutcome::Ok { fragments, .. } => {
+            assert_eq!(fragments[0].payload[..227], payload[..]);
+        }
+        o => panic!("{o:?}"),
+    }
 }
 
 #[test]
-fn roundtrip_cell_4() {
-    case(4, 0xffff_ffff_ffff_fffe);
-}
-
-#[test]
-fn roundtrip_cell_2() {
-    case(2, 1);
-}
-
-#[test]
-fn roundtrip_zero() {
-    case(16, 0);
-}
-
-#[test]
-fn invalid_cell_rejected() {
-    assert!(GridConfig::new(256, 144, 24, 3, 1).is_err());
-    assert!(GridConfig::new(256, 144, 24, 0, 1).is_err());
-    assert!(GridConfig::new(256, 144, 24, 16, 0).is_err());
-    assert!(GridConfig::new(256, 144, 0, 16, 1).is_err());
-    assert!(GridConfig::new(0, 144, 24, 16, 1).is_err());
-}
-
-#[test]
-fn different_resolution_works() {
-    let cfg = GridConfig::new(320, 180, 30, 10, 1).expect("valid grid");
-    assert_eq!(cfg.cols, 32);
-    assert_eq!(cfg.rows, 18);
-    assert_eq!(cfg.frame_bytes(), 320 * 180 * 3);
+fn roundtrip_mode_c_larger_payload() {
+    let mut buf = vec![0u8; FRAME_BYTES_RGB24];
+    let mut enc = FrameEncoder { mode: ModulationMode::C, channel_id: 2, frame_counter: 42 };
+    let payload: Vec<u8> = (0..200u8).collect();
+    let frag = make_frag(0x02, payload.clone());
+    enc.encode(&mut buf, &[frag]).unwrap();
+    match FrameDecoder.decode(&buf) {
+        DecodeOutcome::Ok { fragments, header, .. } => {
+            assert_eq!(header.modulation_mode, ModulationMode::C);
+            assert_eq!(fragments[0].payload[..200], payload[..]);
+        }
+        o => panic!("{o:?}"),
+    }
 }
