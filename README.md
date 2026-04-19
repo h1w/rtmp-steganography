@@ -1,9 +1,13 @@
 # rtmp-steganography
 
 Bidirectional, UDP-like steganographic data channel over RTMP/HLS video streams.
-v2 of the "flicker" protocol — each video frame carries ~236 bytes (mode B) or
-~476 bytes (mode C) of application payload, protected by Reed-Solomon FEC and
+v2 of the "flicker" protocol — each video frame carries ~227 bytes (mode B) or
+~467 bytes (mode C) of application payload, protected by Reed-Solomon FEC and
 a payload-level CRC32.
+
+**Measured end-to-end on VK Live (mode B):** ~80–85% datagram delivery per
+direction at 500 kbit/s publish. Residual loss is HLS segment drops on VK's
+CDN, not FEC capacity.
 
 ## Quick start
 
