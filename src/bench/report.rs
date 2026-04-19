@@ -15,6 +15,7 @@ pub struct Summary {
     pub bench_requests: BTreeMap<String, WorkloadStats>,
     pub saturation: BTreeMap<String, Option<u32>>,
     pub goodput: Vec<GoodputSample>,
+    pub throughput: Vec<ThroughputSample>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -27,6 +28,19 @@ pub struct WorkloadStats {
     pub tunnel_connect_ms: Vec<u64>,
     pub ttfb_ms: Vec<u64>,
     pub total_ms: Vec<u64>,
+    pub bytes_per_req: Vec<u64>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ThroughputSample {
+    pub ok: bool,
+    pub bytes_target: u64,
+    pub bytes_sent: u64,
+    pub bytes_received: u64,
+    pub elapsed_ms: u64,
+    pub oneway_bps: u64,
+    pub tunnel_internal_bps: u64,
+    pub fail_stage: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -99,7 +113,10 @@ fn ingest_text(text: &str, s: &mut Summary) {
                 let stats = s.bench_requests.entry(name).or_default();
                 if v["ok"].as_bool() == Some(true) { stats.ok += 1 } else { stats.fail += 1 }
                 if let Some(l) = v["latency_ms"].as_u64() { stats.latency_ms.push(l); }
-                if let Some(b) = v["bytes"].as_u64() { stats.bytes += b; }
+                if let Some(b) = v["bytes"].as_u64() {
+                    stats.bytes += b;
+                    stats.bytes_per_req.push(b);
+                }
                 if let Some(x) = v["socks_connect_ms"].as_u64() { stats.socks_connect_ms.push(x); }
                 if let Some(x) = v["tunnel_connect_ms"].as_u64() { stats.tunnel_connect_ms.push(x); }
                 if let Some(x) = v["ttfb_ms"].as_u64() { stats.ttfb_ms.push(x); }
@@ -117,6 +134,18 @@ fn ingest_text(text: &str, s: &mut Summary) {
                     delivery_pct: v["delivery_pct"].as_f64().unwrap_or(0.0),
                 });
             }
+            ("bench", "throughput_done") => {
+                s.throughput.push(ThroughputSample {
+                    ok: v["ok"].as_bool().unwrap_or(false),
+                    bytes_target: v["bytes_target"].as_u64().unwrap_or(0),
+                    bytes_sent: v["bytes_sent"].as_u64().unwrap_or(0),
+                    bytes_received: v["bytes_received"].as_u64().unwrap_or(0),
+                    elapsed_ms: v["elapsed_ms"].as_u64().unwrap_or(0),
+                    oneway_bps: v["oneway_bps"].as_u64().unwrap_or(0),
+                    tunnel_internal_bps: v["tunnel_internal_bps"].as_u64().unwrap_or(0),
+                    fail_stage: v["fail_stage"].as_str().map(|x| x.to_string()),
+                });
+            }
             ("bench", "saturation_result") => {
                 let profile = v["profile"].as_str().unwrap_or("unknown").to_string();
                 let point = v["saturation_point"].as_u64().map(|x| x as u32);
@@ -131,10 +160,20 @@ pub fn write_summary_json(s: &Summary, out: &Path) -> std::io::Result<()> {
     let rtt_p = stats_block(&s.rtt_samples_ms);
     let mut workloads = serde_json::Map::new();
     for (k, ws) in &s.bench_requests {
+        // Derived goodput: sum(bytes) / sum(total_ms/1000). Only counts
+        // successful runs with positive total_ms.
+        let (sum_bytes, sum_ms) = ws.total_ms.iter().zip(ws.bytes_per_req.iter())
+            .filter(|(&ms, &b)| ms > 0 && b > 0)
+            .fold((0u64, 0u64), |(acc_b, acc_ms), (ms, by)| (acc_b + by, acc_ms + ms));
+        let goodput_bps = if sum_ms > 0 {
+            (sum_bytes as f64 * 8.0 * 1000.0 / sum_ms as f64) as u64
+        } else { 0 };
         workloads.insert(k.clone(), json!({
             "ok": ws.ok,
             "fail": ws.fail,
             "bytes_total": ws.bytes,
+            "goodput_bps":        goodput_bps,
+            "goodput_kbits_per_s": (goodput_bps as f64 / 1000.0 * 100.0).round() / 100.0,
             "ping_ms":            stats_block(&ws.tunnel_connect_ms),
             "ttfb_ms":            stats_block(&ws.ttfb_ms),
             "total_ms":           stats_block(&ws.total_ms),
@@ -155,6 +194,23 @@ pub fn write_summary_json(s: &Summary, out: &Path) -> std::io::Result<()> {
             "bytes_received": g.bytes_received,
             "retransmits": g.retransmits,
             "delivery_pct": g.delivery_pct,
+        }));
+    }
+
+    let mut throughput_arr = Vec::new();
+    for t in &s.throughput {
+        throughput_arr.push(json!({
+            "ok": t.ok,
+            "bytes_target": t.bytes_target,
+            "bytes_sent": t.bytes_sent,
+            "bytes_received": t.bytes_received,
+            "elapsed_ms": t.elapsed_ms,
+            "oneway_bps": t.oneway_bps,
+            "oneway_kbits_per_s": (t.oneway_bps as f64 / 1000.0 * 100.0).round() / 100.0,
+            "tunnel_internal_bps": t.tunnel_internal_bps,
+            "tunnel_internal_kbits_per_s": (t.tunnel_internal_bps as f64 / 1000.0 * 100.0).round() / 100.0,
+            "delivery_pct": if t.bytes_sent > 0 { (t.bytes_received as f64 / t.bytes_sent as f64 * 10000.0).round() / 100.0 } else { 0.0 },
+            "fail_stage": t.fail_stage,
         }));
     }
 
@@ -182,6 +238,7 @@ pub fn write_summary_json(s: &Summary, out: &Path) -> std::io::Result<()> {
         "bench": {
             "requests": workloads,
             "goodput": goodput_arr,
+            "throughput": throughput_arr,
             "saturation_point_kbps": saturation_json(s)
         },
         "sla": sla,
@@ -236,13 +293,32 @@ fn evaluate_sla(s: &Summary) -> Value {
         (idx(0.5), idx(0.99))
     }).unwrap_or((u64::MAX, u64::MAX));
 
-    let peak_bps = s.goodput.iter().map(|g| g.bits_per_second).max().unwrap_or(0);
-    let stable_bps = s.goodput.iter()
-        .filter(|g| g.delivery_pct >= 95.0)
-        .map(|g| g.bits_per_second).max().unwrap_or(0);
+    // Prefer native throughput samples if available — they actually traverse
+    // the tunnel. iperf3-goodput samples can be noisy (proxychains may bypass
+    // loopback, so we can't trust them as a tunnel measurement).
+    let native_bps: Vec<u64> = s.throughput.iter()
+        .filter(|t| t.ok && t.bytes_received > 0)
+        .map(|t| t.oneway_bps).collect();
+    let peak_bps = if !native_bps.is_empty() {
+        *native_bps.iter().max().unwrap_or(&0)
+    } else {
+        s.goodput.iter().map(|g| g.bits_per_second).max().unwrap_or(0)
+    };
+    let stable_bps = if !native_bps.is_empty() {
+        *native_bps.iter().max().unwrap_or(&0)
+    } else {
+        s.goodput.iter()
+            .filter(|g| g.delivery_pct >= 95.0)
+            .map(|g| g.bits_per_second).max().unwrap_or(0)
+    };
 
-    let (tot_sent, tot_recv) = s.goodput.iter()
-        .fold((0u64, 0u64), |(a, b), g| (a + g.bytes_sent, b + g.bytes_received));
+    let (tot_sent, tot_recv) = if !native_bps.is_empty() {
+        s.throughput.iter().filter(|t| t.ok)
+            .fold((0u64, 0u64), |(a, b), t| (a + t.bytes_sent, b + t.bytes_received))
+    } else {
+        s.goodput.iter()
+            .fold((0u64, 0u64), |(a, b), g| (a + g.bytes_sent, b + g.bytes_received))
+    };
     let reliability_pct = if tot_sent > 0 {
         (tot_recv as f64 / tot_sent as f64) * 100.0
     } else { 0.0 };

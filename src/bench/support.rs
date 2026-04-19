@@ -59,6 +59,30 @@ fn parse_content_length(hdr: &[u8]) -> Option<usize> {
     None
 }
 
+/// Raw TCP echo server — streams bytes back as-is, no HTTP framing. Used by
+/// the throughput workload to measure sustained bidirectional goodput with
+/// zero request/response overhead and no external tools.
+pub async fn spawn_raw_echo(bind: SocketAddr, running: Arc<AtomicBool>) -> std::io::Result<()> {
+    let lst = TcpListener::bind(bind).await?;
+    tokio::spawn(async move {
+        while running.load(Ordering::SeqCst) {
+            let Ok((s, _)) = lst.accept().await else { continue };
+            tokio::spawn(async move {
+                let (mut r, mut w) = s.into_split();
+                let mut buf = vec![0u8; 16384];
+                loop {
+                    let n = match r.read(&mut buf).await {
+                        Ok(0) | Err(_) => return,
+                        Ok(n) => n,
+                    };
+                    if w.write_all(&buf[..n]).await.is_err() { return; }
+                }
+            });
+        }
+    });
+    Ok(())
+}
+
 /// Minimal TCP-DNS responder. Accepts RFC 1035 length-prefixed DNS queries,
 /// echoes the request back with the QR/flags bits flipped to mark it a response.
 /// NOT a real resolver — only produces well-formed reply envelopes. Sufficient

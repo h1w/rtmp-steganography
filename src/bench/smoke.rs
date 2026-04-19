@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use crate::bench::saturation;
-use crate::bench::workloads::http_echo;
+use crate::bench::workloads::{http_echo, throughput};
 use crate::tunnel::metrics::EventEmitter;
 
 pub struct Config {
@@ -19,19 +19,36 @@ pub struct Config {
     pub iperf_rate_kbps: u32,
     pub iperf_duration_s: u64,
     pub skip_iperf: bool,
+    pub throughput_bytes: u64,
+    pub raw_echo_host: String,
+    pub raw_echo_port: u16,
 }
 
 pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
-    eprintln!("[bench/smoke] running {} x http_echo ({} bytes) via SOCKS5 {}",
-        cfg.iterations, cfg.payload_bytes, cfg.socks);
-    http_echo::run(
-        cfg.socks,
-        &cfg.echo_host,
-        cfg.echo_port,
-        cfg.payload_bytes,
-        cfg.iterations,
-        Arc::clone(&em),
-    ).await;
+    if cfg.iterations > 0 {
+        eprintln!("[bench/smoke] running {} x http_echo ({} bytes) via SOCKS5 {}",
+            cfg.iterations, cfg.payload_bytes, cfg.socks);
+        http_echo::run(
+            cfg.socks,
+            &cfg.echo_host,
+            cfg.echo_port,
+            cfg.payload_bytes,
+            cfg.iterations,
+            Arc::clone(&em),
+        ).await;
+    }
+
+    if cfg.throughput_bytes > 0 {
+        eprintln!("[bench/smoke] native throughput: streaming {} bytes via SOCKS5 -> raw_echo {}:{}",
+            cfg.throughput_bytes, cfg.raw_echo_host, cfg.raw_echo_port);
+        throughput::run(
+            cfg.socks,
+            &cfg.raw_echo_host,
+            cfg.raw_echo_port,
+            cfg.throughput_bytes,
+            Arc::clone(&em),
+        ).await;
+    }
 
     if !cfg.skip_iperf {
         eprintln!("[bench/smoke] running iperf3 {} kbps x {}s via proxychains",

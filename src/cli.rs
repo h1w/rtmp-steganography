@@ -56,6 +56,13 @@ pub enum BenchCmd {
         #[arg(long, default_value_t = 30)]               iperf_duration_s: u64,
         #[arg(long, default_value = "./metrics")]        metrics_dir: std::path::PathBuf,
         #[arg(long)]                                     skip_iperf: bool,
+        /// Native Rust raw-TCP throughput test: streams this many bytes through
+        /// the tunnel to peer B's raw_echo (18090) and back, measuring real
+        /// goodput. 0 disables. This is the gold-standard goodput measurement
+        /// (no proxychains, no iperf3 — pure Rust through SOCKS5).
+        #[arg(long, default_value_t = 65536)]            throughput_bytes: u64,
+        #[arg(long, default_value = "127.0.0.1")]        raw_echo_host: String,
+        #[arg(long, default_value_t = 18090)]            raw_echo_port: u16,
     },
     Realistic {
         #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,

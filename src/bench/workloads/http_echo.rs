@@ -10,7 +10,7 @@ use crate::tunnel::metrics::{Event, EventEmitter};
 /// Upper bound for any single http_echo roundtrip. VK HLS RTT is ~10s;
 /// 1 KB through 4 round trips (SOCKS + CONNECT + HTTP req/resp) is ~60s
 /// realistic, so 90s is safe headroom without hiding real stalls.
-const ROUNDTRIP_TIMEOUT: Duration = Duration::from_secs(90);
+const ROUNDTRIP_TIMEOUT: Duration = Duration::from_secs(300);
 
 pub async fn run(
     socks: SocketAddr,

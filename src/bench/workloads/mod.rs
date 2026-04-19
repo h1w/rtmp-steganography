@@ -2,6 +2,7 @@ pub mod http_echo;
 pub mod dns;
 pub mod ssh_probe;
 pub mod https_fetch;
+pub mod throughput;
 
 use std::sync::Arc;
 use crate::tunnel::metrics::{Event, EventEmitter};

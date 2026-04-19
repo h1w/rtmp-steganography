@@ -124,6 +124,12 @@ pub fn run_tunnel(
             } else {
                 eprintln!("[peer/tunnel] bench-support tcp_dns listening on {dns_bind}");
             }
+            let raw_echo_bind: std::net::SocketAddr = "127.0.0.1:18090".parse().unwrap();
+            if let Err(e) = crate::bench::support::spawn_raw_echo(raw_echo_bind, std::sync::Arc::clone(&running_async)).await {
+                eprintln!("[peer/tunnel] bench-support raw_echo bind failed: {e}");
+            } else {
+                eprintln!("[peer/tunnel] bench-support raw_echo listening on {raw_echo_bind}");
+            }
         }
 
         while running.load(std::sync::atomic::Ordering::SeqCst) {
