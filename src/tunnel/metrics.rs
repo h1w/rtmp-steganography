@@ -60,6 +60,7 @@ impl EventEmitter {
         let line = serde_json::to_string(&Value::Object(map)).unwrap();
         if let Ok(mut w) = self.writer.lock() {
             let _ = writeln!(w, "{line}");
+            let _ = w.flush();
         }
     }
 
