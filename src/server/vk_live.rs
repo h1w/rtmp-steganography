@@ -102,13 +102,24 @@ fn extract_player_urls_json(html: &str) -> Option<&str> {
     None
 }
 
-pub fn resolve_channel(channel: &str) -> Result<VkPlaybackResolved> {
-    let channel = channel.trim();
-    if channel.is_empty() {
-        return Err(anyhow!("vk live: empty channel"));
+/// Find the first `/<slug>/stream/sl_NNN` path referenced in HTML — used to
+/// auto-upgrade a bare-slug URL to the currently-live sub-stream path.
+fn find_active_substream_path(html: &str, slug: &str) -> Option<String> {
+    let needle = format!("/{}/stream/sl_", slug.trim_start_matches('/'));
+    let start = html.find(&needle)?;
+    let tail = &html[start + needle.len()..];
+    let digits: String = tail.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        return None;
     }
-    let page_url = page_url_from_channel(channel);
+    Some(format!(
+        "{}{}",
+        &needle[1..], // strip leading '/'
+        digits
+    ))
+}
 
+fn http_get(url: &str) -> Result<String> {
     let client = reqwest::blocking::Client::builder()
         .https_only(true)
         .user_agent(USER_AGENT)
@@ -117,20 +128,59 @@ pub fn resolve_channel(channel: &str) -> Result<VkPlaybackResolved> {
         .context("reqwest client")?;
 
     let resp = client
-        .get(&page_url)
-        .header("Referer", &page_url)
+        .get(url)
+        .header("Referer", url)
         .header("Origin", "https://live.vkvideo.ru")
         .header(
             "Accept",
             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         )
         .send()
-        .with_context(|| format!("GET {page_url}"))?;
-
+        .with_context(|| format!("GET {url}"))?;
     if !resp.status().is_success() {
-        return Err(anyhow!("{}: HTTP {}", page_url, resp.status()));
+        return Err(anyhow!("{}: HTTP {}", url, resp.status()));
     }
-    let body = resp.text().with_context(|| format!("read body {page_url}"))?;
+    resp.text().with_context(|| format!("read body {url}"))
+}
+
+pub fn resolve_channel(channel: &str) -> Result<VkPlaybackResolved> {
+    let channel = channel.trim();
+    if channel.is_empty() {
+        return Err(anyhow!("vk live: empty channel"));
+    }
+    let root_page_url = page_url_from_channel(channel);
+    let root_body = http_get(&root_page_url)?;
+
+    // Two-stage resolve:
+    //   1) root slug (e.g. /pavel8899) → its HTML has no `playerUrls`, but links
+    //      to the active sub-stream /pavel8899/stream/sl_XXXXX.
+    //   2) sub-stream page (e.g. /pavel8899/stream/sl_76330) → HTML embeds
+    //      `playerUrls` directly.
+    //
+    // If the channel string is already a sub-stream URL, the first lookup hits.
+    let (page_url, body) = match extract_player_urls_json(&root_body) {
+        Some(_) => (root_page_url.clone(), root_body),
+        None => {
+            // Treat the channel as a bare slug and look for a live sub-stream.
+            let slug = channel
+                .trim_start_matches("https://live.vkvideo.ru/")
+                .trim_start_matches("http://live.vkvideo.ru/")
+                .trim_matches('/')
+                .split('/')
+                .next()
+                .unwrap_or("");
+            let sub_path = find_active_substream_path(&root_body, slug).ok_or_else(|| {
+                anyhow!(
+                    "VK Live: no active /stream/sl_* link on {root_page_url} \
+                     (channel offline or page layout changed)"
+                )
+            })?;
+            let sub_url = format!("https://live.vkvideo.ru/{sub_path}");
+            eprintln!("[flicker/vk] auto-discovered active substream: {sub_url}");
+            let sub_body = http_get(&sub_url)?;
+            (sub_url, sub_body)
+        }
+    };
 
     let json_slice = extract_player_urls_json(&body).ok_or_else(|| {
         anyhow!(
