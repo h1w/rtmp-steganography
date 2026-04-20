@@ -49,10 +49,11 @@ pub fn block_count_for(p: &FlickerParams, mode: ModulationMode) -> usize {
     let header_cells = HEADER_TOTAL_BYTES * 4;
     let pilots = PILOT_COUNT;
     let payload_cells = p.total_cells().saturating_sub(markers + header_cells + pilots);
-    let cells_per_byte = match mode { ModulationMode::B => 4, ModulationMode::C => 2 };
-    let payload_bytes_capacity = payload_cells / cells_per_byte;
-    // Each RS codeword carries RS_BLOCK_N encoded bytes on the wire.
-    payload_bytes_capacity / RS_BLOCK_N
+    // Mode B: 4 cells per byte. Mode C multi-level: 4 cells per PAIR of bytes
+    // (one Y-byte + one UV-byte). Block count is PER-LANE in Mode C.
+    let cells_per_lane_byte = match mode { ModulationMode::B => 4, ModulationMode::C => 4 };
+    let lane_bytes_capacity = payload_cells / cells_per_lane_byte;
+    lane_bytes_capacity / RS_BLOCK_N
 }
 
 pub struct FrameEncoder {
@@ -67,7 +68,13 @@ impl FrameEncoder {
 
     pub fn block_count(&self) -> usize { block_count_for(&self.params, self.mode) }
 
-    pub fn payload_bytes_per_frame(&self) -> usize { self.block_count() * RS_BLOCK_K }
+    pub fn payload_bytes_per_frame(&self) -> usize {
+        let per_lane = self.block_count() * RS_BLOCK_K;
+        match self.mode {
+            ModulationMode::B => per_lane,
+            ModulationMode::C => 2 * per_lane,
+        }
+    }
 
     pub fn encode(&mut self, out_buf: &mut [u8], fragments: &[Fragment]) -> Result<()> {
         if out_buf.len() < self.params.frame_bytes_rgb24() {
@@ -100,7 +107,7 @@ impl FrameEncoder {
         // bitrate honest. (2) If the tunnel is idle this frame, we still want
         // the canvas visually "busy" so nobody can eyeball that payload stopped.
         // Decoder is unaffected — it truncates to header.payload_len.
-        let full = self.block_count() * RS_BLOCK_K;
+        let full = self.payload_bytes_per_frame();
         if payload_bytes.len() < full {
             let mut seed = [0u8; 32];
             seed[..4].copy_from_slice(&self.frame_counter.to_le_bytes());
@@ -111,13 +118,6 @@ impl FrameEncoder {
             }
         } else {
             payload_bytes.truncate(full);
-        }
-
-        let mut encoded_blocks: Vec<u8> = Vec::with_capacity(self.block_count() * RS_BLOCK_N);
-        for i in 0..self.block_count() {
-            let chunk = &payload_bytes[i * RS_BLOCK_K..(i + 1) * RS_BLOCK_K];
-            let encoded = encode_block(chunk)?;
-            encoded_blocks.extend_from_slice(&encoded);
         }
 
         let header = FrameHeader {
@@ -174,17 +174,57 @@ impl FrameEncoder {
             }
         }
 
-        let cells_per_byte = match self.mode { ModulationMode::B => 4, ModulationMode::C => 2 };
-        for (byte_idx, &byte) in encoded_blocks.iter().enumerate() {
-            for unit in 0..cells_per_byte {
-                let symbol = match self.mode {
-                    ModulationMode::B => (byte >> (2 * (3 - unit))) & 0b11,
-                    ModulationMode::C => (byte >> (4 * (1 - unit))) & 0b1111,
-                };
-                let cell_pos = byte_idx * cells_per_byte + unit;
-                if cell_pos >= payload_perm.len() { break; }
-                let (col, row) = payload_perm[cell_pos];
-                paint_cell(out_buf, col, row, symbol, self.mode, self.params.w(), self.params.cs());
+        match self.mode {
+            ModulationMode::B => {
+                let mut encoded_blocks: Vec<u8> = Vec::with_capacity(self.block_count() * RS_BLOCK_N);
+                for i in 0..self.block_count() {
+                    let chunk = &payload_bytes[i * RS_BLOCK_K..(i + 1) * RS_BLOCK_K];
+                    let encoded = encode_block(chunk)?;
+                    encoded_blocks.extend_from_slice(&encoded);
+                }
+                for (byte_idx, &byte) in encoded_blocks.iter().enumerate() {
+                    for unit in 0..4 {
+                        let symbol = (byte >> (2 * (3 - unit))) & 0b11;
+                        let cell_pos = byte_idx * 4 + unit;
+                        if cell_pos >= payload_perm.len() { break; }
+                        let (col, row) = payload_perm[cell_pos];
+                        paint_cell(out_buf, col, row, symbol, self.mode, self.params.w(), self.params.cs());
+                    }
+                }
+            }
+            ModulationMode::C => {
+                use crate::flicker::channels::{pack_lane_bytes, CELLS_PER_LANE_BYTE};
+                let lane_byte_count = self.block_count() * RS_BLOCK_K;
+                debug_assert_eq!(payload_bytes.len(), 2 * lane_byte_count,
+                    "payload_bytes length must be 2 * lane_byte_count for Mode C multi-level");
+                let (y_data, uv_data) = payload_bytes.split_at(lane_byte_count);
+                let mut y_encoded: Vec<u8> = Vec::with_capacity(self.block_count() * RS_BLOCK_N);
+                let mut uv_encoded: Vec<u8> = Vec::with_capacity(self.block_count() * RS_BLOCK_N);
+                for i in 0..self.block_count() {
+                    y_encoded.extend_from_slice(&encode_block(&y_data[i * RS_BLOCK_K..(i + 1) * RS_BLOCK_K])?);
+                    uv_encoded.extend_from_slice(&encode_block(&uv_data[i * RS_BLOCK_K..(i + 1) * RS_BLOCK_K])?);
+                }
+                let pair_count = y_encoded.len();
+                for pair_i in 0..pair_count {
+                    let cells_packed = [
+                        ((y_encoded[pair_i] >> 6) & 0b11) << 2 | ((uv_encoded[pair_i] >> 7) & 0b1) << 1 | ((uv_encoded[pair_i] >> 6) & 0b1),
+                        ((y_encoded[pair_i] >> 4) & 0b11) << 2 | ((uv_encoded[pair_i] >> 5) & 0b1) << 1 | ((uv_encoded[pair_i] >> 4) & 0b1),
+                        ((y_encoded[pair_i] >> 2) & 0b11) << 2 | ((uv_encoded[pair_i] >> 3) & 0b1) << 1 | ((uv_encoded[pair_i] >> 2) & 0b1),
+                        ((y_encoded[pair_i]) & 0b11) << 2 | ((uv_encoded[pair_i] >> 1) & 0b1) << 1 | (uv_encoded[pair_i] & 0b1),
+                    ];
+                    debug_assert_eq!(
+                        pack_lane_bytes(&cells_packed),
+                        (y_encoded[pair_i], uv_encoded[pair_i]),
+                        "pack_lane_bytes mismatch at pair_i={}",
+                        pair_i
+                    );
+                    for unit in 0..CELLS_PER_LANE_BYTE {
+                        let cell_pos = pair_i * CELLS_PER_LANE_BYTE + unit;
+                        if cell_pos >= payload_perm.len() { break; }
+                        let (col, row) = payload_perm[cell_pos];
+                        paint_cell(out_buf, col, row, cells_packed[unit], self.mode, self.params.w(), self.params.cs());
+                    }
+                }
             }
         }
         self.frame_counter = self.frame_counter.wrapping_add(1);
@@ -281,40 +321,84 @@ impl FrameDecoder {
         };
 
         let block_count = header.fec_params[2] as usize;
-        let cells_per_byte = match mode { ModulationMode::B => 4, ModulationMode::C => 2 };
 
-        let mut decoded_blocks: Vec<Vec<u8>> = Vec::with_capacity(block_count);
-        for block_i in 0..block_count {
-            let mut shards: Vec<Option<u8>> = vec![None; RS_BLOCK_N];
-            for byte_i in 0..RS_BLOCK_N {
-                let mut byte = 0u8;
-                let mut min_conf = 1.0f32;
-                for unit in 0..cells_per_byte {
-                    let cell_pos = (block_i * RS_BLOCK_N + byte_i) * cells_per_byte + unit;
-                    if cell_pos >= payload_perm.len() { break; }
-                    let (col, row) = payload_perm[cell_pos];
-                    let (sym, conf) = match (mode, calibrated.as_ref()) {
-                        (ModulationMode::C, Some(cal)) => crate::flicker::codec::read_cell_c_cal(
-                            buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size(), cal,
-                        ),
-                        _ => read_cell(buf, col, row, mode, p.w(), p.cs(), p.read_offset(), p.read_size()),
-                    };
-                    let bits = match mode { ModulationMode::B => 2, ModulationMode::C => 4 };
-                    byte = (byte << bits) | (sym & ((1 << bits) - 1));
-                    min_conf = min_conf.min(conf);
+        let mut payload_bytes: Vec<u8> = match mode {
+            ModulationMode::B => {
+                let mut decoded_blocks: Vec<Vec<u8>> = Vec::with_capacity(block_count);
+                for block_i in 0..block_count {
+                    let mut shards: Vec<Option<u8>> = vec![None; RS_BLOCK_N];
+                    for byte_i in 0..RS_BLOCK_N {
+                        let mut byte = 0u8;
+                        let mut min_conf = 1.0f32;
+                        for unit in 0..4 {
+                            let cell_pos = (block_i * RS_BLOCK_N + byte_i) * 4 + unit;
+                            if cell_pos >= payload_perm.len() { break; }
+                            let (col, row) = payload_perm[cell_pos];
+                            let (sym, conf) = read_cell(buf, col, row, ModulationMode::B, p.w(), p.cs(), p.read_offset(), p.read_size());
+                            byte = (byte << 2) | (sym & 0b11);
+                            min_conf = min_conf.min(conf);
+                        }
+                        if min_conf >= PILOT_CONFIDENCE_THRESHOLD {
+                            shards[byte_i] = Some(byte);
+                        }
+                    }
+                    match decode_block(&shards) {
+                        Ok(d) => decoded_blocks.push(d),
+                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) },
+                    }
                 }
-                if min_conf >= PILOT_CONFIDENCE_THRESHOLD {
-                    shards[byte_i] = Some(byte);
+                let mut bytes = Vec::with_capacity(block_count * RS_BLOCK_K);
+                for b in &decoded_blocks { bytes.extend_from_slice(b); }
+                bytes
+            }
+            ModulationMode::C => {
+                use crate::flicker::channels::{pack_lane_bytes, CELLS_PER_LANE_BYTE};
+                let mut y_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
+                let mut uv_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
+                for block_i in 0..block_count {
+                    for byte_i in 0..RS_BLOCK_N {
+                        let pair_i = block_i * RS_BLOCK_N + byte_i;
+                        let mut cells_observed = [0u8; CELLS_PER_LANE_BYTE];
+                        let mut min_conf = 1.0f32;
+                        let mut any_skipped = false;
+                        for unit in 0..CELLS_PER_LANE_BYTE {
+                            let cell_pos = pair_i * CELLS_PER_LANE_BYTE + unit;
+                            if cell_pos >= payload_perm.len() { any_skipped = true; break; }
+                            let (col, row) = payload_perm[cell_pos];
+                            let (sym, conf) = match calibrated.as_ref() {
+                                Some(cal) => crate::flicker::codec::read_cell_c_cal(
+                                    buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size(), cal,
+                                ),
+                                None => read_cell(buf, col, row, ModulationMode::C, p.w(), p.cs(), p.read_offset(), p.read_size()),
+                            };
+                            cells_observed[unit] = sym & 0b1111;
+                            min_conf = min_conf.min(conf);
+                        }
+                        if any_skipped { continue; }
+                        let (y_byte, uv_byte) = pack_lane_bytes(&cells_observed);
+                        if min_conf >= PILOT_CONFIDENCE_THRESHOLD {
+                            y_shards[block_i][byte_i] = Some(y_byte);
+                            uv_shards[block_i][byte_i] = Some(uv_byte);
+                        }
+                    }
                 }
+                let mut y_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
+                let mut uv_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
+                for block_i in 0..block_count {
+                    match decode_block(&y_shards[block_i]) {
+                        Ok(d) => y_bytes.extend_from_slice(&d),
+                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) },
+                    }
+                    match decode_block(&uv_shards[block_i]) {
+                        Ok(d) => uv_bytes.extend_from_slice(&d),
+                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_count + block_i) },
+                    }
+                }
+                let mut bytes = y_bytes;
+                bytes.extend_from_slice(&uv_bytes);
+                bytes
             }
-            match decode_block(&shards) {
-                Ok(d) => decoded_blocks.push(d),
-                Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) },
-            }
-        }
-
-        let mut payload_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
-        for b in &decoded_blocks { payload_bytes.extend_from_slice(b); }
+        };
         payload_bytes.truncate(header.payload_len as usize);
 
         if payload_bytes.len() < 4 {
@@ -425,6 +509,51 @@ mod tests {
         assert!(matches!(d8.decode(&buf8), DecodeOutcome::Ok {..}), "d8 must decode buf8");
         assert!(!matches!(d4.decode(&buf8), DecodeOutcome::Ok {..}), "d4 must NOT decode buf8 (size mismatch)");
         assert!(!matches!(d8.decode(&buf4), DecodeOutcome::Ok {..}), "d8 must NOT decode buf4 (size mismatch)");
+    }
+
+    #[test]
+    fn mode_c_multilevel_roundtrip_no_drift() {
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        let mut enc = FrameEncoder { params: p, mode: ModulationMode::C, channel_id: 1, frame_counter: 321 };
+        let frag = Fragment {
+            msg_type: 2, message_id: 9, fragment_idx: 0, fragment_total: 1,
+            payload: b"multi-level-mode-c-test-payload-enough-bytes".to_vec(),
+        };
+        enc.encode(&mut buf, std::slice::from_ref(&frag)).unwrap();
+        let dec = FrameDecoder { params: p };
+        match dec.decode(&buf) {
+            DecodeOutcome::Ok { fragments, .. } => {
+                assert_eq!(fragments.len(), 1);
+                assert!(fragments[0].payload.starts_with(b"multi-level-mode-c-test-payload"));
+            }
+            other => panic!("expected Ok, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn mode_c_multilevel_y_lane_survives_chroma_only_errors() {
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        let mut enc = FrameEncoder { params: p, mode: ModulationMode::C, channel_id: 1, frame_counter: 555 };
+        let frag = Fragment {
+            msg_type: 2, message_id: 1, fragment_idx: 0, fragment_total: 1,
+            payload: b"y-lane-resilience".to_vec(),
+        };
+        enc.encode(&mut buf, std::slice::from_ref(&frag)).unwrap();
+        // Saturate blue channel → wipes U bits while luma (11% blue) mostly survives.
+        for py in 0..p.h() {
+            for px in 0..p.w() {
+                let o = crate::flicker::grid::rgb24_offset(px, py, p.w());
+                buf[o + 2] = 255;
+            }
+        }
+        let dec = FrameDecoder { params: p };
+        match dec.decode(&buf) {
+            DecodeOutcome::Dropped { reason: DropReason::PayloadCrcMismatch } => {}
+            DecodeOutcome::Ok { .. } => {}
+            other => panic!("Y-lane must not fail with BlockRs; got {other:?}"),
+        }
     }
 
     #[test]
