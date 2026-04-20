@@ -32,6 +32,37 @@ fn conf_threshold() -> f32 {
         .unwrap_or(PILOT_CONFIDENCE_THRESHOLD_DEFAULT)
 }
 
+fn conf_threshold_named(env: &str, fallback: f32) -> f32 {
+    std::env::var(env)
+        .ok()
+        .and_then(|s| s.parse::<f32>().ok())
+        .map(|v| v.clamp(0.0, 1.0))
+        .unwrap_or(fallback)
+}
+
+/// Per-lane confidence gates. Header is pure Mode B luma, no calibration,
+/// so it tolerates the default strict gate. Payload Y-lane gets a looser
+/// gate (more bytes fed to RS as errors instead of erasures), and UV-lane
+/// looser still because VK compresses the chroma range harder than luma.
+#[derive(Copy, Clone, Debug)]
+struct ConfGates {
+    header: f32,
+    mode_b_payload: f32,
+    y_lane: f32,
+    uv_lane: f32,
+}
+impl ConfGates {
+    fn from_env() -> Self {
+        let base = conf_threshold();
+        Self {
+            header: conf_threshold_named("FLICKER_CONF_THRESHOLD_HEADER", 0.5),
+            mode_b_payload: conf_threshold_named("FLICKER_CONF_THRESHOLD_PAYLOAD", base),
+            y_lane: conf_threshold_named("FLICKER_CONF_THRESHOLD_Y", 0.4),
+            uv_lane: conf_threshold_named("FLICKER_CONF_THRESHOLD_UV", 0.25),
+        }
+    }
+}
+
 /// Per-frame diagnostic snapshot emitted when `FLICKER_DIAG=1`. Tracks every
 /// step of the decode pipeline: header gate stats, calibrated level palette,
 /// per-block Y/UV-lane accept/erase/min_conf/mean_conf, RS result, final
@@ -328,7 +359,8 @@ pub enum DropReason {
 impl FrameDecoder {
     pub fn decode(&self, buf: &[u8]) -> DecodeOutcome {
         let p = &self.params;
-        let conf_gate = conf_threshold();
+        let gates = ConfGates::from_env();
+        let conf_gate = conf_threshold(); // legacy single-value for diag line
         let mut diag = FrameDiag::new(conf_gate);
         let markers = marker_cell_indices(p);
 
@@ -353,7 +385,7 @@ impl FrameDecoder {
             }
             diag.hdr_min_conf = diag.hdr_min_conf.min(byte_confidence_min);
             diag.hdr_sum_conf += byte_confidence_min;
-            if byte_confidence_min >= conf_gate {
+            if byte_confidence_min >= gates.header {
                 header_shards[byte_idx] = Some(byte);
                 diag.hdr_accept += 1;
             }
@@ -437,7 +469,7 @@ impl FrameDecoder {
                         }
                         blk_min = blk_min.min(min_conf);
                         blk_sum += min_conf;
-                        if min_conf >= conf_gate {
+                        if min_conf >= gates.mode_b_payload {
                             shards[byte_i] = Some(byte);
                             blk_accept += 1;
                         } else {
@@ -503,13 +535,13 @@ impl FrameDecoder {
                         let us = &mut blk_uv_stats[block_i];
                         us.2 = us.2.min(uv_conf_min);
                         us.3 += uv_conf_min;
-                        if y_conf_min >= conf_gate {
+                        if y_conf_min >= gates.y_lane {
                             y_shards[block_i][byte_i] = Some(y_byte);
                             ys.0 += 1;
                         } else {
                             ys.1 += 1;
                         }
-                        if uv_conf_min >= conf_gate {
+                        if uv_conf_min >= gates.uv_lane {
                             uv_shards[block_i][byte_i] = Some(uv_byte);
                             us.0 += 1;
                         } else {
