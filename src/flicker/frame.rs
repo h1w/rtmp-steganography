@@ -32,6 +32,61 @@ fn conf_threshold() -> f32 {
         .unwrap_or(PILOT_CONFIDENCE_THRESHOLD_DEFAULT)
 }
 
+/// Per-frame diagnostic snapshot emitted when `FLICKER_DIAG=1`. Tracks every
+/// step of the decode pipeline: header gate stats, calibrated level palette,
+/// per-block Y/UV-lane accept/erase/min_conf/mean_conf, RS result, final
+/// outcome. Used to pinpoint which stage drops frames under live VK drift.
+#[derive(Default, Debug)]
+struct FrameDiag {
+    conf_gate: f32,
+    mode: Option<ModulationMode>,
+    frame_counter: u32,
+    hdr_accept: usize,
+    hdr_total: usize,
+    hdr_min_conf: f32,
+    hdr_sum_conf: f32,
+    cal_y: Option<[u8; 4]>,
+    cal_u: Option<[u8; 2]>,
+    cal_v: Option<[u8; 2]>,
+    // per-block stats: (accept_count, erase_count, min_conf, sum_conf, rs_ok)
+    // For Mode B: blocks_y only. For Mode C: blocks_y + blocks_uv.
+    blocks_y: Vec<(usize, usize, f32, f32, bool)>,
+    blocks_uv: Vec<(usize, usize, f32, f32, bool)>,
+    payload_len: u16,
+    crc_ok: Option<bool>,
+    final_outcome: String,
+}
+
+impl FrameDiag {
+    fn enabled() -> bool { std::env::var("FLICKER_DIAG").ok().as_deref() == Some("1") }
+    fn new(conf_gate: f32) -> Self { Self { conf_gate, hdr_min_conf: 1.0, ..Default::default() } }
+    fn emit(&self) {
+        if !Self::enabled() { return; }
+        let hdr_mean = if self.hdr_total > 0 { self.hdr_sum_conf / self.hdr_total as f32 } else { 0.0 };
+        let cal_str = match (self.cal_y, self.cal_u, self.cal_v) {
+            (Some(y), Some(u), Some(v)) => format!("cal=Y{:?} U{:?} V{:?}", y, u, v),
+            _ => "cal=none".into(),
+        };
+        let mut blocks = String::new();
+        let fmt_blk = |label: &str, i: usize, b: &(usize, usize, f32, f32, bool)| {
+            let (acc, era, min_c, sum_c, ok) = *b;
+            let n = acc + era;
+            let mean = if n > 0 { sum_c / n as f32 } else { 0.0 };
+            format!(" | {}{}: acc={}/{} era={} min={:.2} mean={:.2} RS={}",
+                label, i, acc, n, era, min_c, mean, if ok { "OK" } else { "ERR" })
+        };
+        for (i, b) in self.blocks_y.iter().enumerate() { blocks.push_str(&fmt_blk("blkY", i, b)); }
+        for (i, b) in self.blocks_uv.iter().enumerate() { blocks.push_str(&fmt_blk("blkUV", i, b)); }
+        let crc_s = match self.crc_ok { Some(true) => "CRC=OK", Some(false) => "CRC=MISMATCH", None => "CRC=-" };
+        eprintln!(
+            "[diag] f={} mode={:?} gate={:.2} hdr={}/{} min={:.2} mean={:.2} {} payload_len={} {} outcome={}{}",
+            self.frame_counter, self.mode, self.conf_gate,
+            self.hdr_accept, self.hdr_total, self.hdr_min_conf, hdr_mean,
+            cal_str, self.payload_len, crc_s, self.final_outcome, blocks,
+        );
+    }
+}
+
 /// Compute cell indices occupied by corner markers for the given params.
 /// Markers are always 16×16 px regardless of cell_size — we floor/ceil to
 /// whatever cells they overlap.
@@ -274,15 +329,19 @@ impl FrameDecoder {
     pub fn decode(&self, buf: &[u8]) -> DecodeOutcome {
         let p = &self.params;
         let conf_gate = conf_threshold();
+        let mut diag = FrameDiag::new(conf_gate);
         let markers = marker_cell_indices(p);
 
         if frame_offset(buf, p).is_none() {
+            diag.final_outcome = "SyncOffsetMissing".into();
+            diag.emit();
             return DecodeOutcome::Dropped { reason: DropReason::SyncOffsetMissing };
         }
 
         let header_perm = cell_permutation(&markers, p.total_cells(), p.grid_cols());
         let header_cells = HEADER_TOTAL_BYTES * 4;
         let mut header_shards: [Option<u8>; HEADER_TOTAL_BYTES] = [None; HEADER_TOTAL_BYTES];
+        diag.hdr_total = HEADER_TOTAL_BYTES;
         for byte_idx in 0..HEADER_TOTAL_BYTES {
             let mut byte = 0u8;
             let mut byte_confidence_min = 1.0f32;
@@ -292,14 +351,24 @@ impl FrameDecoder {
                 byte = (byte << 2) | (sym & 0b11);
                 byte_confidence_min = byte_confidence_min.min(conf);
             }
+            diag.hdr_min_conf = diag.hdr_min_conf.min(byte_confidence_min);
+            diag.hdr_sum_conf += byte_confidence_min;
             if byte_confidence_min >= conf_gate {
                 header_shards[byte_idx] = Some(byte);
+                diag.hdr_accept += 1;
             }
         }
         let header = match decode_header(&header_shards) {
             Ok(h) => h,
-            Err(_) => return DecodeOutcome::Dropped { reason: DropReason::HeaderRsFailed },
+            Err(_) => {
+                diag.final_outcome = "HeaderRsFailed".into();
+                diag.emit();
+                return DecodeOutcome::Dropped { reason: DropReason::HeaderRsFailed };
+            }
         };
+        diag.frame_counter = header.frame_counter;
+        diag.mode = Some(header.modulation_mode);
+        diag.payload_len = header.payload_len;
 
         let header_cell_indices: Vec<usize> = header_perm[..header_cells]
             .iter()
@@ -315,6 +384,8 @@ impl FrameDecoder {
             ModulationMode::B => {
                 let (ok, _) = validate_pilots(buf, header.frame_counter, &pilot_excluded, p);
                 if ok < PILOT_SUCCESS_MIN {
+                    diag.final_outcome = format!("PilotValidationFailed({:.2})", ok);
+                    diag.emit();
                     return DecodeOutcome::Dropped { reason: DropReason::PilotValidationFailed(ok) };
                 }
                 ok
@@ -333,7 +404,11 @@ impl FrameDecoder {
                 let obs = crate::flicker::pilot::read_pilot_observations_c(
                     buf, header.frame_counter, &pilot_excluded, p,
                 );
-                Some(crate::flicker::calibration::calibrate(&obs))
+                let cal = crate::flicker::calibration::calibrate(&obs);
+                diag.cal_y = Some(cal.y);
+                diag.cal_u = Some(cal.u);
+                diag.cal_v = Some(cal.v);
+                Some(cal)
             }
             ModulationMode::B => None,
         };
@@ -345,6 +420,10 @@ impl FrameDecoder {
                 let mut decoded_blocks: Vec<Vec<u8>> = Vec::with_capacity(block_count);
                 for block_i in 0..block_count {
                     let mut shards: Vec<Option<u8>> = vec![None; RS_BLOCK_N];
+                    let mut blk_accept = 0usize;
+                    let mut blk_erase = 0usize;
+                    let mut blk_min = 1.0f32;
+                    let mut blk_sum = 0.0f32;
                     for byte_i in 0..RS_BLOCK_N {
                         let mut byte = 0u8;
                         let mut min_conf = 1.0f32;
@@ -356,13 +435,24 @@ impl FrameDecoder {
                             byte = (byte << 2) | (sym & 0b11);
                             min_conf = min_conf.min(conf);
                         }
+                        blk_min = blk_min.min(min_conf);
+                        blk_sum += min_conf;
                         if min_conf >= conf_gate {
                             shards[byte_i] = Some(byte);
+                            blk_accept += 1;
+                        } else {
+                            blk_erase += 1;
                         }
                     }
-                    match decode_block(&shards) {
-                        Ok(d) => decoded_blocks.push(d),
-                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) },
+                    let rs_ok = match decode_block(&shards) {
+                        Ok(d) => { decoded_blocks.push(d); true }
+                        Err(_) => false,
+                    };
+                    diag.blocks_y.push((blk_accept, blk_erase, blk_min, blk_sum, rs_ok));
+                    if !rs_ok {
+                        diag.final_outcome = format!("BlockRsFailed({})", block_i);
+                        diag.emit();
+                        return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) };
                     }
                 }
                 let mut bytes = Vec::with_capacity(block_count * RS_BLOCK_K);
@@ -373,6 +463,10 @@ impl FrameDecoder {
                 use crate::flicker::channels::{pack_lane_bytes, CELLS_PER_LANE_BYTE};
                 let mut y_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
                 let mut uv_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
+                // Per-block (accept, erase, min_conf, sum_conf) tracked once; RS
+                // gate is shared across lanes (same 4 cells produce one Y-byte and
+                // one UV-byte), so accept/erase counts match between lanes.
+                let mut blk_stats: Vec<(usize, usize, f32, f32)> = vec![(0, 0, 1.0, 0.0); block_count];
                 for block_i in 0..block_count {
                     for byte_i in 0..RS_BLOCK_N {
                         let pair_i = block_i * RS_BLOCK_N + byte_i;
@@ -394,23 +488,44 @@ impl FrameDecoder {
                         }
                         if any_skipped { continue; }
                         let (y_byte, uv_byte) = pack_lane_bytes(&cells_observed);
+                        let s = &mut blk_stats[block_i];
+                        s.2 = s.2.min(min_conf);
+                        s.3 += min_conf;
                         if min_conf >= conf_gate {
                             y_shards[block_i][byte_i] = Some(y_byte);
                             uv_shards[block_i][byte_i] = Some(uv_byte);
+                            s.0 += 1;
+                        } else {
+                            s.1 += 1;
                         }
                     }
                 }
                 let mut y_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
                 let mut uv_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
+                let mut failure: Option<DropReason> = None;
                 for block_i in 0..block_count {
-                    match decode_block(&y_shards[block_i]) {
-                        Ok(d) => y_bytes.extend_from_slice(&d),
-                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailedY(block_i) },
+                    let (acc, era, mn, sm) = blk_stats[block_i];
+                    let y_rs_ok = match decode_block(&y_shards[block_i]) {
+                        Ok(d) => { y_bytes.extend_from_slice(&d); true }
+                        Err(_) => false,
+                    };
+                    let uv_rs_ok = match decode_block(&uv_shards[block_i]) {
+                        Ok(d) => { uv_bytes.extend_from_slice(&d); true }
+                        Err(_) => false,
+                    };
+                    diag.blocks_y.push((acc, era, mn, sm, y_rs_ok));
+                    diag.blocks_uv.push((acc, era, mn, sm, uv_rs_ok));
+                    if !y_rs_ok && failure.is_none() {
+                        failure = Some(DropReason::BlockRsFailedY(block_i));
                     }
-                    match decode_block(&uv_shards[block_i]) {
-                        Ok(d) => uv_bytes.extend_from_slice(&d),
-                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailedUV(block_i) },
+                    if !uv_rs_ok && failure.is_none() {
+                        failure = Some(DropReason::BlockRsFailedUV(block_i));
                     }
+                }
+                if let Some(reason) = failure {
+                    diag.final_outcome = format!("{:?}", reason);
+                    diag.emit();
+                    return DecodeOutcome::Dropped { reason };
                 }
                 let mut bytes = y_bytes;
                 bytes.extend_from_slice(&uv_bytes);
@@ -420,6 +535,9 @@ impl FrameDecoder {
         payload_bytes.truncate(header.payload_len as usize);
 
         if payload_bytes.len() < 4 {
+            diag.crc_ok = Some(false);
+            diag.final_outcome = "PayloadCrcMismatch(short)".into();
+            diag.emit();
             return DecodeOutcome::Dropped { reason: DropReason::PayloadCrcMismatch };
         }
         let crc_start = payload_bytes.len() - 4;
@@ -429,8 +547,12 @@ impl FrameDecoder {
         ]);
         let expected_crc = crc32fast::hash(&payload_bytes[..crc_start]);
         if got_crc != expected_crc {
+            diag.crc_ok = Some(false);
+            diag.final_outcome = format!("PayloadCrcMismatch got={:08x} want={:08x}", got_crc, expected_crc);
+            diag.emit();
             return DecodeOutcome::Dropped { reason: DropReason::PayloadCrcMismatch };
         }
+        diag.crc_ok = Some(true);
         payload_bytes.truncate(crc_start);
 
         let mut fragments = Vec::new();
@@ -438,7 +560,11 @@ impl FrameDecoder {
         while cursor + FRAGMENT_HEADER_BYTES <= payload_bytes.len() {
             let (mut frag, used) = match Fragment::deserialize_header(&payload_bytes[cursor..]) {
                 Ok(v) => v,
-                Err(_) => return DecodeOutcome::Dropped { reason: DropReason::FragmentParse },
+                Err(_) => {
+                    diag.final_outcome = "FragmentParse".into();
+                    diag.emit();
+                    return DecodeOutcome::Dropped { reason: DropReason::FragmentParse };
+                }
             };
             cursor += used;
             frag.payload = payload_bytes[cursor..].to_vec();
@@ -446,6 +572,8 @@ impl FrameDecoder {
             break;
         }
 
+        diag.final_outcome = "Ok".into();
+        diag.emit();
         DecodeOutcome::Ok { header, fragments, pilot_success: pilot_ok }
     }
 }
