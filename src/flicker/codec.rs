@@ -100,6 +100,47 @@ pub fn read_cell_c(
     (symbol, conf)
 }
 
+/// Mode C cell reader that returns luma and chroma confidences independently.
+/// Callers that RS-encode Y-lane and UV-lane separately need to gate each
+/// lane on its own confidence — bundling `min(y_conf, u_conf, v_conf)` into a
+/// single gate defeats the whole point of multi-level coding because a noisy
+/// U or V value can stop a perfectly-read Y from landing in the Y shard.
+///
+/// Returns `(symbol, y_conf, uv_conf)` where `uv_conf = min(u_conf, v_conf)`.
+pub fn read_cell_c_cal_split(
+    buf: &[u8], col: usize, row: usize,
+    width: usize, cell_size: usize, read_offset: usize, read_size: usize,
+    cal: &crate::flicker::calibration::CalibratedLevels,
+) -> (u8, f32, f32) {
+    use crate::flicker::levels::quantise_with_levels;
+    let (x0, y0) = cell_topleft(col, row, cell_size);
+    let rx0 = x0 + read_offset;
+    let ry0 = y0 + read_offset;
+    let mut r_sum = 0u32;
+    let mut g_sum = 0u32;
+    let mut b_sum = 0u32;
+    let mut count = 0u32;
+    for py in ry0..ry0 + read_size {
+        for px in rx0..rx0 + read_size {
+            let o = rgb24_offset(px, py, width);
+            r_sum += buf[o] as u32;
+            g_sum += buf[o + 1] as u32;
+            b_sum += buf[o + 2] as u32;
+            count += 1;
+        }
+    }
+    let r_mean = (r_sum / count.max(1)) as u8;
+    let g_mean = (g_sum / count.max(1)) as u8;
+    let b_mean = (b_sum / count.max(1)) as u8;
+    let (y, u, v) = rgb_to_yuv(r_mean, g_mean, b_mean);
+    let (y_sym, y_conf) = quantise_with_levels(y, &cal.y);
+    let (u_sym, u_conf) = quantise_with_levels(u, &cal.u);
+    let (v_sym, v_conf) = quantise_with_levels(v, &cal.v);
+    let symbol = (y_sym << 2) | (u_sym << 1) | v_sym;
+    let uv_conf = u_conf.min(v_conf);
+    (symbol, y_conf, uv_conf)
+}
+
 /// Mode C cell reader using caller-supplied calibrated Y/U/V levels.
 /// Semantically identical to `read_cell_c` but uses dynamic thresholds.
 pub fn read_cell_c_cal(

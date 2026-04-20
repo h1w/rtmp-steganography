@@ -463,40 +463,57 @@ impl FrameDecoder {
                 use crate::flicker::channels::{pack_lane_bytes, CELLS_PER_LANE_BYTE};
                 let mut y_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
                 let mut uv_shards: Vec<Vec<Option<u8>>> = (0..block_count).map(|_| vec![None; RS_BLOCK_N]).collect();
-                // Per-block (accept, erase, min_conf, sum_conf) tracked once; RS
-                // gate is shared across lanes (same 4 cells produce one Y-byte and
-                // one UV-byte), so accept/erase counts match between lanes.
-                let mut blk_stats: Vec<(usize, usize, f32, f32)> = vec![(0, 0, 1.0, 0.0); block_count];
+                // Per-block (accept, erase, min_conf, sum_conf) separately for
+                // each lane — this is what makes multi-level coding actually pay
+                // off: a chroma-only drift erases the UV byte while the luma
+                // byte lands intact.
+                let mut blk_y_stats: Vec<(usize, usize, f32, f32)> = vec![(0, 0, 1.0, 0.0); block_count];
+                let mut blk_uv_stats: Vec<(usize, usize, f32, f32)> = vec![(0, 0, 1.0, 0.0); block_count];
                 for block_i in 0..block_count {
                     for byte_i in 0..RS_BLOCK_N {
                         let pair_i = block_i * RS_BLOCK_N + byte_i;
                         let mut cells_observed = [0u8; CELLS_PER_LANE_BYTE];
-                        let mut min_conf = 1.0f32;
+                        let mut y_conf_min = 1.0f32;
+                        let mut uv_conf_min = 1.0f32;
                         let mut any_skipped = false;
                         for unit in 0..CELLS_PER_LANE_BYTE {
                             let cell_pos = pair_i * CELLS_PER_LANE_BYTE + unit;
                             if cell_pos >= payload_perm.len() { any_skipped = true; break; }
                             let (col, row) = payload_perm[cell_pos];
-                            let (sym, conf) = match calibrated.as_ref() {
-                                Some(cal) => crate::flicker::codec::read_cell_c_cal(
+                            let (sym, y_c, uv_c) = match calibrated.as_ref() {
+                                Some(cal) => crate::flicker::codec::read_cell_c_cal_split(
                                     buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size(), cal,
                                 ),
-                                None => read_cell(buf, col, row, ModulationMode::C, p.w(), p.cs(), p.read_offset(), p.read_size()),
+                                None => {
+                                    // No calibration — fall back to combined reader, treat
+                                    // both lanes with the same (pessimistic) confidence.
+                                    let (s, c) = read_cell(buf, col, row, ModulationMode::C, p.w(), p.cs(), p.read_offset(), p.read_size());
+                                    (s, c, c)
+                                }
                             };
                             cells_observed[unit] = sym & 0b1111;
-                            min_conf = min_conf.min(conf);
+                            y_conf_min = y_conf_min.min(y_c);
+                            uv_conf_min = uv_conf_min.min(uv_c);
                         }
                         if any_skipped { continue; }
                         let (y_byte, uv_byte) = pack_lane_bytes(&cells_observed);
-                        let s = &mut blk_stats[block_i];
-                        s.2 = s.2.min(min_conf);
-                        s.3 += min_conf;
-                        if min_conf >= conf_gate {
+                        let ys = &mut blk_y_stats[block_i];
+                        ys.2 = ys.2.min(y_conf_min);
+                        ys.3 += y_conf_min;
+                        let us = &mut blk_uv_stats[block_i];
+                        us.2 = us.2.min(uv_conf_min);
+                        us.3 += uv_conf_min;
+                        if y_conf_min >= conf_gate {
                             y_shards[block_i][byte_i] = Some(y_byte);
-                            uv_shards[block_i][byte_i] = Some(uv_byte);
-                            s.0 += 1;
+                            ys.0 += 1;
                         } else {
-                            s.1 += 1;
+                            ys.1 += 1;
+                        }
+                        if uv_conf_min >= conf_gate {
+                            uv_shards[block_i][byte_i] = Some(uv_byte);
+                            us.0 += 1;
+                        } else {
+                            us.1 += 1;
                         }
                     }
                 }
@@ -504,7 +521,8 @@ impl FrameDecoder {
                 let mut uv_bytes: Vec<u8> = Vec::with_capacity(block_count * RS_BLOCK_K);
                 let mut failure: Option<DropReason> = None;
                 for block_i in 0..block_count {
-                    let (acc, era, mn, sm) = blk_stats[block_i];
+                    let ys = blk_y_stats[block_i];
+                    let us = blk_uv_stats[block_i];
                     let y_rs_ok = match decode_block(&y_shards[block_i]) {
                         Ok(d) => { y_bytes.extend_from_slice(&d); true }
                         Err(_) => false,
@@ -513,8 +531,8 @@ impl FrameDecoder {
                         Ok(d) => { uv_bytes.extend_from_slice(&d); true }
                         Err(_) => false,
                     };
-                    diag.blocks_y.push((acc, era, mn, sm, y_rs_ok));
-                    diag.blocks_uv.push((acc, era, mn, sm, uv_rs_ok));
+                    diag.blocks_y.push((ys.0, ys.1, ys.2, ys.3, y_rs_ok));
+                    diag.blocks_uv.push((us.0, us.1, us.2, us.3, uv_rs_ok));
                     if !y_rs_ok && failure.is_none() {
                         failure = Some(DropReason::BlockRsFailedY(block_i));
                     }
