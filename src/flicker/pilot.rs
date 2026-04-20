@@ -58,6 +58,17 @@ pub fn validate_pilots(buf: &[u8], frame_counter: u32, excluded: &[usize], p: &F
     (ok as f32 / total, conf_sum / total)
 }
 
+/// Mode C pilot symbol — 4 bits (0..16). Stratified so every symbol gets
+/// at least `PILOT_COUNT / 16` occurrences. Assignment is deterministic:
+/// pilot index `i` → symbol `((i * 16) / PILOT_COUNT) % 16` rotated by a
+/// PRNG-derived per-frame offset (keeps decoder in sync).
+pub fn pilot_value_c(frame_counter: u32, index_in_pilot_list: usize) -> u8 {
+    let mut rng = ChaCha8Rng::from_seed(seed_for(frame_counter ^ 0xC0DE_BEEF));
+    let offset = (rng.next_u32() & 0x0F) as usize;
+    let base = (index_in_pilot_list * 16) / PILOT_COUNT;
+    ((base + offset) % 16) as u8
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -87,5 +98,23 @@ mod tests {
         paint_pilots(&mut buf, 100, &[], &p);
         let (ok, _) = validate_pilots(&buf, 100, &[], &p);
         assert!(ok > 0.99);
+    }
+
+    #[test]
+    fn pilot_value_c_covers_all_16_symbols_evenly() {
+        // For any frame_counter, iterating i in 0..PILOT_COUNT must produce
+        // every 4-bit symbol at least floor(PILOT_COUNT / 16) times so the
+        // calibrator has enough samples per level.
+        let mut counts = [0usize; 16];
+        for i in 0..PILOT_COUNT {
+            let sym = pilot_value_c(42, i);
+            assert!(sym < 16, "pilot_value_c must return symbol < 16, got {sym}");
+            counts[sym as usize] += 1;
+        }
+        let min_expected = PILOT_COUNT / 16;
+        for (s, c) in counts.iter().enumerate() {
+            assert!(*c >= min_expected,
+                "symbol {s} has only {c} pilots (need >= {min_expected})");
+        }
     }
 }
