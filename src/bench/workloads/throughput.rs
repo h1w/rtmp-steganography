@@ -17,8 +17,17 @@ use tokio::net::TcpStream;
 use crate::tunnel::metrics::{Event, EventEmitter};
 
 /// Hard upper bound on the whole stream. Stops the workload even if the tunnel
-/// stalls so the bench never hangs forever.
-const STREAM_TIMEOUT: Duration = Duration::from_secs(30);
+/// stalls so the bench never hangs forever. Overridable via env
+/// `BENCH_STREAM_TIMEOUT_S` (seconds) — VK CMAF one-way latency is 15-30s so
+/// small-payload round-trips need 60-180s in practice.
+const STREAM_TIMEOUT_DEFAULT_S: u64 = 30;
+fn stream_timeout() -> Duration {
+    let secs = std::env::var("BENCH_STREAM_TIMEOUT_S")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(STREAM_TIMEOUT_DEFAULT_S);
+    Duration::from_secs(secs)
+}
 
 pub async fn run(
     socks: SocketAddr,
@@ -35,7 +44,7 @@ pub async fn run(
         socks, target_host.to_string(), target_port, total_bytes,
         Arc::clone(&sent_counter), Arc::clone(&recv_counter),
     );
-    let result = tokio::time::timeout(STREAM_TIMEOUT, fut).await;
+    let result = tokio::time::timeout(stream_timeout(), fut).await;
     let elapsed = start.elapsed();
 
     let sent = sent_counter.load(Ordering::SeqCst);
@@ -77,17 +86,23 @@ async fn stream_roundtrip(
     sent_counter: Arc<AtomicU64>,
     recv_counter: Arc<AtomicU64>,
 ) -> Result<(), String> {
+    eprintln!("[bench/throughput] connecting to SOCKS {}", socks);
     let mut c = TcpStream::connect(socks).await.map_err(|e| format!("socks_connect: {e}"))?;
+    eprintln!("[bench/throughput] SOCKS connected, sending greet");
     c.write_all(&[5, 1, 0]).await.map_err(|e| format!("greet_write: {e}"))?;
     let mut g = [0u8; 2];
     c.read_exact(&mut g).await.map_err(|e| format!("greet_read: {e}"))?;
+    eprintln!("[bench/throughput] greet OK {:?}", g);
     if g != [5, 0] { return Err("bad_greet".into()); }
     let mut req = vec![5u8, 1, 0, 3, host.len() as u8];
     req.extend_from_slice(host.as_bytes());
     req.extend_from_slice(&port.to_be_bytes());
+    eprintln!("[bench/throughput] sending CONNECT {}:{} (req {} bytes)", host, port, req.len());
     c.write_all(&req).await.map_err(|e| format!("req_write: {e}"))?;
     let mut rep = [0u8; 10];
+    eprintln!("[bench/throughput] waiting for SOCKS reply (10 bytes)");
     c.read_exact(&mut rep).await.map_err(|e| format!("req_read: {e}"))?;
+    eprintln!("[bench/throughput] SOCKS reply received: status={}", rep[1]);
     if rep[1] != 0 { return Err(format!("socks_reply_{}", rep[1])); }
 
     let (mut rx, mut tx) = c.into_split();
@@ -104,7 +119,11 @@ async fn stream_roundtrip(
                 sent += chunk as u64;
                 counter.store(sent, Ordering::SeqCst);
             }
-            let _ = tx.shutdown().await;
+            // Do NOT shutdown tx here — the yamux stream does not honour
+            // half-close cleanly, so a shutdown would tear down rx too and
+            // strand any in-flight echo bytes. Keep tx open; let the outer
+            // STREAM_TIMEOUT or rx_task completion drive shutdown instead.
+            tx
         })
     };
 
@@ -124,7 +143,11 @@ async fn stream_roundtrip(
         })
     };
 
-    let _ = tx_task.await;
+    // Wait for rx to collect `total_bytes` echo (or hit EOF). Only then
+    // shutdown tx so the peer can tear down the echo socket cleanly.
     let _ = rx_task.await;
+    if let Ok(mut tx) = tx_task.await {
+        let _ = tx.shutdown().await;
+    }
     Ok(())
 }
