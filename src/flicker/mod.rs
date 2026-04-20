@@ -9,6 +9,7 @@ pub mod levels;
 pub mod markers;
 pub mod pilot;
 pub mod calibration;
+pub mod channels;
 
 /// Legacy fallback for the 256x144 mode B grid (block_count=2):
 /// 2 * 120 − 9 (FRAGMENT_HEADER_BYTES) − 4 (payload CRC32) = 227.
