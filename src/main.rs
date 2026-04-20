@@ -33,6 +33,7 @@ fn run_bench(cmd: BenchCmd) -> Result<()> {
                 iperf_host, iperf_port, iperf_rate_kbps, iperf_duration_s,
                 metrics_dir, skip_iperf,
                 throughput_bytes, raw_echo_host, raw_echo_port,
+                one_way, raw_sink_port,
             } => {
                 let run_id = new_run_id();
                 let dir = metrics_dir.join(&run_id);
@@ -44,6 +45,7 @@ fn run_bench(cmd: BenchCmd) -> Result<()> {
                         iperf_host, iperf_port, iperf_rate_kbps, iperf_duration_s,
                         skip_iperf,
                         throughput_bytes, raw_echo_host, raw_echo_port,
+                        one_way, raw_sink_port,
                     },
                     Arc::clone(&em),
                 ).await;

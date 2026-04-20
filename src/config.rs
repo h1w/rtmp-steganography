@@ -34,6 +34,14 @@ pub struct PeerConfig {
     /// If Some, override the sqrt-scaled default bitrate (kbps) for CBR mode.
     /// Ignored when `x264_qp` is Some.
     pub x264_bitrate_kbps: Option<u32>,
+    /// If Some, use `-crf N` (constant quality, VBV-compatible). Takes
+    /// precedence over `x264_qp` and `x264_bitrate_kbps`. Can be combined
+    /// with `x264_maxrate_kbps` for soft-capped quality-targeted encoding.
+    pub x264_crf: Option<u32>,
+    /// If Some, emit `-maxrate Xk -bufsize 2Xk` in addition to whatever
+    /// rate-control mode is active. Only effective in -crf or -b:v modes;
+    /// x264 ignores VBV in -qp (CQP) mode.
+    pub x264_maxrate_kbps: Option<u32>,
 }
 
 pub fn load_peer() -> Result<PeerConfig> {
@@ -52,6 +60,8 @@ pub fn load_peer() -> Result<PeerConfig> {
         flicker_cell_size: env_u64("peer_flicker_cell_size")?.unwrap_or(4) as u32,
         x264_qp: env_u64("peer_x264_qp")?.map(|v| v as u32),
         x264_bitrate_kbps: env_u64("peer_x264_bitrate_kbps")?.map(|v| v as u32),
+        x264_crf: env_u64("peer_x264_crf")?.map(|v| v as u32),
+        x264_maxrate_kbps: env_u64("peer_x264_maxrate_kbps")?.map(|v| v as u32),
     })
 }
 
@@ -111,7 +121,7 @@ mod tests {
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: ModulationMode::B, frag_timeout_ms: 2000,
             rx_warmup_ms: 0, log_every_frame: false,
-            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None,
+            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None, x264_crf: None, x264_maxrate_kbps: None,
         };
         assert!(validate_tx(&c).is_err());
         c.my_rtmp_url = "rtmp://x".into();

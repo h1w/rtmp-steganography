@@ -59,6 +59,37 @@ fn parse_content_length(hdr: &[u8]) -> Option<usize> {
     None
 }
 
+/// Raw TCP sink — accepts data, counts bytes, discards. One-way throughput
+/// endpoint for high-latency links where round-trip echo is too slow. When
+/// the client closes the stream (FIN), the server emits a per-connection
+/// eprintln with total bytes and duration. Pair with `--one-way` on bench.
+pub async fn spawn_raw_sink(bind: SocketAddr, running: Arc<AtomicBool>) -> std::io::Result<()> {
+    let lst = TcpListener::bind(bind).await?;
+    tokio::spawn(async move {
+        while running.load(Ordering::SeqCst) {
+            let Ok((mut s, addr)) = lst.accept().await else { continue };
+            tokio::spawn(async move {
+                let start = std::time::Instant::now();
+                let mut buf = vec![0u8; 16384];
+                let mut total: u64 = 0;
+                loop {
+                    let n = match s.read(&mut buf).await {
+                        Ok(0) => break,
+                        Err(_) => break,
+                        Ok(n) => n,
+                    };
+                    total += n as u64;
+                }
+                let dur = start.elapsed();
+                eprintln!("[bench/sink] {} closed: bytes_received={} duration_ms={} goodput_kbps={:.2}",
+                    addr, total, dur.as_millis(),
+                    (total as f64 * 8.0 / 1000.0) / dur.as_secs_f64().max(1e-6));
+            });
+        }
+    });
+    Ok(())
+}
+
 /// Raw TCP echo server — streams bytes back as-is, no HTTP framing. Used by
 /// the throughput workload to measure sustained bidirectional goodput with
 /// zero request/response overhead and no external tools.

@@ -22,6 +22,8 @@ pub struct Config {
     pub throughput_bytes: u64,
     pub raw_echo_host: String,
     pub raw_echo_port: u16,
+    pub one_way: bool,
+    pub raw_sink_port: u16,
 }
 
 pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
@@ -39,15 +41,27 @@ pub async fn run(cfg: Config, em: Arc<EventEmitter>) {
     }
 
     if cfg.throughput_bytes > 0 {
-        eprintln!("[bench/smoke] native throughput: streaming {} bytes via SOCKS5 -> raw_echo {}:{}",
-            cfg.throughput_bytes, cfg.raw_echo_host, cfg.raw_echo_port);
-        throughput::run(
-            cfg.socks,
-            &cfg.raw_echo_host,
-            cfg.raw_echo_port,
-            cfg.throughput_bytes,
-            Arc::clone(&em),
-        ).await;
+        if cfg.one_way {
+            eprintln!("[bench/smoke] native ONE-WAY throughput: streaming {} bytes via SOCKS5 -> raw_sink {}:{}",
+                cfg.throughput_bytes, cfg.raw_echo_host, cfg.raw_sink_port);
+            throughput::run_one_way(
+                cfg.socks,
+                &cfg.raw_echo_host,
+                cfg.raw_sink_port,
+                cfg.throughput_bytes,
+                Arc::clone(&em),
+            ).await;
+        } else {
+            eprintln!("[bench/smoke] native throughput: streaming {} bytes via SOCKS5 -> raw_echo {}:{}",
+                cfg.throughput_bytes, cfg.raw_echo_host, cfg.raw_echo_port);
+            throughput::run(
+                cfg.socks,
+                &cfg.raw_echo_host,
+                cfg.raw_echo_port,
+                cfg.throughput_bytes,
+                Arc::clone(&em),
+            ).await;
+        }
     }
 
     if !cfg.skip_iperf {

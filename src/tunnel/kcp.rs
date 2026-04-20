@@ -41,13 +41,18 @@ impl Profile {
 
     pub fn params(self) -> KcpParams {
         match self {
+            // Throughput: large windows, conservative RTO-based retransmit.
+            // VK CMAF RTT is 30-60s so fast retransmit (resend=N) mis-fires
+            // from duplicate ACKs under reordering. Rely on RTO doubling
+            // instead. nc=1 disables congestion control so snd_wnd is the
+            // actual in-flight ceiling.
             Profile::Throughput => KcpParams {
-                snd_wnd: 256,
-                rcv_wnd: 256,
+                snd_wnd: 512,
+                rcv_wnd: 512,
                 nodelay: 0,
                 interval: 40,
                 resend: 0,
-                nc: 0,
+                nc: 1,
                 min_rto: 200,
             },
             Profile::Latency => KcpParams {
@@ -319,7 +324,8 @@ mod tests {
 
     #[test]
     fn profile_parameters_match_spec() {
-        assert_eq!(Profile::Throughput.params().snd_wnd, 256);
+        assert_eq!(Profile::Throughput.params().snd_wnd, 512);
+        assert_eq!(Profile::Throughput.params().nodelay, 0);
         assert_eq!(Profile::Latency.params().snd_wnd, 32);
         assert_eq!(Profile::Latency.params().nodelay, 1);
     }

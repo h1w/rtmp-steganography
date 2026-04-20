@@ -78,6 +78,116 @@ pub async fn run(
     em.emit(ev);
 }
 
+/// One-way throughput test — streams bytes through the tunnel to peer-B's
+/// raw_sink and closes. Avoids the yamux half-close problem that makes
+/// echo-based round-trip tests unreliable on high-latency links.
+pub async fn run_one_way(
+    socks: SocketAddr,
+    target_host: &str,
+    target_port: u16,
+    total_bytes: u64,
+    em: Arc<EventEmitter>,
+) {
+    let sent_counter = Arc::new(AtomicU64::new(0));
+    let handshake_ms = Arc::new(AtomicU64::new(0));
+    let payload_ms = Arc::new(AtomicU64::new(0));
+    let close_ms = Arc::new(AtomicU64::new(0));
+    let start = Instant::now();
+    let fut = stream_one_way(
+        socks, target_host.to_string(), target_port, total_bytes,
+        Arc::clone(&sent_counter),
+        Arc::clone(&handshake_ms),
+        Arc::clone(&payload_ms),
+        Arc::clone(&close_ms),
+    );
+    let result = tokio::time::timeout(stream_timeout(), fut).await;
+    let elapsed = start.elapsed();
+
+    let sent = sent_counter.load(Ordering::SeqCst);
+    let hs = handshake_ms.load(Ordering::SeqCst);
+    let pl = payload_ms.load(Ordering::SeqCst);
+    let cl = close_ms.load(Ordering::SeqCst);
+    let (ok, fail_stage): (bool, Option<String>) = match result {
+        Ok(Ok(())) => (true, None),
+        Ok(Err(e)) => (false, Some(e)),
+        Err(_) => (false, Some(format!("stream_timeout_at_{}ms", elapsed.as_millis()))),
+    };
+    // Effective payload throughput uses only the payload phase duration.
+    // The total-elapsed figure includes SOCKS handshake + connection close and
+    // drastically under-reports what the tunnel sustains during actual transfer.
+    let sec_total = elapsed.as_secs_f64().max(1e-6);
+    let sec_payload = (pl as f64 / 1000.0).max(1e-6);
+    let oneway_bps_total = ((sent as f64) * 8.0 / sec_total) as u64;
+    let oneway_bps_payload = ((sent as f64) * 8.0 / sec_payload) as u64;
+    eprintln!("[bench/one_way] handshake={}ms payload={}ms close={}ms total={}ms sent={} B",
+        hs, pl, cl, elapsed.as_millis(), sent);
+    eprintln!("[bench/one_way] payload_goodput={} bps = {:.2} kbit/s (setup-excluded)",
+        oneway_bps_payload, oneway_bps_payload as f64 / 1000.0);
+    let mut ev = Event::new("bench", "throughput_done")
+        .field("workload", "throughput_one_way")
+        .field("ok", ok)
+        .field("bytes_target", total_bytes as i64)
+        .field("bytes_sent", sent as i64)
+        .field("bytes_received", sent as i64)
+        .field("elapsed_ms", elapsed.as_millis() as i64)
+        .field("handshake_ms", hs as i64)
+        .field("payload_ms", pl as i64)
+        .field("close_ms", cl as i64)
+        .field("oneway_bps", oneway_bps_total as i64)
+        .field("oneway_kbits_per_s", (oneway_bps_total as f64 / 1000.0 * 100.0).round() / 100.0)
+        .field("payload_goodput_bps", oneway_bps_payload as i64)
+        .field("payload_goodput_kbits_per_s", (oneway_bps_payload as f64 / 1000.0 * 100.0).round() / 100.0)
+        .field("tunnel_internal_bps", oneway_bps_total as i64)
+        .field("tunnel_internal_kbits_per_s", (oneway_bps_total as f64 / 1000.0 * 100.0).round() / 100.0);
+    if let Some(stage) = fail_stage { ev = ev.field("fail_stage", stage); }
+    em.emit(ev);
+}
+
+async fn stream_one_way(
+    socks: SocketAddr,
+    host: String,
+    port: u16,
+    total_bytes: u64,
+    sent_counter: Arc<AtomicU64>,
+    handshake_ms: Arc<AtomicU64>,
+    payload_ms: Arc<AtomicU64>,
+    close_ms: Arc<AtomicU64>,
+) -> Result<(), String> {
+    let t_start = Instant::now();
+    let mut c = TcpStream::connect(socks).await.map_err(|e| format!("socks_connect: {e}"))?;
+    c.write_all(&[5, 1, 0]).await.map_err(|e| format!("greet_write: {e}"))?;
+    let mut g = [0u8; 2];
+    c.read_exact(&mut g).await.map_err(|e| format!("greet_read: {e}"))?;
+    if g != [5, 0] { return Err("bad_greet".into()); }
+    let mut req = vec![5u8, 1, 0, 3, host.len() as u8];
+    req.extend_from_slice(host.as_bytes());
+    req.extend_from_slice(&port.to_be_bytes());
+    c.write_all(&req).await.map_err(|e| format!("req_write: {e}"))?;
+    let mut rep = [0u8; 10];
+    c.read_exact(&mut rep).await.map_err(|e| format!("req_read: {e}"))?;
+    if rep[1] != 0 { return Err(format!("socks_reply_{}", rep[1])); }
+    handshake_ms.store(t_start.elapsed().as_millis() as u64, Ordering::SeqCst);
+
+    let t_payload = Instant::now();
+    let mut buf = vec![0u8; 4096];
+    for (i, b) in buf.iter_mut().enumerate() { *b = (i & 0xff) as u8; }
+    let mut sent: u64 = 0;
+    while sent < total_bytes {
+        let chunk = ((total_bytes - sent) as usize).min(buf.len());
+        c.write_all(&buf[..chunk]).await.map_err(|e| format!("write: {e}"))?;
+        sent += chunk as u64;
+        sent_counter.store(sent, Ordering::SeqCst);
+    }
+    payload_ms.store(t_payload.elapsed().as_millis() as u64, Ordering::SeqCst);
+
+    let t_close = Instant::now();
+    c.shutdown().await.map_err(|e| format!("shutdown: {e}"))?;
+    let mut discard = [0u8; 1];
+    let _ = c.read(&mut discard).await;
+    close_ms.store(t_close.elapsed().as_millis() as u64, Ordering::SeqCst);
+    Ok(())
+}
+
 async fn stream_roundtrip(
     socks: SocketAddr,
     host: String,

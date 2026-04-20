@@ -70,10 +70,26 @@ async fn handle_one(stream: yamux::Stream, em: Arc<EventEmitter>) {
 
     let Some(tcp) = tcp else { return; };
 
-    // 4. Bidirectional pump: tunnel stream <-> target TCP
+    // 4. Bidirectional pump: tunnel stream <-> target TCP with byte counters.
     let (mut tr, mut tw) = tcp.into_split();
     let (mut sr, mut sw) = tokio::io::split(stream);
-    let a = tokio::io::copy(&mut sr, &mut tw);
-    let b = tokio::io::copy(&mut tr, &mut sw);
+    let em_a = Arc::clone(&em);
+    let em_b = Arc::clone(&em);
+    let a = async move {
+        let n = tokio::io::copy(&mut sr, &mut tw).await;
+        em_a.emit(Event::new("egress", "pump_done")
+            .field("direction", "tunnel_to_target")
+            .field("bytes", n.as_ref().map(|v| *v as i64).unwrap_or(-1))
+            .field("err", n.as_ref().err().map(|e| e.to_string()).unwrap_or_default()));
+        n
+    };
+    let b = async move {
+        let n = tokio::io::copy(&mut tr, &mut sw).await;
+        em_b.emit(Event::new("egress", "pump_done")
+            .field("direction", "target_to_tunnel")
+            .field("bytes", n.as_ref().map(|v| *v as i64).unwrap_or(-1))
+            .field("err", n.as_ref().err().map(|e| e.to_string()).unwrap_or_default()));
+        n
+    };
     let _ = tokio::try_join!(a, b);
 }

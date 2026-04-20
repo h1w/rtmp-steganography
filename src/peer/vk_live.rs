@@ -17,6 +17,12 @@ const USER_AGENT: &str =
 pub struct VkPlaybackResolved {
     pub dash_mpd: Option<String>,
     pub hls: Option<String>,
+    pub cmaf: Option<String>,
+    /// `live_ondemand_hls`: HLS manifest over the source-passthrough CMAF
+    /// endpoint. Typically preserves publish resolution (no VK ladder upscale)
+    /// AND serves .m3u8 that ffmpeg's HLS demuxer pulls aggressively, unlike
+    /// the DASH .mpd of `live_cmaf`.
+    pub ondemand_hls: Option<String>,
     pub page_url: String,
 }
 
@@ -107,47 +113,56 @@ pub fn resolve_page(page_url: &str) -> Result<VkPlaybackResolved> {
     let arr: Value = serde_json::from_str(json_slice)
         .with_context(|| format!("parse playerUrls from {page_url}"))?;
 
-    // Prefer ffmpeg-friendly variants: live_hls (plain m3u8) first, then
-    // live_dash (plain MPEG-DASH). CMAF / ULL variants are skipped.
+    // Collect all variants; caller picks one based on env preference.
+    // live_cmaf = LL-HLS / CMAF endpoint (typically source-passthrough,
+    // NO transcoder upscale to the VK bitrate ladder).
     let mut dash_mpd: Option<String> = None;
     let mut hls: Option<String> = None;
+    let mut cmaf: Option<String> = None;
+    let mut ondemand_hls: Option<String> = None;
+    eprintln!("[peer/rx] VK playerUrls variants offered:");
     for p in arr.as_array().into_iter().flatten() {
         let t = p.get("type").and_then(|x| x.as_str()).unwrap_or("");
         let u = p.get("url").and_then(|x| x.as_str()).unwrap_or("").trim();
         if u.is_empty() {
             continue;
         }
+        let query_flags: Vec<&str> = ["llhls", "low_latency", "ll=1", "ull", "cmaf", "chunked", "partial"]
+            .into_iter().filter(|k| u.contains(k)).collect();
+        eprintln!("[peer/rx]   type={:<16} url_head={:<100} query_flags={:?}",
+            t, &u.chars().take(100).collect::<String>(), query_flags);
         match t {
-            "live_hls" => {
-                hls.get_or_insert_with(|| u.to_string());
-            }
-            "live_dash" => {
-                dash_mpd.get_or_insert_with(|| u.to_string());
-            }
+            "live_hls" => { hls.get_or_insert_with(|| u.to_string()); }
+            "live_dash" => { dash_mpd.get_or_insert_with(|| u.to_string()); }
+            "live_cmaf" => { cmaf.get_or_insert_with(|| u.to_string()); }
+            "live_ondemand_hls" => { ondemand_hls.get_or_insert_with(|| u.to_string()); }
             _ => {}
         }
     }
 
-    if hls.is_none() && dash_mpd.is_none() {
+    if hls.is_none() && dash_mpd.is_none() && cmaf.is_none() && ondemand_hls.is_none() {
         return Err(anyhow!(
-            "page has playerUrls but no plain live_hls/live_dash entry"
+            "page has playerUrls but no playable live_hls/live_cmaf/live_dash entry"
         ));
     }
 
     Ok(VkPlaybackResolved {
         dash_mpd,
         hls,
+        cmaf,
+        ondemand_hls,
         page_url: page_url.to_string(),
     })
 }
 
 pub fn pick_playback_url(r: &VkPlaybackResolved) -> Option<String> {
-    r.hls.clone().or_else(|| r.dash_mpd.clone())
+    r.hls.clone().or_else(|| r.cmaf.clone()).or_else(|| r.dash_mpd.clone())
 }
 
 /// Adapter for peer mode: given a VK channel slug and stream name, fetch the
-/// playback URL. Returns `(url, is_hls)`. Prefers HLS over DASH when both are
-/// available.
+/// playback URL. Returns `(url, is_hls)`. The variant is selected by
+/// `peer_vk_prefer` env: "cmaf" (LL-HLS, no upscale), "hls" (default — plain
+/// HLS with VK ladder transcoding), "dash" (MPEG-DASH).
 pub fn resolve(channel: &str, name: &str) -> Result<(String, bool)> {
     let page_url = format!(
         "https://live.vkvideo.ru/{}/stream/{}",
@@ -155,11 +170,40 @@ pub fn resolve(channel: &str, name: &str) -> Result<(String, bool)> {
         name.trim_matches('/')
     );
     let playback = resolve_page(&page_url)?;
-    if let Some(url) = &playback.hls {
-        return Ok((url.clone(), true));
-    }
-    if let Some(url) = &playback.dash_mpd {
-        return Ok((url.clone(), false));
+    let prefer = std::env::var("peer_vk_prefer").unwrap_or_default().to_ascii_lowercase();
+    let prefer = prefer.trim();
+    // For "cmaf" preference, try live_ondemand_hls first (m3u8 over CMAF
+    // source-passthrough → fast pull + no upscale), then live_cmaf (DASH
+    // .mpd — correct resolution but slow demuxer), then fall back to
+    // transcoded live_hls/live_dash.
+    let order: Vec<&Option<String>> = match prefer {
+        "cmaf" => vec![&playback.ondemand_hls, &playback.cmaf, &playback.hls, &playback.dash_mpd],
+        "dash" => vec![&playback.dash_mpd, &playback.hls, &playback.ondemand_hls, &playback.cmaf],
+        "ondemand" => vec![&playback.ondemand_hls, &playback.hls, &playback.cmaf, &playback.dash_mpd],
+        _ => vec![&playback.hls, &playback.ondemand_hls, &playback.cmaf, &playback.dash_mpd],
+    };
+    eprintln!("[peer/rx] peer_vk_prefer='{}' → pick order: {}",
+        if prefer.is_empty() { "hls (default)" } else { prefer },
+        order.iter().map(|u| label_var(u, &playback)).collect::<Vec<_>>().join(", "));
+    for candidate in order {
+        if let Some(url) = candidate {
+            // Classify by URL suffix: .m3u8 → HLS (needs -live_start_index),
+            // .mpd → DASH (no HLS-specific flags; VK's CMAF endpoint actually
+            // serves a DASH manifest despite the "cmaf" path segment).
+            let lower = url.to_ascii_lowercase();
+            let is_hls = lower.contains(".m3u8");
+            return Ok((url.clone(), is_hls));
+        }
     }
     Err(anyhow!("no playable URL in VK response"))
+}
+
+fn label_var(u: &Option<String>, p: &VkPlaybackResolved) -> &'static str {
+    match u {
+        Some(s) if Some(s) == p.ondemand_hls.as_ref() => "ondemand_hls",
+        Some(s) if Some(s) == p.cmaf.as_ref() => "cmaf",
+        Some(s) if Some(s) == p.hls.as_ref() => "hls",
+        Some(s) if Some(s) == p.dash_mpd.as_ref() => "dash",
+        _ => "—",
+    }
 }

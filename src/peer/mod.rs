@@ -162,6 +162,7 @@ fn tx_thread(cfg: PeerConfig, outbound: Receiver<OutboundMessage>, running: Arc<
             stream_width: cfg.stream_width,
             stream_height: cfg.stream_height,
             fps, x264_qp: cfg.x264_qp, x264_bitrate_kbps: cfg.x264_bitrate_kbps,
+            x264_crf: cfg.x264_crf, x264_maxrate_kbps: cfg.x264_maxrate_kbps,
         });
         let spawn_result = std::process::Command::new("ffmpeg")
             .args(&args)
@@ -295,7 +296,42 @@ fn rx_thread(cfg: PeerConfig, inbound: Sender<InboundMessage>, running: Arc<Atom
                 continue;
             }
         };
-        eprintln!("[peer/rx] stream resolved: is_hls={is_hls} url_head={}", &stream_url.chars().take(80).collect::<String>());
+        eprintln!("[peer/rx] stream resolved: is_hls={is_hls} url_full={}", &stream_url);
+        eprintln!("[peer/rx] flicker EXPECTED:      width={} height={} fps={} cell_size={} grid={}x{} total_cells={}",
+            params.width, params.height, params.fps, params.cell_size,
+            params.grid_cols(), params.grid_rows(), params.total_cells());
+        // Probe native stream dimensions in a BACKGROUND thread so ffmpeg spawn
+        // is not blocked by a slow/unresponsive ffprobe. The log line may arrive
+        // a few seconds after `stream resolved`; that's fine — it's diagnostic.
+        {
+            let probe_url = stream_url.clone();
+            let probe_ref = page_url.clone();
+            std::thread::spawn(move || {
+                let res = std::process::Command::new("ffprobe")
+                    .args([
+                        "-v", "error", "-select_streams", "v:0",
+                        "-show_entries", "stream=width,height,r_frame_rate,codec_name,pix_fmt",
+                        "-of", "default=noprint_wrappers=1",
+                        "-user_agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                        "-headers", &format!("Referer: {}\r\nOrigin: https://live.vkvideo.ru\r\n", probe_ref),
+                        "-timeout", "5000000",
+                        &probe_url,
+                    ])
+                    .output();
+                match res {
+                    Ok(out) => {
+                        let s = String::from_utf8_lossy(&out.stdout);
+                        let one_line: String = s.lines().map(|l| l.trim()).collect::<Vec<_>>().join(" ");
+                        if one_line.is_empty() {
+                            eprintln!("[peer/rx] ffprobe native stream: <empty — HLS not ready yet>");
+                        } else {
+                            eprintln!("[peer/rx] ffprobe native stream: {one_line}");
+                        }
+                    }
+                    Err(e) => eprintln!("[peer/rx] ffprobe failed: {e}"),
+                }
+            });
+        }
         let args = ffmpeg_read::read_args(&ffmpeg_read::ReadOpts {
             input_url: &stream_url,
             page_url: &page_url,

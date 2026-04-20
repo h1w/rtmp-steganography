@@ -157,6 +157,12 @@ pub fn run_tunnel(
             } else {
                 eprintln!("[peer/tunnel] bench-support raw_echo listening on {raw_echo_bind}");
             }
+            let raw_sink_bind: std::net::SocketAddr = "127.0.0.1:18091".parse().unwrap();
+            if let Err(e) = crate::bench::support::spawn_raw_sink(raw_sink_bind, std::sync::Arc::clone(&running_async)).await {
+                eprintln!("[peer/tunnel] bench-support raw_sink bind failed: {e}");
+            } else {
+                eprintln!("[peer/tunnel] bench-support raw_sink listening on {raw_sink_bind}");
+            }
         }
 
         while running.load(std::sync::atomic::Ordering::SeqCst) {

@@ -16,6 +16,12 @@ pub struct PublishOpts<'a> {
     pub x264_qp: Option<u32>,
     /// If set and x264_qp is None, use this kbps for CBR (override formula).
     pub x264_bitrate_kbps: Option<u32>,
+    /// If set, use `-crf N` (constant-quality, VBV-compatible). Overrides
+    /// both `x264_qp` and `x264_bitrate_kbps`.
+    pub x264_crf: Option<u32>,
+    /// If set, emit `-maxrate Xk -bufsize 2Xk`. Only effective in -crf or
+    /// -b:v modes; x264 ignores VBV in -qp (CQP) mode.
+    pub x264_maxrate_kbps: Option<u32>,
 }
 
 pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
@@ -85,14 +91,29 @@ pub fn publish_args(opts: &PublishOpts) -> Vec<String> {
     // ingest entirely.
     push(&mut args, "-x264-params");
     push(&mut args, "no-deblock=1");
-    if let Some(qp) = opts.x264_qp {
+    if let Some(crf) = opts.x264_crf {
+        // CRF: constant-quality, VBV-compatible. Pair with maxrate for a
+        // soft ceiling (e.g. CRF 22 + maxrate 5M ≈ qp=22 quality capped at
+        // 5 Mbps peak).
+        push(&mut args, "-crf"); args.push(crf.to_string());
+        if let Some(mx) = opts.x264_maxrate_kbps {
+            let mx_arg = format!("{}k", mx);
+            let buf_arg = format!("{}k", mx * 2);
+            push(&mut args, "-maxrate"); args.push(mx_arg);
+            push(&mut args, "-bufsize"); args.push(buf_arg);
+        }
+        let _ = (&bv_arg, &bufsize_arg);
+    } else if let Some(qp) = opts.x264_qp {
         push(&mut args, "-qp"); args.push(qp.to_string());
+        // maxrate intentionally ignored — x264 --qp is CQP and ignores VBV.
     } else {
         let cbr_kbps = opts.x264_bitrate_kbps.unwrap_or(kbps);
+        let cbr_max = opts.x264_maxrate_kbps.unwrap_or(cbr_kbps);
         let cbr_arg = format!("{}k", cbr_kbps);
-        let buf_arg = format!("{}k", cbr_kbps * 2);
-        push(&mut args, "-b:v"); args.push(cbr_arg.clone());
-        push(&mut args, "-maxrate"); args.push(cbr_arg);
+        let max_arg = format!("{}k", cbr_max);
+        let buf_arg = format!("{}k", cbr_max * 2);
+        push(&mut args, "-b:v"); args.push(cbr_arg);
+        push(&mut args, "-maxrate"); args.push(max_arg);
         push(&mut args, "-bufsize"); args.push(buf_arg);
         let _ = (&bv_arg, &bufsize_arg);
     }
@@ -119,6 +140,7 @@ mod tests {
             flicker_width: 256, flicker_height: 144,
             stream_width: 256, stream_height: 144,
             fps: 24, x264_qp: None, x264_bitrate_kbps: None,
+            x264_crf: None, x264_maxrate_kbps: None,
         };
         let args = publish_args(&opts);
         assert!(args.iter().any(|a| a == "rtmp://example/live/key"));
@@ -133,6 +155,7 @@ mod tests {
             flicker_width: 256, flicker_height: 144,
             stream_width: 640, stream_height: 360,
             fps: 24, x264_qp: None, x264_bitrate_kbps: None,
+            x264_crf: None, x264_maxrate_kbps: None,
         };
         let args = publish_args(&opts);
         assert!(args.iter().any(|a| a.contains("scale=640:360")));

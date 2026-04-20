@@ -63,6 +63,10 @@ pub enum BenchCmd {
         #[arg(long, default_value_t = 65536)]            throughput_bytes: u64,
         #[arg(long, default_value = "127.0.0.1")]        raw_echo_host: String,
         #[arg(long, default_value_t = 18090)]            raw_echo_port: u16,
+        /// One-way mode: stream throughput_bytes to peer-B's raw_sink (18091
+        /// by default) and don't wait for echo. Good-put measured at the sink.
+        #[arg(long)]                                     one_way: bool,
+        #[arg(long, default_value_t = 18091)]            raw_sink_port: u16,
     },
     Realistic {
         #[arg(long, default_value = "127.0.0.1:1080")]  socks: std::net::SocketAddr,
