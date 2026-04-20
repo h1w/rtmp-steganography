@@ -3,7 +3,7 @@
 use rand_chacha::ChaCha8Rng;
 use rand_core::{RngCore, SeedableRng};
 
-use crate::flicker::codec::{paint_cell_b, read_cell_b};
+use crate::flicker::codec::{paint_cell_b, read_cell_b, paint_cell_c, read_cell_c_raw};
 use crate::flicker::grid::FlickerParams;
 use crate::flicker::interleave::cell_index_to_col_row;
 
@@ -69,6 +69,30 @@ pub fn pilot_value_c(frame_counter: u32, index_in_pilot_list: usize) -> u8 {
     ((base + offset) % 16) as u8
 }
 
+pub fn paint_pilots_c(buf: &mut [u8], frame_counter: u32, excluded: &[usize], p: &FlickerParams) {
+    let positions = pilot_positions(frame_counter, excluded, p);
+    for (i, &idx) in positions.iter().enumerate() {
+        let (col, row) = cell_index_to_col_row(idx, p.grid_cols());
+        paint_cell_c(buf, col, row, pilot_value_c(frame_counter, i), p.w(), p.cs());
+    }
+}
+
+/// Returns 16 buckets; bucket `sym` holds raw (Y,U,V) means observed at
+/// each pilot cell whose expected Mode C symbol was `sym`.
+pub fn read_pilot_observations_c(
+    buf: &[u8], frame_counter: u32, excluded: &[usize], p: &FlickerParams,
+) -> [Vec<(u8, u8, u8)>; 16] {
+    let positions = pilot_positions(frame_counter, excluded, p);
+    let mut out: [Vec<(u8, u8, u8)>; 16] = Default::default();
+    for (i, &idx) in positions.iter().enumerate() {
+        let (col, row) = cell_index_to_col_row(idx, p.grid_cols());
+        let yuv = read_cell_c_raw(buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size());
+        let sym = pilot_value_c(frame_counter, i) as usize;
+        out[sym].push(yuv);
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -115,6 +139,38 @@ mod tests {
         for (s, c) in counts.iter().enumerate() {
             assert!(*c >= min_expected,
                 "symbol {s} has only {c} pilots (need >= {min_expected})");
+        }
+    }
+
+    #[test]
+    fn paint_pilots_c_then_read_observations_match_expected_symbols() {
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        paint_pilots_c(&mut buf, 100, &[], &p);
+        let obs = read_pilot_observations_c(&buf, 100, &[], &p);
+        // Every symbol slot should have at least PILOT_COUNT/16 observations
+        // (stratified distribution guarantee).
+        for sym in 0..16 {
+            assert!(obs[sym].len() >= PILOT_COUNT / 16,
+                "symbol {sym} has {} observations, need >= {}", obs[sym].len(), PILOT_COUNT / 16);
+        }
+        // Observed YUV for each symbol should sit near the static palette points.
+        // Tolerance is ±30 rather than ±5: YUV→RGB→YUV round-trip (the paint/read
+        // path goes through 8-bit RGB) loses up to ~25 LSB at palette extremes.
+        // This matches the pre-approved ±30 precedent set in Task 2's
+        // `read_cell_c_raw_returns_yuv_means_near_palette`.
+        for sym in 0..16 {
+            let y_expect = crate::flicker::levels::LEVELS_Y[(sym >> 2) & 0b11];
+            let u_expect = crate::flicker::levels::LEVELS_U[(sym >> 1) & 0b1];
+            let v_expect = crate::flicker::levels::LEVELS_V[sym & 0b1];
+            for &(y, u, v) in &obs[sym] {
+                assert!((y as i32 - y_expect as i32).abs() <= 30,
+                    "sym {sym} observed Y {y}, expect ~{y_expect}");
+                assert!((u as i32 - u_expect as i32).abs() <= 30,
+                    "sym {sym} observed U {u}, expect ~{u_expect}");
+                assert!((v as i32 - v_expect as i32).abs() <= 30,
+                    "sym {sym} observed V {v}, expect ~{v_expect}");
+            }
         }
     }
 }

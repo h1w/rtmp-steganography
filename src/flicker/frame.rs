@@ -149,10 +149,21 @@ impl FrameEncoder {
         payload_excluded.dedup();
         let payload_perm = cell_permutation(&payload_excluded, self.params.total_cells(), self.params.grid_cols());
 
-        for (i, &idx) in pilot_list.iter().enumerate() {
-            let (col, row) = cell_index_to_col_row(idx, self.params.grid_cols());
-            let sym = crate::flicker::pilot::pilot_value(self.frame_counter, i);
-            crate::flicker::codec::paint_cell_b(out_buf, col, row, sym, self.params.w(), self.params.cs());
+        match self.mode {
+            ModulationMode::B => {
+                for (i, &idx) in pilot_list.iter().enumerate() {
+                    let (col, row) = cell_index_to_col_row(idx, self.params.grid_cols());
+                    let sym = crate::flicker::pilot::pilot_value(self.frame_counter, i);
+                    crate::flicker::codec::paint_cell_b(out_buf, col, row, sym, self.params.w(), self.params.cs());
+                }
+            }
+            ModulationMode::C => {
+                for (i, &idx) in pilot_list.iter().enumerate() {
+                    let (col, row) = cell_index_to_col_row(idx, self.params.grid_cols());
+                    let sym = crate::flicker::pilot::pilot_value_c(self.frame_counter, i);
+                    crate::flicker::codec::paint_cell_c(out_buf, col, row, sym, self.params.w(), self.params.cs());
+                }
+            }
         }
 
         for (byte_idx, &byte) in header_bytes.iter().enumerate() {
@@ -360,5 +371,38 @@ mod tests {
             }
             other => panic!("expected Ok, got {other:?}"),
         }
+    }
+
+    /// Regression guard for the "cell_size doesn't actually take effect"
+    /// hypothesis: two encoders with identical dimensions/mode/frame_counter
+    /// but different cell_size MUST produce:
+    ///   (a) different grid_cols × grid_rows
+    ///   (b) different pixel buffers
+    ///   (c) each decodable ONLY by a decoder with the matching cell_size
+    #[test]
+    fn cell_size_actually_changes_painted_output() {
+        let p4 = FlickerParams::with_cell(640, 360, 24, 4);
+        let p8 = FlickerParams::with_cell(640, 360, 24, 8);
+        assert_eq!(p4.grid_cols(), 160); assert_eq!(p4.grid_rows(), 90);
+        assert_eq!(p8.grid_cols(),  80); assert_eq!(p8.grid_rows(), 45);
+        assert_ne!(p4.total_cells(), p8.total_cells());
+        let mut buf4 = vec![0u8; p4.frame_bytes_rgb24()];
+        let mut buf8 = vec![0u8; p8.frame_bytes_rgb24()];
+        assert_eq!(buf4.len(), buf8.len(), "640x360 frame bytes identical regardless of cell_size");
+        let frag = Fragment { msg_type: 2, message_id: 42, fragment_idx: 0, fragment_total: 1, payload: b"same-payload-for-both".to_vec() };
+        let mut e4 = FrameEncoder { params: p4, mode: ModulationMode::C, channel_id: 1, frame_counter: 99 };
+        let mut e8 = FrameEncoder { params: p8, mode: ModulationMode::C, channel_id: 1, frame_counter: 99 };
+        e4.encode(&mut buf4, std::slice::from_ref(&frag)).unwrap();
+        e8.encode(&mut buf8, std::slice::from_ref(&frag)).unwrap();
+        let diff_bytes = buf4.iter().zip(buf8.iter()).filter(|(a,b)| a!=b).count();
+        assert!(diff_bytes > buf4.len() / 4,
+            "cell=4 vs cell=8 buffers differ by only {diff_bytes}/{} bytes — cell_size may not be propagating",
+            buf4.len());
+        let d4 = FrameDecoder { params: p4 };
+        let d8 = FrameDecoder { params: p8 };
+        assert!(matches!(d4.decode(&buf4), DecodeOutcome::Ok {..}), "d4 must decode buf4");
+        assert!(matches!(d8.decode(&buf8), DecodeOutcome::Ok {..}), "d8 must decode buf8");
+        assert!(!matches!(d4.decode(&buf8), DecodeOutcome::Ok {..}), "d4 must NOT decode buf8 (size mismatch)");
+        assert!(!matches!(d8.decode(&buf4), DecodeOutcome::Ok {..}), "d8 must NOT decode buf4 (size mismatch)");
     }
 }
