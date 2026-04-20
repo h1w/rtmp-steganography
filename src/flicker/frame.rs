@@ -252,10 +252,17 @@ impl FrameDecoder {
         pilot_excluded.sort_unstable();
         pilot_excluded.dedup();
         let pilot_list = pilot_positions(header.frame_counter, &pilot_excluded, p);
-        let (pilot_ok, _pilot_conf) = validate_pilots(buf, header.frame_counter, &pilot_excluded, p);
-        if pilot_ok < PILOT_SUCCESS_MIN {
-            return DecodeOutcome::Dropped { reason: DropReason::PilotValidationFailed(pilot_ok) };
-        }
+        let mode = header.modulation_mode;
+        let pilot_ok = match mode {
+            ModulationMode::B => {
+                let (ok, _) = validate_pilots(buf, header.frame_counter, &pilot_excluded, p);
+                if ok < PILOT_SUCCESS_MIN {
+                    return DecodeOutcome::Dropped { reason: DropReason::PilotValidationFailed(ok) };
+                }
+                ok
+            }
+            ModulationMode::C => 1.0f32,
+        };
 
         let mut payload_excluded = pilot_excluded.clone();
         payload_excluded.extend(&pilot_list);
@@ -263,7 +270,16 @@ impl FrameDecoder {
         payload_excluded.dedup();
         let payload_perm = cell_permutation(&payload_excluded, p.total_cells(), p.grid_cols());
 
-        let mode = header.modulation_mode;
+        let calibrated: Option<crate::flicker::calibration::CalibratedLevels> = match mode {
+            ModulationMode::C => {
+                let obs = crate::flicker::pilot::read_pilot_observations_c(
+                    buf, header.frame_counter, &pilot_excluded, p,
+                );
+                Some(crate::flicker::calibration::calibrate(&obs))
+            }
+            ModulationMode::B => None,
+        };
+
         let block_count = header.fec_params[2] as usize;
         let cells_per_byte = match mode { ModulationMode::B => 4, ModulationMode::C => 2 };
 
@@ -277,7 +293,12 @@ impl FrameDecoder {
                     let cell_pos = (block_i * RS_BLOCK_N + byte_i) * cells_per_byte + unit;
                     if cell_pos >= payload_perm.len() { break; }
                     let (col, row) = payload_perm[cell_pos];
-                    let (sym, conf) = read_cell(buf, col, row, mode, p.w(), p.cs(), p.read_offset(), p.read_size());
+                    let (sym, conf) = match (mode, calibrated.as_ref()) {
+                        (ModulationMode::C, Some(cal)) => crate::flicker::codec::read_cell_c_cal(
+                            buf, col, row, p.w(), p.cs(), p.read_offset(), p.read_size(), cal,
+                        ),
+                        _ => read_cell(buf, col, row, mode, p.w(), p.cs(), p.read_offset(), p.read_size()),
+                    };
                     let bits = match mode { ModulationMode::B => 2, ModulationMode::C => 4 };
                     byte = (byte << bits) | (sym & ((1 << bits) - 1));
                     min_conf = min_conf.min(conf);
@@ -404,5 +425,32 @@ mod tests {
         assert!(matches!(d8.decode(&buf8), DecodeOutcome::Ok {..}), "d8 must decode buf8");
         assert!(!matches!(d4.decode(&buf8), DecodeOutcome::Ok {..}), "d4 must NOT decode buf8 (size mismatch)");
         assert!(!matches!(d8.decode(&buf4), DecodeOutcome::Ok {..}), "d8 must NOT decode buf4 (size mismatch)");
+    }
+
+    #[test]
+    fn mode_c_decode_recovers_frame_under_uniform_chroma_drift() {
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        let mut enc = FrameEncoder { params: p, mode: ModulationMode::C, channel_id: 1, frame_counter: 77 };
+        let frag = Fragment {
+            msg_type: 2, message_id: 1, fragment_idx: 0, fragment_total: 1,
+            payload: b"calibration-smoke-test-payload".to_vec(),
+        };
+        enc.encode(&mut buf, std::slice::from_ref(&frag)).unwrap();
+        // Uniform +25 LSB blue shift simulates the transcoder's chroma offset.
+        for py in 0..p.h() {
+            for px in 0..p.w() {
+                let o = crate::flicker::grid::rgb24_offset(px, py, p.w());
+                buf[o + 2] = buf[o + 2].saturating_add(25);
+            }
+        }
+        let dec = FrameDecoder { params: p };
+        match dec.decode(&buf) {
+            DecodeOutcome::Ok { fragments, .. } => {
+                assert_eq!(fragments.len(), 1);
+                assert!(fragments[0].payload.starts_with(b"calibration-smoke-test-payload"));
+            }
+            other => panic!("expected Ok with calibrated decode, got {other:?}"),
+        }
     }
 }
