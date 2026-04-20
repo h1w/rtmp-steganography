@@ -108,14 +108,20 @@ pub fn run_tunnel(
             their_vk_channel: String::new(), their_stream_name: String::new(),
             modulation_mode: crate::flicker::ModulationMode::B,
             frag_timeout_ms: 2000, rx_warmup_ms: 0, log_every_frame: false,
-            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None,
+            flicker_fps: 24, stream_width: 256, stream_height: 144, flicker_cell_size: 4, x264_qp: None, x264_bitrate_kbps: None, x264_crf: None, x264_maxrate_kbps: None,
         });
         let params = FlickerParams::with_cell(cfg.stream_width, cfg.stream_height, cfg.flicker_fps.max(1), cfg.flicker_cell_size.max(2));
         let block_count = block_count_for(&params, cfg.modulation_mode);
-        let frame_capacity = block_count * RS_BLOCK_K;
+        let per_lane = block_count * RS_BLOCK_K;
+        let frame_capacity = match cfg.modulation_mode {
+            crate::flicker::ModulationMode::B => per_lane,
+            crate::flicker::ModulationMode::C => 2 * per_lane,
+        };
         let max_payload = frame_capacity.saturating_sub(FRAGMENT_HEADER_BYTES).saturating_sub(4);
-        eprintln!("[peer/tunnel] flicker={}x{}@{} mode={:?} block_count={} frame_capacity={} max_payload={}",
-            params.width, params.height, params.fps, cfg.modulation_mode, block_count, frame_capacity, max_payload);
+        eprintln!("[peer/tunnel] flicker={}x{}@{} mode={:?} cell_size={}px grid={}x{} total_cells={} block_count={} frame_capacity={} max_payload={} frame_bytes_rgb24={}",
+            params.width, params.height, params.fps, cfg.modulation_mode,
+            params.cell_size, params.grid_cols(), params.grid_rows(), params.total_cells(),
+            block_count, frame_capacity, max_payload, params.frame_bytes_rgb24());
 
         let ch: Arc<dyn crate::tunnel::adapter::DatagramChannel> =
             Arc::new(FlickerChannel::new(outbound_tx, inbound_rx, max_payload));
