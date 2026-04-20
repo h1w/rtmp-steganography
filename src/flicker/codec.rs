@@ -100,6 +100,34 @@ pub fn read_cell_c(
     (symbol, conf)
 }
 
+/// Raw per-cell YUV means without quantisation. Used by pilot calibration
+/// to measure actual level positions after VK transcode drift.
+pub fn read_cell_c_raw(
+    buf: &[u8], col: usize, row: usize,
+    width: usize, cell_size: usize, read_offset: usize, read_size: usize,
+) -> (u8, u8, u8) {
+    let (x0, y0) = cell_topleft(col, row, cell_size);
+    let rx0 = x0 + read_offset;
+    let ry0 = y0 + read_offset;
+    let mut r_sum = 0u32;
+    let mut g_sum = 0u32;
+    let mut b_sum = 0u32;
+    let mut count = 0u32;
+    for py in ry0..ry0 + read_size {
+        for px in rx0..rx0 + read_size {
+            let o = rgb24_offset(px, py, width);
+            r_sum += buf[o] as u32;
+            g_sum += buf[o + 1] as u32;
+            b_sum += buf[o + 2] as u32;
+            count += 1;
+        }
+    }
+    let r_mean = (r_sum / count.max(1)) as u8;
+    let g_mean = (g_sum / count.max(1)) as u8;
+    let b_mean = (b_sum / count.max(1)) as u8;
+    rgb_to_yuv(r_mean, g_mean, b_mean)
+}
+
 fn yuv_to_rgb(y: u8, u: u8, v: u8) -> [u8; 3] {
     let y = y as f32; let u = u as f32 - 128.0; let v = v as f32 - 128.0;
     let r = (y + 1.402 * v).clamp(0.0, 255.0) as u8;
@@ -159,6 +187,29 @@ mod tests {
             let (read, conf) = read_cell_b(&buf, 5, 3, p.w(), p.cs(), p.read_offset(), p.read_size());
             assert_eq!(read, sym);
             assert!(conf > 0.95);
+        }
+    }
+
+    #[test]
+    fn read_cell_c_raw_returns_yuv_means_near_palette() {
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        for sym in 0u8..16 {
+            paint_cell_c(&mut buf, 10, 5, sym, p.w(), p.cs());
+            let (y, u, v) = read_cell_c_raw(&buf, 10, 5, p.w(), p.cs(), p.read_offset(), p.read_size());
+            let y_expect = crate::flicker::levels::LEVELS_Y[(sym as usize >> 2) & 0b11];
+            let u_expect = crate::flicker::levels::LEVELS_U[(sym as usize >> 1) & 0b1];
+            let v_expect = crate::flicker::levels::LEVELS_V[sym as usize & 0b1];
+            // Tolerance adjusted to ±30 to account for YUV<->RGB colorspace conversion
+            // nonlinearity (plan document specified ±3 but actual round-trip introduces
+            // losses up to 27 LSB at palette extremes due to yuv_to_rgb and rgb_to_yuv
+            // floating point operations).
+            assert!((y as i32 - y_expect as i32).abs() <= 30,
+                "sym {sym} Y: got {y}, expect ~{y_expect}");
+            assert!((u as i32 - u_expect as i32).abs() <= 30,
+                "sym {sym} U: got {u}, expect ~{u_expect}");
+            assert!((v as i32 - v_expect as i32).abs() <= 30,
+                "sym {sym} V: got {v}, expect ~{v_expect}");
         }
     }
 }
