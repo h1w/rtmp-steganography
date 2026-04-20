@@ -17,6 +17,11 @@ pub fn quantise_uv(sample: u8) -> (u8, f32) {
     quantise(sample, &LEVELS_U)
 }
 
+/// Public variant: quantise against caller-supplied levels (e.g. calibrated).
+pub fn quantise_with_levels(sample: u8, levels: &[u8]) -> (u8, f32) {
+    quantise(sample, levels)
+}
+
 fn quantise(sample: u8, levels: &[u8]) -> (u8, f32) {
     debug_assert!(!levels.is_empty());
     let mut best_idx = 0usize;
@@ -51,6 +56,21 @@ pub fn level_y_as_rgb(sym: u8) -> [u8; 3] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn quantise_with_levels_uses_custom_thresholds() {
+        // Simulated drifted U palette: [110, 200] instead of static [80, 176].
+        // Static quantise would threshold at 128 — 110 falls on 80 side.
+        // quantise_with_levels should threshold at (110+200)/2 = 155 → 110 → idx 0.
+        let drifted_u = [110u8, 200u8];
+        let (s, _) = quantise_with_levels(110, &drifted_u);
+        assert_eq!(s, 0);
+        let (s2, _) = quantise_with_levels(200, &drifted_u);
+        assert_eq!(s2, 1);
+        // Midway sample 155 is ambiguous — low confidence.
+        let (_, c) = quantise_with_levels(155, &drifted_u);
+        assert!(c < 0.1, "midway between drifted levels should have low conf, got {c}");
+    }
 
     #[test]
     fn exact_levels_quantise_with_full_confidence() {

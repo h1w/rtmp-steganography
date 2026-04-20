@@ -100,6 +100,42 @@ pub fn read_cell_c(
     (symbol, conf)
 }
 
+/// Mode C cell reader using caller-supplied calibrated Y/U/V levels.
+/// Semantically identical to `read_cell_c` but uses dynamic thresholds.
+pub fn read_cell_c_cal(
+    buf: &[u8], col: usize, row: usize,
+    width: usize, cell_size: usize, read_offset: usize, read_size: usize,
+    cal: &crate::flicker::calibration::CalibratedLevels,
+) -> (u8, f32) {
+    use crate::flicker::levels::quantise_with_levels;
+    let (x0, y0) = cell_topleft(col, row, cell_size);
+    let rx0 = x0 + read_offset;
+    let ry0 = y0 + read_offset;
+    let mut r_sum = 0u32;
+    let mut g_sum = 0u32;
+    let mut b_sum = 0u32;
+    let mut count = 0u32;
+    for py in ry0..ry0 + read_size {
+        for px in rx0..rx0 + read_size {
+            let o = rgb24_offset(px, py, width);
+            r_sum += buf[o] as u32;
+            g_sum += buf[o + 1] as u32;
+            b_sum += buf[o + 2] as u32;
+            count += 1;
+        }
+    }
+    let r_mean = (r_sum / count.max(1)) as u8;
+    let g_mean = (g_sum / count.max(1)) as u8;
+    let b_mean = (b_sum / count.max(1)) as u8;
+    let (y, u, v) = rgb_to_yuv(r_mean, g_mean, b_mean);
+    let (y_sym, y_conf) = quantise_with_levels(y, &cal.y);
+    let (u_sym, u_conf) = quantise_with_levels(u, &cal.u);
+    let (v_sym, v_conf) = quantise_with_levels(v, &cal.v);
+    let symbol = (y_sym << 2) | (u_sym << 1) | v_sym;
+    let conf = y_conf.min(u_conf).min(v_conf);
+    (symbol, conf)
+}
+
 /// Raw per-cell YUV means without quantisation. Used by pilot calibration
 /// to measure actual level positions after VK transcode drift.
 pub fn read_cell_c_raw(
@@ -211,5 +247,39 @@ mod tests {
             assert!((v as i32 - v_expect as i32).abs() <= 30,
                 "sym {sym} V: got {v}, expect ~{v_expect}");
         }
+    }
+
+    #[test]
+    fn read_cell_c_cal_tolerates_chroma_drift_with_calibrated_levels() {
+        use crate::flicker::calibration::CalibratedLevels;
+        let p = FlickerParams::with_cell(432, 240, 24, 4);
+        let mut buf = vec![0u8; p.frame_bytes_rgb24()];
+        // Paint symbol 5 = Y1 U0 V1 with DRIFTED chroma levels — simulate VK.
+        // Directly set pixels to YUV that maps from drifted (Y=96, U=110, V=200).
+        // We reuse paint_cell_c by first telling it: palette is [96..96..], etc.
+        // Easier: paint with static levels, then inject drift in buffer pixel.
+        paint_cell_c(&mut buf, 10, 5, 5, p.w(), p.cs());
+        // Inject +30 LSB drift on U by patching every pixel's blue channel.
+        // Do this ACROSS the whole frame (chunk around the read zone).
+        for py in 0..p.h() {
+            for px in 0..p.w() {
+                let o = crate::flicker::grid::rgb24_offset(px, py, p.w());
+                buf[o + 2] = buf[o + 2].saturating_add(40); // shift blue → shifts U
+            }
+        }
+        // Static-level read: U threshold moved (drift beats it); symbol likely wrong.
+        let (static_sym, _) = read_cell_c(&buf, 10, 5, p.w(), p.cs(), p.read_offset(), p.read_size());
+        // Calibrated read with matching drifted U palette recovers the symbol.
+        let cal = CalibratedLevels {
+            y: crate::flicker::levels::LEVELS_Y,
+            u: [crate::flicker::levels::LEVELS_U[0].saturating_add(18),
+                crate::flicker::levels::LEVELS_U[1].saturating_add(18)],
+            v: crate::flicker::levels::LEVELS_V,
+        };
+        let (cal_sym, _) = read_cell_c_cal(&buf, 10, 5, p.w(), p.cs(), p.read_offset(), p.read_size(), &cal);
+        assert_eq!(cal_sym, 5, "calibrated read must recover drifted symbol");
+        // (static_sym may or may not equal 5 depending on drift magnitude;
+        // we assert the CALIBRATED path correctness, not that static fails.)
+        let _ = static_sym;
     }
 }
