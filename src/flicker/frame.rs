@@ -14,8 +14,23 @@ use crate::flicker::markers::{paint_markers, frame_offset, marker_centers, MARKE
 use crate::flicker::pilot::{pilot_positions, validate_pilots, PILOT_COUNT};
 use crate::flicker::ModulationMode;
 
-pub const PILOT_CONFIDENCE_THRESHOLD: f32 = 0.5;
+/// Default confidence floor below which a payload byte is erased instead of
+/// being included as a possibly-wrong symbol. Lower → more errors but fewer
+/// erasures (good when the true symbol is usually closest even with low
+/// confidence). Higher → stricter soft-decision gate. Override at runtime
+/// with env `FLICKER_CONF_THRESHOLD` (f32 in [0.0, 1.0]).
+pub const PILOT_CONFIDENCE_THRESHOLD_DEFAULT: f32 = 0.5;
 pub const PILOT_SUCCESS_MIN: f32 = 0.80;
+
+/// Resolve the confidence threshold from env every time decode runs. The
+/// overhead is one getenv per frame; negligible vs. per-cell quantise cost.
+fn conf_threshold() -> f32 {
+    std::env::var("FLICKER_CONF_THRESHOLD")
+        .ok()
+        .and_then(|s| s.parse::<f32>().ok())
+        .map(|v| v.clamp(0.0, 1.0))
+        .unwrap_or(PILOT_CONFIDENCE_THRESHOLD_DEFAULT)
+}
 
 /// Compute cell indices occupied by corner markers for the given params.
 /// Markers are always 16×16 px regardless of cell_size — we floor/ceil to
@@ -249,6 +264,8 @@ pub enum DropReason {
     HeaderCrc,
     PilotValidationFailed(f32),
     BlockRsFailed(usize),
+    BlockRsFailedY(usize),
+    BlockRsFailedUV(usize),
     PayloadCrcMismatch,
     FragmentParse,
 }
@@ -256,6 +273,7 @@ pub enum DropReason {
 impl FrameDecoder {
     pub fn decode(&self, buf: &[u8]) -> DecodeOutcome {
         let p = &self.params;
+        let conf_gate = conf_threshold();
         let markers = marker_cell_indices(p);
 
         if frame_offset(buf, p).is_none() {
@@ -274,7 +292,7 @@ impl FrameDecoder {
                 byte = (byte << 2) | (sym & 0b11);
                 byte_confidence_min = byte_confidence_min.min(conf);
             }
-            if byte_confidence_min >= PILOT_CONFIDENCE_THRESHOLD {
+            if byte_confidence_min >= conf_gate {
                 header_shards[byte_idx] = Some(byte);
             }
         }
@@ -338,7 +356,7 @@ impl FrameDecoder {
                             byte = (byte << 2) | (sym & 0b11);
                             min_conf = min_conf.min(conf);
                         }
-                        if min_conf >= PILOT_CONFIDENCE_THRESHOLD {
+                        if min_conf >= conf_gate {
                             shards[byte_i] = Some(byte);
                         }
                     }
@@ -376,7 +394,7 @@ impl FrameDecoder {
                         }
                         if any_skipped { continue; }
                         let (y_byte, uv_byte) = pack_lane_bytes(&cells_observed);
-                        if min_conf >= PILOT_CONFIDENCE_THRESHOLD {
+                        if min_conf >= conf_gate {
                             y_shards[block_i][byte_i] = Some(y_byte);
                             uv_shards[block_i][byte_i] = Some(uv_byte);
                         }
@@ -387,11 +405,11 @@ impl FrameDecoder {
                 for block_i in 0..block_count {
                     match decode_block(&y_shards[block_i]) {
                         Ok(d) => y_bytes.extend_from_slice(&d),
-                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_i) },
+                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailedY(block_i) },
                     }
                     match decode_block(&uv_shards[block_i]) {
                         Ok(d) => uv_bytes.extend_from_slice(&d),
-                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(block_count + block_i) },
+                        Err(_) => return DecodeOutcome::Dropped { reason: DropReason::BlockRsFailedUV(block_i) },
                     }
                 }
                 let mut bytes = y_bytes;
@@ -559,8 +577,8 @@ mod tests {
         // poison luma bytes via shared RS") is satisfied iff decode does not
         // fail with BlockRsFailed. Accept any outcome that isn't BlockRsFailed.
         match dec.decode(&buf) {
-            DecodeOutcome::Dropped { reason: DropReason::BlockRsFailed(_) } => {
-                panic!("Y-lane must not fail with BlockRs under chroma-only noise");
+            DecodeOutcome::Dropped { reason: DropReason::BlockRsFailedY(_) } => {
+                panic!("Y-lane must not fail under chroma-only noise");
             }
             _ => {}
         }

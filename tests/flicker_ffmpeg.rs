@@ -92,6 +92,8 @@ fn roundtrip_full(
                 drops.push(format!("{:?}", match reason {
                     DropReason::HeaderRsFailed => "HeaderRs",
                     DropReason::BlockRsFailed(_) => "BlockRs",
+                    DropReason::BlockRsFailedY(_) => "BlockRsY",
+                    DropReason::BlockRsFailedUV(_) => "BlockRsUV",
                     DropReason::PilotValidationFailed(_) => "Pilot",
                     DropReason::PayloadCrcMismatch => "CRC",
                     DropReason::HeaderCrc => "HeaderCrc",
@@ -204,6 +206,8 @@ fn roundtrip_at(p: FlickerParams, n_frames: usize, bitrate_kbps: u32) -> (usize,
                 drops.push(format!("{:?}", match reason {
                     DropReason::HeaderRsFailed => "HeaderRs",
                     DropReason::BlockRsFailed(_) => "BlockRs",
+                    DropReason::BlockRsFailedY(_) => "BlockRsY",
+                    DropReason::BlockRsFailedUV(_) => "BlockRsUV",
                     DropReason::PilotValidationFailed(_) => "Pilot",
                     DropReason::PayloadCrcMismatch => "CRC",
                     DropReason::HeaderCrc => "HeaderCrc",
